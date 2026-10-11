@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SnapDance — админка</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230c0b10'/%3E%3Cpath d='M12 8v12.5a3.5 3.5 0 1 1-2-3.2V8h8v3h-6' fill='%23c6ff3d'/%3E%3C/svg%3E">
+<style>
+/* Layout: owner's control room in the same night palette — tabs: overview, videos, orders, codes, packs & ruby prices. */
+:root { --bg: #0c0b10; --panel: #16141d; --panel2: #1e1b27; --line: #2c2838; --ink: #f4f1fa; --muted: #a29cb3; --lime: #c6ff3d; --lime-ink: #10120a; --ruby: #ff2e5b; --ok: #5fe3a1; --bad: #ff6b6b; --warn: #f0b44c; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 14.5px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+[hidden] { display: none !important; }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 14px 60px; }
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 0; flex-wrap: wrap; }
+h1 { margin: 0; font-size: 20px; } h1 small { color: var(--muted); font-size: 13px; font-weight: 500; margin-left: 6px; }
+h2 { margin: 0 0 10px; font-size: 16px; }
+.btn { border: 0; border-radius: 999px; padding: 8px 14px; font: 700 13.5px system-ui, sans-serif; background: var(--lime); color: var(--lime-ink); cursor: pointer; text-decoration: none; display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; }
+.btn.ghost { background: none; color: var(--ink); border: 1px solid var(--line); }
+.btn.sm { padding: 5px 10px; font-size: 12.5px; }
+input, select { background: var(--panel2); color: var(--ink); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; font: 14px system-ui, sans-serif; width: 100%; }
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 16px; overflow-x: auto; }
+.tabs button { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted); padding: 10px 12px; font: 700 14px system-ui, sans-serif; cursor: pointer; white-space: nowrap; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--lime); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; } .kpi span { display: block; color: var(--muted); font-size: 12.5px; } .kpi b { font-size: 21px; }
+.cols { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 14px; } @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+.chart { display: flex; align-items: flex-end; gap: 5px; height: 150px; }
+.chart div { flex: 1; display: grid; align-content: end; gap: 4px; min-width: 0; } .chart i { background: var(--lime); border-radius: 4px 4px 0 0; min-height: 2px; display: block; } .chart small { font-size: 10px; color: var(--muted); text-align: center; }
+.sys div { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--line); padding: 7px 0; } .sys div:last-child { border: 0; }
+.ok { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); } .muted { color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.it { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.it .m { aspect-ratio: 9 / 16; background: #000; display: grid; place-items: center; color: var(--muted); font-size: 13px; text-align: center; padding: 0; }
+.it video, .it img { width: 100%; height: 100%; object-fit: cover; }
+.it .b { padding: 10px; display: grid; gap: 4px; font-size: 13px; }
+.tbl { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; } th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; } th { color: var(--muted); font-size: 11.5px; text-transform: uppercase; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; }
+label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-weight: 700; }
+.pk { display: grid; grid-template-columns: 1fr 1fr 1fr .8fr .7fr .7fr auto auto; gap: 8px; align-items: center; padding: 6px 0; } @media (max-width: 760px) { .pk { grid-template-columns: 1fr 1fr; } }
+.pr { display: grid; grid-template-columns: 1fr 110px 90px; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--line); }
+.exform { display: grid; grid-template-columns: 180px 180px minmax(0, 1fr); gap: 12px; } @media (max-width: 700px) { .exform { grid-template-columns: 1fr 1fr; } .exform > div { grid-column: 1 / -1; } }
+.drop2 { aspect-ratio: 3 / 4; border: 2px dashed var(--line); border-radius: 14px; display: grid; place-items: center; text-align: center; cursor: pointer; overflow: hidden; color: var(--muted); font-size: 12.5px; background: var(--panel2); position: relative; }
+.drop2:hover, .drop2.over { border-color: var(--lime); } .drop2 b { display: block; color: var(--ink); font-size: 14px; margin: 4px 0 2px; } .drop2 span { display: grid; line-height: 1.3; padding: 8px; } .drop2 span i { font-size: 26px; font-style: normal; }
+.drop2 img, .drop2 video { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.exi .m { position: relative; } .exi .bf { position: absolute; left: 8px; top: 8px; width: 34%; aspect-ratio: 3/4; border: 2px solid #fff; border-radius: 8px; overflow: hidden; } .exi .bf img { width: 100%; height: 100%; object-fit: cover; }
+.exi .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.msg { font-size: 13.5px; } .msg.ok { color: var(--ok); } .msg.err { color: var(--bad); }
+.login { max-width: 360px; margin: 80px auto; display: grid; gap: 12px; }
+.filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; } .filters select, .filters input { width: auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="login card" id="login">
+    <h1>SnapDance · админка</h1>
+    <p class="muted" style="margin:0">Пароль — значение ADMIN_PASSWORD в Railway → Variables.</p>
+    <input type="password" id="pass" placeholder="Пароль" autocomplete="current-password">
+    <button class="btn" id="enter">Войти</button>
+    <div class="msg err" id="loginErr" hidden></div>
+  </div>
+
+  <div id="app" hidden>
+    <div class="bar">
+      <h1><span id="brand">SnapDance</span><small>админка</small></h1>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn ghost" href="/" target="_blank">Сайт ↗</a><button class="btn ghost" id="out">Выйти</button></div>
+    </div>
+    <nav class="tabs">
+      <button data-tab="home" aria-selected="true">Обзор</button>
+      <button data-tab="jobs" aria-selected="false">Видео</button>
+      <button data-tab="examples" aria-selected="false">Примеры до/после</button>
+      <button data-tab="orders" aria-selected="false">Заказы</button>
+      <button data-tab="keys" aria-selected="false">Коды клиентов</button>
+      <button data-tab="prices" aria-selected="false">Пакеты и цены</button>
+    </nav>
+
+    <section data-pane="home">
+      <div class="kpis" id="kpis"></div>
+      <div class="cols">
+        <div class="card"><h2>Видео за 14 дней</h2><div class="chart" id="chart"></div></div>
+        <div class="card"><h2>Система</h2><div class="sys" id="sys"></div></div>
+      </div>
+    </section>
+
+    <section data-pane="jobs" hidden>
+      <div class="filters"><select id="jf"><option value="">Все</option><option value="done">Готовые</option><option value="working">В работе</option><option value="failed">Ошибки</option></select></div>
+      <div class="grid" id="jobs"></div>
+    </section>
+
+    <section data-pane="examples" hidden>
+      <div class="card">
+        <h2>Добавить пример «до и после»</h2>
+        <p class="muted" style="margin-top:0;font-size:13px">Примеры показываются на главной сразу под баннером. Используйте только фото и видео людей, которые дали согласие на показ (или свои).</p>
+        <div class="exform">
+          <label class="drop2" id="dBefore"><input type="file" accept="image/*" hidden id="fBefore"><span id="tBefore"><i>📷</i><b>Фото «до»</b>нажмите или перетащите</span></label>
+          <label class="drop2" id="dAfter"><input type="file" accept="video/*" hidden id="fAfter"><span id="tAfter"><i>🎬</i><b>Видео «после»</b>нажмите или перетащите</span></label>
+          <div style="display:grid;gap:10px;align-content:start">
+            <label class="f">Подпись (необязательно)<input id="exCap" maxlength="80" placeholder="Например: тренд-танец из одного селфи"></label>
+            <button class="btn" id="exAdd">Добавить пример</button>
+            <div class="msg" id="exMsg"></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid" id="exList"></div>
+    </section>
+
+    <section data-pane="orders" hidden>
+      <div class="tbl"><table><thead><tr><th>Дата</th><th>Код</th><th>Email</th><th>Пакет</th><th>Рубины</th><th>Сумма</th></tr></thead><tbody id="orders"></tbody></table></div>
+    </section>
+
+    <section data-pane="keys" hidden>
+      <div class="card">
+        <h2>Создать код с рубинами (промо, подарок, тест)</h2>
+        <div class="row">
+          <label class="f">Рубины<input type="number" id="kC" value="50" min="1"></label>
+          <label class="f">Email<input id="kE"></label>
+          <label class="f">Заметка<input id="kN" placeholder="блогер, тест"></label>
+          <button class="btn" id="kGo">Создать</button>
+        </div>
+        <div class="msg" id="kMsg" style="margin-top:8px"></div>
+      </div>
+      <div class="filters"><input id="kq" placeholder="Поиск по коду или email"></div>
+      <div class="tbl"><table><thead><tr><th>Код</th><th>Рубины</th><th>Потрачено</th><th>Email</th><th>Источник</th><th>Создан</th><th>Изменить</th></tr></thead><tbody id="keys"></tbody></table></div>
+    </section>
+
+    <section data-pane="prices" hidden>
+      <div class="cols">
+        <div class="card">
+          <h2>Пакеты рубинов</h2>
+          <div class="pk muted" style="font-size:12px"><span>Название ES</span><span>EN</span><span>RU</span><span>id</span><span>Рубины</span><span>Цена</span><span>Хит</span><span></span><span></span></div>
+          <div id="packs"></div>
+          <div class="row" style="margin-top:10px"><button class="btn ghost" id="pAdd">+ Пакет</button><label class="f">Валюта<select id="cur"><option value="eur">EUR</option><option value="usd">USD</option><option value="gbp">GBP</option></select></label><button class="btn" id="pSave">Сохранить пакеты</button></div>
+          <div class="msg" id="pMsg"></div>
+        </div>
+        <div class="card">
+          <h2>Наценка и себестоимость</h2>
+          <p class="muted" style="margin-top:0;font-size:13px">Цена в рубинах считается сама: себестоимость fal.ai × наценка. Рубин оценивается по самому выгодному пакету за вычетом комиссии Stripe и налога — поэтому наценка соблюдается при любом пакете.</p>
+          <div class="row">
+            <label class="f">Наценка, ×<input type="number" step="0.1" min="1" id="eMarkup"></label>
+            <label class="f">Запас на неудачные, %<input type="number" step="1" min="0" id="eFail"></label>
+            <label class="f">Комиссия Stripe, %<input type="number" step="0.1" min="0" id="eFeePct"></label>
+            <label class="f">Комиссия Stripe, фикс.<input type="number" step="0.01" min="0" id="eFeeFix"></label>
+            <label class="f">НДС / IVA в цене, %<input type="number" step="1" min="0" id="eVat"></label>
+            <label class="f">Курс валюты к $<input type="number" step="0.01" min="0" id="eFx"></label>
+            <label class="f">Face-lock, $ за сек<input type="number" step="0.01" min="0" id="eLock"></label>
+            <label class="f">1080p·60, $ за сек<input type="number" step="0.01" min="0" id="eEnh"></label>
+          </div>
+          <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">Себестоимость моделей fal.ai ($) — менять, если fal.ai поменяет цены</summary><div id="usdList" style="margin-top:8px"></div></details>
+          <button class="btn" id="prSave" style="margin-top:12px">Сохранить и пересчитать</button>
+          <div class="msg" id="prMsg"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Проверка: сколько платит клиент и сколько остаётся вам</h2>
+        <p class="muted" id="econSum" style="margin-top:0;font-size:13px"></p>
+        <div class="tbl" style="border:0"><table><thead><tr><th>Видео</th><th>Рубины</th><th>Клиент платит*</th><th>Вам после комиссий, $</th><th>fal.ai, $</th><th>Наценка</th></tr></thead><tbody id="examples"></tbody></table></div>
+        <p class="muted" style="font-size:12px;margin-bottom:0">* по самому выгодному пакету. При меньших пакетах клиент платит за рубин больше — ваша наценка ещё выше.</p>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const ss = { get(k) { try { return sessionStorage.getItem(k); } catch { return null; } }, set(k, v) { try { sessionStorage.setItem(k, v); } catch {} }, del(k) { try { sessionStorage.removeItem(k); } catch {} } };
+  const num = v => new Intl.NumberFormat("ru-RU").format(v || 0);
+  const date = ts => ts ? new Date(ts).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";
+  const say = (id, t, c) => { $(id).textContent = t; $(id).className = "msg " + (c || ""); };
+  let pass = ss.get("sd_admin") || "", tab = "home", cur = "eur", timer = null, PACKS = [], PR = null;
+  const money = v => new Intl.NumberFormat("ru-RU", { style: "currency", currency: cur.toUpperCase() }).format(v || 0);
+  async function api(path, body) {
+    const r = await fetch(path, { method: body ? "POST" : "GET", headers: { "content-type": "application/json", "x-admin": pass }, body: body ? JSON.stringify(body) : undefined });
+    let d = {}; try { d = await r.json(); } catch {}
+    if (r.status === 401 || r.status === 403) { ss.del("sd_admin"); $("app").hidden = true; $("login").hidden = false; say("loginErr", d.error || "Нет доступа", "err"); $("loginErr").hidden = false; throw new Error(d.error); }
+    if (!r.ok) throw new Error(d.error || "Ошибка " + r.status);
+    return d;
+  }
+  async function enter() { pass = $("pass").value || pass; try { await api("/api/admin/stats"); } catch { return; } ss.set("sd_admin", pass); $("login").hidden = true; $("app").hidden = false; show(tab); }
+  $("enter").onclick = enter; $("pass").onkeydown = e => { if (e.key === "Enter") enter(); };
+  $("out").onclick = () => { ss.del("sd_admin"); location.reload(); };
+  function show(n) { tab = n; document.querySelectorAll("[data-tab]").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === n)); document.querySelectorAll("[data-pane]").forEach(p => p.hidden = p.dataset.pane !== n); load(); }
+  document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => show(b.dataset.tab));
+  async function load() {
+    clearTimeout(timer);
+    try {
+      if (tab === "home") renderHome(await api("/api/admin/stats"));
+      if (tab === "jobs") renderJobs(await api("/api/admin/jobs"));
+      if (tab === "orders") renderOrders(await api("/api/admin/orders"));
+      if (tab === "examples") renderEx(await api("/api/admin/examples"));
+      if (tab === "keys") renderKeys(await api("/api/admin/keys"));
+      if (tab === "prices") await renderPrices();
+    } catch {}
+    if (tab === "home" || tab === "jobs") timer = setTimeout(load, 15000);
+  }
+  function renderHome(S) {
+    cur = S.currency; $("brand").textContent = S.brand;
+    $("kpis").innerHTML = [["Выручка сегодня", money(S.today.revenue)], ["За 7 дней", money(S.revenue7)], ["За 30 дней", money(S.revenue30)], ["Всего", money(S.revenueAll)],
+      ["Заказов", num(S.orders)], ["Клиентов", num(S.clients)], ["Готовых видео", num(S.videos)], ["Тренд / стиль", `${S.trend} / ${S.style}`],
+      ["В работе / ошибок", `${S.working} / ${S.failed}`], ["Расход fal.ai ≈", "$" + S.falCost], ["Рубинов продано", num(S.rubiesSold)], ["Рубинов на балансах", num(S.rubiesLeft)]]
+      .map(([a, b]) => `<div class="kpi"><span>${a}</span><b>${esc(b)}</b></div>`).join("");
+    const mx = Math.max(1, ...S.days.map(d => d.videos));
+    $("chart").innerHTML = S.days.map(d => `<div title="${new Date(d.day).toLocaleDateString("ru-RU")}: ${d.videos} видео, ${money(d.revenue)}"><i style="height:${Math.round(d.videos / mx * 120)}px"></i><small>${new Date(d.day).getDate()}</small></div>`).join("");
+    const y = (ok, t) => `<b class="${ok ? "ok" : "bad"}">${esc(t)}</b>`;
+    $("sys").innerHTML = [["fal.ai", y(S.system.falOk, S.system.fal)], ["ffmpeg", y(S.system.ffmpeg, S.system.ffmpeg ? "есть" : "нет — видео без обработки")], ["Stripe", y(S.system.stripe, S.system.stripe ? "подключён" : "нет STRIPE_SECRET_KEY")],
+      ["Вебхук Stripe", y(S.system.webhook, S.system.webhook ? "подключён" : "нет STRIPE_WEBHOOK_SECRET")], ["Хранилище", y(S.system.persistent, S.system.persistent ? "Volume " + S.system.dataDir : "Volume не подключён!")],
+      ["PUBLIC_URL", S.system.publicUrl ? y(true, "задан") : '<b class="warn">не задан</b>'], ["Файлы", `<b>${num(S.disk.files)} · ${(S.disk.bytes / 1048576).toFixed(0)} МБ</b>`]]
+      .map(([a, b]) => `<div><span>${a}</span>${b}</div>`).join("");
+  }
+  let JOBS = [];
+  const ST = { done: "готово", working: "в работе", failed: "ошибка" };
+  function renderJobs(list) {
+    JOBS = list || JOBS; const f = $("jf").value;
+    $("jobs").innerHTML = JOBS.filter(j => !f || j.status === f).map(j => `<div class="it"><div class="m">${j.status === "done" ? `<video src="${esc(j.result)}" ${j.poster ? `poster="${esc(j.poster)}"` : ""} controls preload="none" playsinline></video>` : j.status === "working" ? `<span>${esc(j.stageText || j.stage)}…</span>` : `<span class="bad" style="padding:10px">${esc(j.rawError)}</span>`}</div>
+      <div class="b"><b>${j.mode === "trend" ? "Тренд" : "Стиль: " + esc(j.styleName)} · ${esc(j.modelName || j.model)}</b><span class="muted">${ST[j.status]} · ${j.seconds} сек · 💎${j.paid}${j.refunded ? ` (возврат ${j.refunded})` : ""} · $${j.usd}</span>
+      <span class="muted">${esc(j.email || j.key)} · ${date(j.created)}</span>${j.notes.length ? `<span class="warn" style="font-size:12px">${esc(j.notes.join(" · "))}</span>` : ""}${j.status === "done" ? `<button class="btn ghost sm" data-toex="${j.id}" style="justify-self:start">⭐ В примеры</button>` : ""}</div></div>`).join("") || '<p class="muted">Пока пусто.</p>';
+  }
+  $("jf").onchange = () => renderJobs();
+  $("jobs").onclick = async e => {
+    const b = e.target.closest("[data-toex]"); if (!b) return;
+    if (!confirm("Показать это видео на главной в примерах? Делайте это только с согласия человека на видео.")) return;
+    b.disabled = true;
+    try { await api("/api/admin/examples/from-job", { id: b.dataset.toex }); b.textContent = "✓ В примерах"; } catch (err) { alert(err.message); b.disabled = false; }
+  };
+  // ---------- примеры до/после ----------
+  let exBefore = "", exAfter = "";
+  async function adminUpload(file, kind) {
+    const r = await fetch(`/api/admin/examples/upload?kind=${kind}`, { method: "POST", headers: { "x-admin": pass, "content-type": file.type || (kind === "photo" ? "image/jpeg" : "video/mp4") }, body: file });
+    const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error || "Не удалось загрузить"); return d.path;
+  }
+  function pickEx(drop, input, kind) {
+    const take = async (f) => {
+      if (!f) return; say("exMsg", kind === "photo" ? "Загружаем фото…" : "Загружаем видео…", "");
+      try {
+        const p = await adminUpload(f, kind);
+        if (kind === "photo") { exBefore = p; drop.querySelector("span").innerHTML = `<img src="${p}" alt="">`; }
+        else { exAfter = p; drop.querySelector("span").innerHTML = `<video src="${p}" muted autoplay loop playsinline></video>`; }
+        say("exMsg", "Загружено", "ok");
+      } catch (e) { say("exMsg", e.message, "err"); }
+    };
+    input.onchange = () => { take(input.files[0]); input.value = ""; };
+    drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+    drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+    drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); take(e.dataTransfer.files[0]); });
+  }
+  pickEx($("dBefore"), $("fBefore"), "photo"); pickEx($("dAfter"), $("fAfter"), "video");
+  $("exAdd").onclick = async () => {
+    try {
+      await api("/api/admin/examples", { before: exBefore, after: exAfter, caption: $("exCap").value });
+      exBefore = exAfter = ""; $("exCap").value = "";
+      $("tBefore").innerHTML = "<i>📷</i><b>Фото «до»</b>нажмите или перетащите"; $("tAfter").innerHTML = "<i>🎬</i><b>Видео «после»</b>нажмите или перетащите";
+      say("exMsg", "Пример добавлен и уже на главной", "ok"); load();
+    } catch (e) { say("exMsg", e.message, "err"); }
+  };
+  function renderEx(list) {
+    $("exList").innerHTML = list.map((x, i) => `<div class="it exi" data-id="${x.id}"><div class="m"><video src="${esc(x.after)}" ${x.poster ? `poster="${esc(x.poster)}"` : ""} controls preload="none" playsinline></video><div class="bf"><img src="${esc(x.before)}" alt=""></div></div>
+      <div class="b"><input data-cap value="${esc(x.caption)}" placeholder="Подпись" maxlength="80">
+      <span class="${x.published ? "ok" : "muted"}">${x.published ? "Показывается на главной" : "Скрыт"}</span>
+      <div class="acts"><button class="btn ghost sm" data-a="up" ${i ? "" : "disabled"}>↑</button><button class="btn ghost sm" data-a="down" ${i < list.length - 1 ? "" : "disabled"}>↓</button>
+      <button class="btn ghost sm" data-a="pub">${x.published ? "Скрыть" : "Показать"}</button><button class="btn ghost sm" data-a="del" style="color:var(--bad)">Удалить</button></div></div></div>`).join("") || '<p class="muted">Примеров пока нет — добавьте первый выше или нажмите «⭐ В примеры» у готового видео во вкладке «Видео».</p>';
+    EXL = list;
+  }
+  let EXL = [];
+  $("exList").addEventListener("click", async e => {
+    const b = e.target.closest("[data-a]"); if (!b) return;
+    const id = b.closest("[data-id]").dataset.id, x = EXL.find(y => y.id === id);
+    try {
+      if (b.dataset.a === "up" || b.dataset.a === "down") await api("/api/admin/examples/update", { id, move: b.dataset.a });
+      if (b.dataset.a === "pub") await api("/api/admin/examples/update", { id, published: !x.published });
+      if (b.dataset.a === "del") { if (!confirm("Удалить пример?")) return; await api("/api/admin/examples/delete", { id }); }
+      load();
+    } catch (err) { alert(err.message); }
+  });
+  $("exList").addEventListener("change", async e => { if (!e.target.matches("[data-cap]")) return; try { await api("/api/admin/examples/update", { id: e.target.closest("[data-id]").dataset.id, caption: e.target.value }); } catch {} });
+  function renderOrders(list) { $("orders").innerHTML = list.map(o => `<tr><td>${date(o.created)}</td><td>${esc(o.key)}</td><td>${esc(o.email)}</td><td>${esc(o.pack)}</td><td>💎${o.credits}</td><td>${new Intl.NumberFormat("ru-RU", { style: "currency", currency: (o.currency || cur).toUpperCase() }).format(o.amount)}</td></tr>`).join("") || '<tr><td colspan="6" class="muted">Заказов пока нет.</td></tr>'; }
+  let KEYS = [];
+  function renderKeys(list) {
+    KEYS = list || KEYS; const q = $("kq").value.trim().toLowerCase();
+    $("keys").innerHTML = KEYS.filter(k => !q || k.key.toLowerCase().includes(q) || (k.email || "").toLowerCase().includes(q)).map(k => `<tr data-k="${esc(k.key)}"><td>${esc(k.key)}</td><td><b>💎${k.credits}</b></td><td>${k.spent || 0}</td><td>${esc(k.email)}</td><td>${esc(k.source)}${k.note ? " · " + esc(k.note) : ""}</td><td>${date(k.created)}</td><td style="white-space:nowrap"><input type="number" value="10" style="width:76px"> <button class="btn sm" data-adj>±</button></td></tr>`).join("");
+  }
+  $("kq").oninput = () => renderKeys();
+  $("keys").onclick = async e => { const b = e.target.closest("[data-adj]"); if (!b) return; const tr = b.closest("tr"); try { await api("/api/admin/keys/adjust", { key: tr.dataset.k, delta: tr.querySelector("input").value }); load(); } catch (err) { alert(err.message); } };
+  $("kGo").onclick = async () => { try { const r = await api("/api/admin/keys", { credits: $("kC").value, email: $("kE").value, note: $("kN").value }); say("kMsg", `Готово: ${r.key} · 💎${r.credits}. Клиент вводит код на сайте: «Купить» → «уже есть код?».`, "ok"); load(); } catch (e) { say("kMsg", e.message, "err"); } };
+
+  async function renderPrices() {
+    const c = await (await fetch("/api/config")).json(); PACKS = c.packs; cur = c.currency; $("cur").value = cur; drawPacks();
+    showEcon(await api("/api/admin/prices"));
+  }
+  function showEcon(R) {
+    PR = R; const e = R.econ;
+    $("eMarkup").value = e.markup; $("eFail").value = e.failReserve; $("eFeePct").value = e.feePct; $("eFeeFix").value = e.feeFixed; $("eVat").value = e.vat; $("eFx").value = e.fxRate; $("eLock").value = e.lockUsd; $("eEnh").value = e.enhanceUsd;
+    const row = (m, extra) => `<div class="pr"><span>${esc(m.name)}</span><input type="number" step="0.001" min="0" data-usd="${m.id}" value="${m.usd}"><span class="muted" style="font-size:12px">${extra}</span></div>`;
+    $("usdList").innerHTML = '<b style="font-size:13px">Тренд, $ за сек</b>' + R.models.trend.map(m => row(m, `💎${m.perSec}/с`)).join("")
+      + '<b style="font-size:13px;display:block;margin-top:8px">По стилю, $ за сек</b>' + R.models.style.map(m => row(m, `💎${m.perSec}/с`)).join("")
+      + '<b style="font-size:13px;display:block;margin-top:8px">Первый кадр, $</b>' + R.models.frame.map(m => row(m, `💎${m.price}`)).join("");
+    const m2 = v => new Intl.NumberFormat("ru-RU", { style: "currency", currency: R.currency }).format(v);
+    $("econSum").textContent = `Рубин продаётся минимум по ${m2(R.rubyPrice)}, вам после комиссий остаётся ≈ $${R.rubyValueUsd}. 1 $ себестоимости = 💎${R.rubiesPerUsd}.`;
+    $("examples").innerHTML = R.examples.map(x => `<tr><td>${esc(x.label)}</td><td>💎${x.rubies}</td><td>${m2(x.client)}</td><td>$${x.net}</td><td>$${x.cost}</td><td><b class="${x.x >= e.markup ? "ok" : "bad"}">×${x.x}</b></td></tr>`).join("");
+  }
+  $("prSave").onclick = async () => {
+    const usd = {}; document.querySelectorAll("#usdList [data-usd]").forEach(i => usd[i.dataset.usd] = i.value);
+    try {
+      showEcon(await api("/api/admin/prices", { markup: $("eMarkup").value, failReserve: $("eFail").value, feePct: $("eFeePct").value, feeFixed: $("eFeeFix").value, vat: $("eVat").value, fx: $("eFx").value, lockUsd: $("eLock").value, enhanceUsd: $("eEnh").value, usd }));
+      say("prMsg", "Сохранено — новые цены в рубинах уже на сайте.", "ok");
+    } catch (e) { say("prMsg", e.message, "err"); }
+  };
+  function drawPacks() {
+    $("packs").innerHTML = PACKS.map((p, i) => `<div class="pk" data-i="${i}"><input data-f="es" value="${esc(p.name.es || p.name.en || p.name.ru)}"><input data-f="en" value="${esc(p.name.en || p.name.ru)}"><input data-f="ru" value="${esc(p.name.ru)}"><input data-f="id" value="${esc(p.id)}"><input type="number" data-f="credits" value="${p.credits}"><input type="number" step="0.01" data-f="price" value="${p.price}"><input type="checkbox" data-f="popular" ${p.popular ? "checked" : ""} style="width:auto"><button class="btn ghost sm" data-x>✕</button><span></span></div>`).join("");
+  }
+  const readPacks = () => [...document.querySelectorAll("#packs .pk")].map(r => { const g = f => r.querySelector(`[data-f="${f}"]`); return { id: g("id").value, name: { es: g("es").value, en: g("en").value, ru: g("ru").value }, credits: g("credits").value, price: g("price").value, popular: g("popular").checked }; });
+  $("packs").onclick = e => { if (e.target.closest("[data-x]")) { PACKS = readPacks(); PACKS.splice(+e.target.closest("[data-i]").dataset.i, 1); drawPacks(); } };
+  $("pAdd").onclick = () => { PACKS = readPacks(); PACKS.push({ id: "pack" + (PACKS.length + 1), name: { es: "Paquete", en: "Pack", ru: "Пакет" }, credits: 500, price: 39.99, popular: false }); drawPacks(); };
+  $("pSave").onclick = async () => { try { const r = await api("/api/admin/packs", { packs: readPacks(), currency: $("cur").value }); PACKS = r.packs; cur = r.currency; drawPacks(); say("pMsg", "Сохранено — цены в рубинах пересчитаны под новые пакеты.", "ok"); showEcon(await api("/api/admin/prices")); } catch (e) { say("pMsg", e.message, "err"); } };
+  if (pass) enter();
+})();
+</script>
+</body>
+</html>
