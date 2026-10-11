@@ -1,0 +1,9 @@
+{
+  "name": "snapdance",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SnapDance — танцевальные видео из фото для TikTok",
+  "scripts": { "start": "node server.mjs" },
+  "engines": { "node": ">=20" }
+}
