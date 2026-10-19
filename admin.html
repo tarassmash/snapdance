@@ -49,6 +49,13 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
 .drop2 img, .drop2 video { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
 .exi .m { position: relative; } .exi .bf { position: absolute; left: 8px; top: 8px; width: 34%; aspect-ratio: 3/4; border: 2px solid #fff; border-radius: 8px; overflow: hidden; } .exi .bf img { width: 100%; height: 100%; object-fit: cover; }
 .exi .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.adbox { display: grid; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.adbox select { width: auto; }
+.adres { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 8px; align-items: start; }
+.adres video { width: 76px; aspect-ratio: 9 / 16; border-radius: 8px; background: #000; }
+.adres > div { display: grid; gap: 6px; justify-items: start; min-width: 0; }
+.adres textarea { width: 100%; box-sizing: border-box; font-size: 12px; resize: vertical; }
+.adbox .acts select { flex: 1 1 120px; min-width: 0; }
 .msg { font-size: 13.5px; } .msg.ok { color: var(--ok); } .msg.err { color: var(--bad); }
 .login { max-width: 360px; margin: 80px auto; display: grid; gap: 12px; }
 .filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; } .filters select, .filters input { width: auto; }
@@ -284,10 +291,20 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
       <div class="b"><input data-cap value="${esc(x.caption)}" placeholder="Подпись" maxlength="80">
       <span class="${x.published ? "ok" : "muted"}">${x.published ? "Показывается на главной" : "Скрыт"}</span>
       <div class="acts"><button class="btn ghost sm" data-a="up" ${i ? "" : "disabled"}>↑</button><button class="btn ghost sm" data-a="down" ${i < list.length - 1 ? "" : "disabled"}>↓</button>
-      <button class="btn ghost sm" data-a="pub">${x.published ? "Скрыть" : "Показать"}</button><button class="btn ghost sm" data-a="del" style="color:var(--bad)">Удалить</button></div></div></div>`).join("") || '<p class="muted">Примеров пока нет — добавьте первый выше или нажмите «⭐ В примеры» у готового видео во вкладке «Видео».</p>';
-    EXL = list;
+      <button class="btn ghost sm" data-a="pub">${x.published ? "Скрыть" : "Показать"}</button><button class="btn ghost sm" data-a="del" style="color:var(--bad)">Удалить</button></div>
+      <div class="adbox"><b>🎬 Рекламный ролик для TikTok / Reels / Shorts</b>
+        <div class="acts"><select data-adlang><option value="es">Испанский</option><option value="en">Английский</option><option value="ru">Русский</option></select><select data-advoice><option value="female">Женский голос</option><option value="male">Мужской голос</option></select><button class="btn sm" data-a="ad">Сделать ролик</button></div>
+        ${adHtml(x)}</div></div></div>`).join("") || '<p class="muted">Примеров пока нет — добавьте первый выше или нажмите «⭐ В примеры» у готового видео во вкладке «Видео».</p>';
+    EXL = list; pollAds();
   }
-  let EXL = [];
+  let EXL = [], adTimer = null;
+  const LN = { es: "ES", en: "EN", ru: "RU" };
+  function adHtml(x) {
+    return Object.entries(x.ads || {}).map(([l, a]) => a.status === "working" ? `<div class="muted">⏳ ${LN[l]}: собираем ролик (1–2 минуты)…</div>`
+      : a.status === "failed" ? `<div class="bad">✕ ${LN[l]}: ${esc(a.error || "ошибка")}</div>`
+      : `<div class="adres"><video src="${esc(a.url)}" controls preload="metadata" playsinline></video><div><b>${LN[l]} · ${a.seconds || ""} с</b><a class="btn sm" href="${esc(a.url)}" download="snapdance-ad-${l}.mp4">⬇ Скачать</a><textarea readonly rows="4">${esc(a.caption || "")}</textarea><button class="btn ghost sm" data-a="adcopy" data-l="${l}">📋 Копировать</button></div></div>`).join("");
+  }
+  function pollAds() { clearTimeout(adTimer); if (EXL.some(x => Object.values(x.ads || {}).some(a => a.status === "working"))) adTimer = setTimeout(async () => { try { renderEx(await api("/api/admin/examples")); } catch {} pollAds(); }, 5000); }
   $("exList").addEventListener("click", async e => {
     const b = e.target.closest("[data-a]"); if (!b) return;
     const id = b.closest("[data-id]").dataset.id, x = EXL.find(y => y.id === id);
@@ -295,6 +312,8 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
       if (b.dataset.a === "up" || b.dataset.a === "down") await api("/api/admin/examples/update", { id, move: b.dataset.a });
       if (b.dataset.a === "pub") await api("/api/admin/examples/update", { id, published: !x.published });
       if (b.dataset.a === "del") { if (!confirm("Удалить пример?")) return; await api("/api/admin/examples/delete", { id }); }
+      if (b.dataset.a === "adcopy") { await navigator.clipboard?.writeText(x.ads?.[b.dataset.l]?.caption || ""); b.textContent = "✓ Скопировано"; return; }
+      if (b.dataset.a === "ad") { const box = b.closest(".adbox"); b.disabled = true; await api("/api/admin/examples/ad", { id, lang: box.querySelector("[data-adlang]").value, voice: box.querySelector("[data-advoice]").value }); }
       load();
     } catch (err) { alert(err.message); }
   });

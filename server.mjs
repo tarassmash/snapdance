@@ -1316,7 +1316,7 @@ function update(b) {
 function remove2(id) {
   const ex = db.examples.find((x) => x.id === id);
   if (!ex) throw new UserError("\u041F\u0440\u0438\u043C\u0435\u0440 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D.", 404);
-  for (const p of [ex.before, ex.after, ex.poster, ex.preview, ex.beforeSm]) if (p) fs5.rmSync(fileOf(p), { force: true });
+  for (const p of [ex.before, ex.after, ex.poster, ex.preview, ex.beforeSm, ...Object.values(ex.ads || {}).map((a) => a?.url)]) if (p) fs5.rmSync(fileOf(p), { force: true });
   db.examples = db.examples.filter((x) => x !== ex);
   save();
 }
@@ -1349,6 +1349,117 @@ async function lightAll() {
   } finally { lightening = false; }
 }
 setTimeout(() => lightAll().catch(() => {}), 5e3);
+// ---- рекламный ролик из примера: 9:16 для TikTok / Reels / Shorts ----
+// Фото «до» (крючок) → готовый танец → финальный экран с призывом и адресом сайта.
+// Голос за кадром — ElevenLabs через fal.ai, звук танца тише под голосом. Без интерфейса соцсетей.
+var AD_TTS = process.env.AD_TTS_MODEL || "fal-ai/elevenlabs/tts/multilingual-v2";
+var AD_SITE = (process.env.AD_SITE || "snapdance.us").replace(/^https?:\/\//, "").replace(/\/$/, "");
+var AD_FONT = ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"].find((f) => fs5.existsSync(f)) || "";
+var AD_VOICES = { female: "Rachel", male: "Brian" };
+var AD_COPY = {
+  es: {
+    hook: "¿Solo tienes\nuna foto?",
+    mid: "La IA la convierte\nen un baile de tendencia",
+    endTop: "¿Quieres bailar\ntú también?",
+    endBottom: "Enlace en el perfil\no búscalo en Google",
+    voice: `¿Solo tienes una foto? Súbela y en unos minutos estarás bailando el baile de moda, sin grabar nada. ¿Quieres probar? Es online: enlace en el perfil, o busca snapdance punto us en Google.`,
+    caption: `De una foto a un baile de tendencia 💃 Pruébalo online: enlace en el perfil o busca ${AD_SITE} #baile #tendencia #fyp #parati #ia`
+  },
+  en: {
+    hook: "Got just\none photo?",
+    mid: "AI turns it into\na trending dance",
+    endTop: "Want to dance\ntoo?",
+    endBottom: "Link in bio\nor search it on Google",
+    voice: `Got just one photo? Upload it, and in a few minutes you're dancing the latest trend, no filming needed. Want to try? It's online: link in bio, or search snapdance dot u s on Google.`,
+    caption: `From one photo to a trending dance 💃 Try it online: link in bio or search ${AD_SITE} #dance #trend #fyp #foryou #ai`
+  },
+  ru: {
+    hook: "Есть только\nодно фото?",
+    mid: "Нейросеть превратит его\nв трендовый танец",
+    endTop: "Хотите тоже\nзатанцевать?",
+    endBottom: "Ссылка в шапке профиля\nили найдите в Google",
+    voice: `Есть только одно фото? Загрузите его, и через пару минут вы уже танцуете трендовый танец, ничего не снимая. Хотите попробовать? Это онлайн: ссылка в шапке профиля, или найдите снэпдэнс точка ю эс в Гугле.`,
+    caption: `Из одного фото — в трендовый танец 💃 Попробуйте онлайн: ссылка в шапке профиля или ищите ${AD_SITE} #танец #тренд #рекомендации #fyp #нейросеть`
+  }
+};
+async function adVoice(text, lang, voice) {
+  const call = (v) => falFetch(`https://fal.run/${AD_TTS}`, { method: "POST", body: JSON.stringify({ text, ...v ? { voice: v } : {}, language_code: lang, speed: 1.05, stability: 0.45, similarity_boost: 0.8, style: 0.35 }) });
+  let r = await call(AD_VOICES[voice] || AD_VOICES.female);
+  if (!r.ok && r.status === 422) r = await call(null);
+  const url = r.data?.audio?.url;
+  if (!r.ok || !url) throw new Error("озвучка: " + falError(r.status, r.data).admin);
+  const a = await fetch(url);
+  if (!a.ok) throw new Error("озвучка: не удалось скачать звук");
+  return Buffer.from(await a.arrayBuffer());
+}
+// drawtext по строкам: ffmpeg 5 не умеет выравнивать многострочный текст по центру
+function adLines(text, { size, color = "white", y, box = false, tmp }) {
+  const lines = text.split("\n");
+  return lines.map((ln, i) => {
+    const f = path5.join(tmp, `t${Math.random().toString(36).slice(2)}.txt`);
+    fs5.writeFileSync(f, ln);
+    return `drawtext=fontfile='${AD_FONT}':textfile='${f}':fontsize=${size}:fontcolor=${color}:x=(w-text_w)/2:y=${y}+${i}*${Math.round(size * 1.22)}:shadowcolor=black@0.6:shadowx=3:shadowy=3${box ? `:box=1:boxcolor=black@0.45:boxborderw=${Math.round(size * 0.28)}` : ""}`;
+  }).join(",");
+}
+async function buildAd(ex, lang, voice) {
+  const C = AD_COPY[lang] || AD_COPY.es;
+  if (!AD_FONT) throw new Error("на сервере нет шрифта DejaVu (Dockerfile: fonts-dejavu-core)");
+  const tmp = fs5.mkdtempSync(path5.join(MEDIA_DIR, "tmp-ad-"));
+  try {
+    const voiceFile = path5.join(tmp, "voice.mp3");
+    fs5.writeFileSync(voiceFile, await adVoice(C.voice, lang, voice));
+    const vInfo = await probe2(voiceFile), dInfo = await probe2(fileOf(ex.after));
+    const X = 0.3, D1 = 2.8, D2 = Math.max(4, Math.min(dInfo.duration || 8, 9));
+    const D3 = Math.max(3.6, (vInfo.duration || 12) + 0.8 - (D1 + D2 - 2 * X));
+    const T = D1 + D2 + D3 - 2 * X;
+    const W = 1080, H = 1920, cover = `scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1`;
+    const s1 = `[0:v]${cover},zoompan=z='1+0.0022*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=${W}x${H}:fps=30,${adLines(C.hook, { size: 92, y: 300, box: true, tmp })},format=yuv420p,fps=30,trim=duration=${D1},setpts=PTS-STARTPTS,settb=AVTB[s1]`;
+    const s2 = `[1:v]${cover},fps=30,${adLines(C.mid, { size: 58, y: 150, box: true, tmp })},format=yuv420p,trim=duration=${D2},setpts=PTS-STARTPTS,settb=AVTB[s2]`;
+    const s3 = `[2:v]${adLines(C.endTop, { size: 80, y: 560, tmp })},${adLines(AD_SITE, { size: 112, color: "0xC6FF3D", y: 860, tmp })},${adLines(C.endBottom, { size: 56, y: 1080, tmp })},format=yuv420p,fps=30,settb=AVTB[s3]`;
+    const vx = `[s1][s2]xfade=transition=fade:duration=${X}:offset=${(D1 - X).toFixed(2)}[x1];[x1][s3]xfade=transition=fade:duration=${X}:offset=${(D1 + D2 - 2 * X).toFixed(2)},format=yuv420p[v]`;
+    const ms = Math.round((D1 - X) * 1e3);
+    const ax = dInfo.audio
+      ? `[1:a]atrim=duration=${D2},asetpts=PTS-STARTPTS,volume=0.32,afade=t=out:st=${(D2 - 0.6).toFixed(2)}:d=0.6,adelay=${ms}|${ms}[m];[3:a]adelay=250|250,volume=1.5[vo];[m][vo]amix=inputs=2:duration=longest:normalize=0,apad,atrim=duration=${T.toFixed(2)}[a]`
+      : `[3:a]adelay=250|250,volume=1.5,apad,atrim=duration=${T.toFixed(2)}[a]`;
+    const out = `ad-${ex.id}-${lang}.mp4`;
+    await exec(FFMPEG, [
+      "-y", "-hide_banner", "-loglevel", "error",
+      "-loop", "1", "-framerate", "30", "-t", String(D1 + 0.5), "-i", fileOf(ex.before),
+      "-i", fileOf(ex.after),
+      "-f", "lavfi", "-i", `color=c=0x0c0b10:s=${W}x${H}:d=${D3.toFixed(2)}:r=30`,
+      "-i", voiceFile,
+      "-filter_complex", [s1, s2, s3, vx, ax].join(";"),
+      "-map", "[v]", "-map", "[a]", "-t", T.toFixed(2),
+      "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", "30",
+      "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-movflags", "+faststart",
+      path5.join(MEDIA_DIR, out)
+    ], 8 * 60e3);
+    return { url: `/media/${out}?v=${Date.now()}`, caption: C.caption, seconds: Math.round(T) };
+  } finally {
+    fs5.rmSync(tmp, { recursive: true, force: true });
+  }
+}
+async function startAd(id, lang, voice) {
+  const ex = db.examples.find((x) => x.id === id);
+  if (!ex) throw new UserError("Пример не найден.", 404);
+  if (!mediaExists(ex.before) || !mediaExists(ex.after)) throw new UserError("Файлы примера не найдены.");
+  lang = AD_COPY[lang] ? lang : "es";
+  ex.ads ||= {};
+  if (ex.ads[lang]?.status === "working") return ex.ads[lang];
+  ex.ads[lang] = { status: "working", started: Date.now(), voice };
+  save();
+  buildAd(ex, lang, voice).then((r) => {
+    ex.ads[lang] = { status: "done", ...r, voice, created: Date.now() };
+    save();
+  }).catch((e) => {
+    ex.ads[lang] = { status: "failed", error: String(e.message || e).slice(0, 300), voice };
+    save();
+  });
+  return ex.ads[lang];
+}
+// после перезапуска сервера незаконченные ролики помечаем как прерванные
+for (const ex of db.examples) for (const [l, a] of Object.entries(ex.ads || {})) if (a?.status === "working") ex.ads[l] = { status: "failed", error: "сервер перезапустился — нажмите ещё раз" };
+
 
 // src/server.mjs
 var { UserError: UserError2 } = fal_exports;
@@ -1615,6 +1726,12 @@ var routes = {
     isAdmin(req);
     update(await body(req));
     json(res, { ok: true });
+  },
+  // рекламный ролик из примера (голос + танец + призыв), собирается в фоне 1–2 минуты
+  "POST /api/admin/examples/ad": async (req, res) => {
+    isAdmin(req);
+    const b = await body(req);
+    json(res, await startAd(b.id, b.lang, b.voice === "male" ? "male" : "female"));
   },
   "POST /api/admin/examples/delete": async (req, res) => {
     isAdmin(req);
