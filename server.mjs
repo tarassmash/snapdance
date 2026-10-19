@@ -694,6 +694,22 @@ function fitFilter(w, h) {
   if (Math.abs(ar / (9 / 16) - 1) <= 0.15) return `scale=${W}:${H}:force_original_aspect_ratio=increase:flags=lanczos,crop=${W}:${H},setsar=1`;
   return `split[bg0][fg0];[bg0]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},boxblur=28:2,eq=brightness=-0.07:saturation=0.9[bg];[fg0]scale=${W}:${H}:force_original_aspect_ratio=decrease:flags=lanczos[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2,setsar=1`;
 }
+// водяной знак на каждом видео; WATERMARK_TEXT="" в Variables — отключить
+var WATERMARK = (process.env.WATERMARK_TEXT ?? "snapdance.us").trim();
+var WM_FONT = [process.env.WATERMARK_FONT, "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"].find((f) => f && fs3.existsSync(f)) || "";
+function watermarkFilter() {
+  if (!WATERMARK) return "";
+  const esc = (s) => s.replace(/\\/g, "\\\\").replace(/'/g, "\u2019").replace(/:/g, "\\:").replace(/%/g, "\\%");
+  // слева, на 3/4 высоты: не перекрывается кнопками и подписью TikTok/Reels
+  return `drawtext=${WM_FONT ? `fontfile='${esc(WM_FONT)}':` : ""}text='${esc(WATERMARK)}':fontsize=h/34:fontcolor=white@0.75:shadowcolor=black@0.55:shadowx=2:shadowy=2:x=w*0.05:y=h*0.74`;
+}
+async function watermarkOnly(src, out) {
+  const wm = watermarkFilter();
+  if (!wm) throw new Error("водяной знак отключён");
+  await exec(FFMPEG, ["-y", "-hide_banner", "-loglevel", "error", "-i", src, "-vf", `${wm},format=yuv420p`, "-c:v", "libx264", "-preset", "fast", "-crf", "18", "-c:a", "copy", "-movflags", "+faststart", out]);
+  if (!fs3.existsSync(out) || fs3.statSync(out).size < 1e4) throw new Error("ffmpeg: пустой результат");
+  return out;
+}
 async function finish({ video, audioFrom, out, look = "none", startAt = 0, fps = 30 }) {
   const info = await probe2(video).catch(() => ({ duration: 0, width: 0, height: 0, audio: false }));
   const ss = info.duration > startAt + 2 ? startAt : 0;
@@ -704,7 +720,7 @@ async function finish({ video, audioFrom, out, look = "none", startAt = 0, fps =
   const args = ["-y", "-hide_banner", "-loglevel", "error", "-ss", String(ss), "-i", video];
   if (useAudio) args.push("-ss", String(ss), "-i", audioFrom);
   if (!useAudio && !ownAudio) args.push("-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo");
-  const chain = [L.pre, fitFilter(info.width, info.height), L.post, `fps=${fps}`, "format=yuv420p"].filter(Boolean).join(",");
+  const chain = [L.pre, fitFilter(info.width, info.height), L.post, `fps=${fps}`, watermarkFilter(), "format=yuv420p"].filter(Boolean).join(",");
   const aIn = useAudio ? "1:a:0" : ownAudio ? "0:a:0" : "1:a:0";
   const kbps = fps > 30 ? 12e3 : 8e3;
   args.push(
@@ -1082,14 +1098,20 @@ async function post(j) {
   } catch (e) {
     j.notes.push("\u043E\u0431\u0440\u0430\u0431\u043E\u0442\u043A\u0430: " + e.message);
     try {
-      await saveRemote(work, `sd-${j.id}`, "mp4");
-    } catch (e2) {
-      for (const f of tmp) fs4.rmSync(f, { force: true });
-      fail(j, "\u043D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C \u0432\u0438\u0434\u0435\u043E: " + e2.message);
-      posting--;
-      j.posting = false;
-      save();
-      return;
+      const v = tmp[0] && fs4.existsSync(tmp[0]) ? tmp[0] : await local(work, `tmp-${j.id}-v.mp4`);
+      await watermarkOnly(v, out);
+    } catch (e3) {
+      j.notes.push("\u0432\u043E\u0434\u044F\u043D\u043E\u0439 \u0437\u043D\u0430\u043A: " + e3.message);
+      try {
+        await saveRemote(work, `sd-${j.id}`, "mp4");
+      } catch (e2) {
+        for (const f of tmp) fs4.rmSync(f, { force: true });
+        fail(j, "\u043D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C \u0432\u0438\u0434\u0435\u043E: " + e2.message);
+        posting--;
+        j.posting = false;
+        save();
+        return;
+      }
     }
   }
   for (const f of tmp) fs4.rmSync(f, { force: true });
