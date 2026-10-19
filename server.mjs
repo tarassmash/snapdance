@@ -248,8 +248,8 @@ function createCheckout({ pack, currency: currency2, key, origin: origin2, lang,
   return stripe("POST", "/v1/checkout/sessions", {
     mode: "payment",
     locale: ["es", "en", "ru"].includes(lang) ? lang : "es",
-    success_url: `${origin2}/?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin2}/?canceled=1`,
+    success_url: `${origin2}${lang === "en" ? "/en" : lang === "ru" ? "/ru" : "/"}?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin2}${lang === "en" ? "/en" : lang === "ru" ? "/ru" : "/"}?canceled=1`,
     allow_promotion_codes: "true",
     line_items: {
       0: {
@@ -1287,6 +1287,7 @@ async function create2(b) {
   const ex = { id: newId(), before: b.before, after: b.after, poster: await makePoster(b.after), caption: clean2(b.caption, 80), published: true, created: Date.now() };
   db.examples.unshift(ex);
   save();
+  lightAll().catch(() => {});
   return ex;
 }
 async function fromJob(id, caption2) {
@@ -1315,12 +1316,39 @@ function update(b) {
 function remove2(id) {
   const ex = db.examples.find((x) => x.id === id);
   if (!ex) throw new UserError("\u041F\u0440\u0438\u043C\u0435\u0440 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D.", 404);
-  for (const p of [ex.before, ex.after, ex.poster]) if (p) fs5.rmSync(fileOf(p), { force: true });
+  for (const p of [ex.before, ex.after, ex.poster, ex.preview, ex.beforeSm]) if (p) fs5.rmSync(fileOf(p), { force: true });
   db.examples = db.examples.filter((x) => x !== ex);
   save();
 }
 var list = () => db.examples;
-var published = () => db.examples.filter((x) => x.published).slice(0, 12).map(({ id, before, after, poster: poster2, caption: caption2 }) => ({ id, before, after, poster: poster2, caption: caption2 }));
+// на главной показываем лёгкие копии: видео 540p 30 fps и фото «до» 480 px вместо оригиналов в Full HD
+var published = () => db.examples.filter((x) => x.published).slice(0, 12).map(({ id, before, after, poster: poster2, caption: caption2, preview, beforeSm }) => ({ id, before: beforeSm && mediaExists(beforeSm) ? beforeSm : before, after: preview && mediaExists(preview) ? preview : after, full: after, poster: poster2, caption: caption2 }));
+async function lightExample(ex) {
+  const base = path5.basename(ex.after).replace(/\.\w+$/, "");
+  if (!ex.preview || !mediaExists(ex.preview)) {
+    const name = `${base}-preview.mp4`;
+    try {
+      await exec(FFMPEG, ["-y", "-hide_banner", "-loglevel", "error", "-i", fileOf(ex.after), "-vf", "scale=540:-2:flags=lanczos,fps=30", "-c:v", "libx264", "-preset", "veryfast", "-crf", "27", "-profile:v", "main", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", path5.join(MEDIA_DIR, name)], 5 * 60e3);
+      ex.preview = `/media/${name}`;
+    } catch {}
+  }
+  if (!ex.beforeSm || !mediaExists(ex.beforeSm)) {
+    const name = `${base}-before-sm.jpg`;
+    try {
+      await exec(FFMPEG, ["-y", "-hide_banner", "-loglevel", "error", "-i", fileOf(ex.before), "-vf", "scale='min(480,iw)':-2", "-q:v", "4", path5.join(MEDIA_DIR, name)], 6e4);
+      ex.beforeSm = `/media/${name}`;
+    } catch {}
+  }
+}
+var lightening = false;
+async function lightAll() {
+  if (lightening) return;
+  lightening = true;
+  try {
+    for (const ex of db.examples) if (ex.published && (!ex.preview || !ex.beforeSm)) { await lightExample(ex); save(); }
+  } finally { lightening = false; }
+}
+setTimeout(() => lightAll().catch(() => {}), 5e3);
 
 // src/server.mjs
 var { UserError: UserError2 } = fal_exports;
@@ -1450,7 +1478,9 @@ var routes = {
   "GET /api/checkout/confirm": async (req, res, url) => {
     const id = url.searchParams.get("session_id") || "";
     if (!/^cs_[\w]+$/.test(id)) throw new UserError2("\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u044B\u0439 \u043F\u043B\u0430\u0442\u0451\u0436.");
-    const r = fulfill(await retrieveSession(id));
+    const sess = await retrieveSession(id);
+    const r = fulfill(sess);
+    if (r) Object.assign(r, { pack: sess.metadata?.pack || "", amount: (sess.amount_total || 0) / 100, currency: sess.currency || currency() });
     if (!r) throw new UserError2("\u041F\u043B\u0430\u0442\u0451\u0436 \u0435\u0449\u0451 \u043D\u0435 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043D. \u041E\u0431\u043D\u043E\u0432\u0438\u0442\u0435 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0443 \u0447\u0435\u0440\u0435\u0437 \u043C\u0438\u043D\u0443\u0442\u0443.", 402);
     json(res, r);
   },
@@ -1628,75 +1658,208 @@ var routes = {
     res.end(JSON.stringify(pkg));
   },
 };
-var PAGES = { "/": "index.html", "/admin": "admin.html" };
+// src/seo.mjs — главная в трёх языках (/, /en, /ru), разметка для Google и ИИ-поисковиков,
+// sitemap, robots, llms.txt, страницы политики и условий. Тексты берутся из словаря I18N в index.html.
+import zlib from "node:zlib";
+var HOME_LANGS = ["es", "en", "ru"];
+var HOME_PATH = { es: "/", en: "/en", ru: "/ru" };
+var LOCALE = { es: "es_ES", en: "en_US", ru: "ru_RU" };
+var siteOrigin = (req) => (process.env.PUBLIC_URL || `${req.headers["x-forwarded-proto"] || "http"}://${req.headers["x-forwarded-host"] || req.headers.host}`).replace(/\/$/, "");
+var escH = (v) => String(v ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+var i18nCache = null;
+function siteDict(html) {
+  if (i18nCache?.len === html.length) return i18nCache.dict;
+  const a = html.indexOf("const I18N = {"), b = html.indexOf("// Постоянные настройки", a);
+  const dict = new Function(html.slice(a, b) + "\nreturn I18N;")();
+  i18nCache = { len: html.length, dict };
+  return dict;
+}
+function sendHtml(req, res, status, body, extra = {}) {
+  const buf = Buffer.from(body);
+  const h = { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache", "x-content-type-options": "nosniff", ...extra };
+  if (/\bgzip\b/.test(req.headers["accept-encoding"] || "")) {
+    const z = zlib.gzipSync(buf);
+    res.writeHead(status, { ...h, "content-encoding": "gzip", vary: "Accept-Encoding", "content-length": z.length });
+    return res.end(z);
+  }
+  res.writeHead(status, { ...h, "content-length": buf.length });
+  res.end(buf);
+}
+function money(v, l) {
+  return new Intl.NumberFormat(l === "ru" ? "ru-RU" : l === "es" ? "es-ES" : "en-GB", { style: "currency", currency: currency().toUpperCase() }).format(v);
+}
+function pixels() {
+  const m = db.settings.marketing || {};
+  let out = "";
+  if (m.ga4) out += `<script async src="https://www.googletagmanager.com/gtag/js?id=${escH(m.ga4)}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${escH(m.ga4)}',{transport_type:'beacon'});</script>\n`;
+  if (m.fbPixel) out += `<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${escH(m.fbPixel)}');fbq('track','PageView');</script><noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=${escH(m.fbPixel)}&ev=PageView&noscript=1"></noscript>\n`;
+  if (m.tiktokPixel) out += `<script>!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e};ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=i;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript";o.async=!0;o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};ttq.load('${escH(m.tiktokPixel)}');ttq.page();}(window,document,'ttq');</script>\n`;
+  if (m.gscMeta) out += `<meta name="google-site-verification" content="${escH(m.gscMeta)}">\n`;
+  return out;
+}
+function renderHome(req, l) {
+  let html = fs6.readFileSync(path6.join(PUBLIC, "index.html"), "utf8");
+  const I = siteDict(html);
+  const tt = (k) => { const v = I[l]?.[k] ?? I.es?.[k] ?? k; return typeof v === "string" ? v : ""; };
+  const o = siteOrigin(req), self = HOME_PATH[l];
+  // тексты интерфейса прямо в HTML: поисковики и ИИ-боты видят страницу на нужном языке без JavaScript
+  html = html.replace(/(<([a-z0-9]+)\b[^>]*\bdata-t="([\w.]+)"[^>]*>)([^<]*)(<\/\2>)/g, (m, open, tag, k, _x, close) => open + escH(tt(k)) + close);
+  html = html.replace(/(<([a-z0-9]+)\b[^>]*\bdata-th="([\w.]+)"[^>]*>)([\s\S]*?)(<\/\2>)/g, (m, open, tag, k, _x, close) => open + tt(k) + close);
+  html = html.replace(/<[a-z0-9]+\b[^>]*\bdata-ta="([^"]+)"[^>]*>/g, (tag, spec) => {
+    for (const pair of spec.split(";")) {
+      const [attr, k] = pair.split(":");
+      if (!attr || !k) continue;
+      const re = new RegExp(`\\s${attr}="[^"]*"`);
+      tag = re.test(tag) ? tag.replace(re, ` ${attr}="${escH(tt(k))}"`) : tag.replace(/\sdata-ta=/, ` ${attr}="${escH(tt(k))}" data-ta=`);
+    }
+    return tag;
+  });
+  const faq = Array.isArray(I[l]?.faq) ? I[l].faq : [];
+  html = html.replace('<div id="faqList"></div>', `<div id="faqList">${faq.map(([q, a]) => `<details><summary>${escH(q)}</summary><p>${escH(a)}</p></details>`).join("")}</div>`);
+  const pre = l === "es" ? "" : "/" + l;
+  html = html.replace('href="/privacy" id="lnkPriv"', `href="${pre}/privacy" id="lnkPriv"`).replace('href="/terms" id="lnkTerms"', `href="${pre}/terms" id="lnkTerms"`);
+  html = html.replace(`<option value="${l}">`, `<option value="${l}" selected>`);
+  const title = tt("meta.title"), desc = tt("meta.desc");
+  const ps = (packs() || []).filter((p) => p.price);
+  const ex = (db.examples || []).find((x) => x.published && x.poster);
+  const ld = [
+    { "@context": "https://schema.org", "@type": "Organization", "@id": o + "/#org", name: BRAND, url: o + "/", ...CONTACT ? { email: CONTACT } : {} },
+    { "@context": "https://schema.org", "@type": "WebApplication", name: BRAND, url: o + self, description: desc, inLanguage: l, applicationCategory: "MultimediaApplication", operatingSystem: "Web, iOS, Android", publisher: { "@id": o + "/#org" }, ...ps.length ? { offers: { "@type": "AggregateOffer", priceCurrency: currency().toUpperCase(), lowPrice: Math.min(...ps.map((p) => p.price)), highPrice: Math.max(...ps.map((p) => p.price)), offerCount: ps.length } } : {} },
+    ...faq.length ? [{ "@context": "https://schema.org", "@type": "FAQPage", inLanguage: l, mainEntity: faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) }] : []
+  ];
+  const head = [
+    `<link rel="canonical" href="${escH(o + self)}">`,
+    HOME_LANGS.map((x) => `<link rel="alternate" hreflang="${x}" href="${escH(o + HOME_PATH[x])}">`).join("") + `<link rel="alternate" hreflang="x-default" href="${escH(o)}/">`,
+    `<meta property="og:type" content="website"><meta property="og:url" content="${escH(o + self)}"><meta property="og:site_name" content="${escH(BRAND)}"><meta property="og:locale" content="${LOCALE[l]}">`,
+    ex ? `<meta property="og:image" content="${escH(o + ex.poster)}"><meta name="twitter:card" content="summary_large_image">` : `<meta name="twitter:card" content="summary">`,
+    `<link rel="alternate" type="text/markdown" title="llms.txt" href="/llms.txt">`,
+    ...ld.map((x) => `<script type="application/ld+json">${JSON.stringify(x).replace(/</g, "\\u003c")}</script>`),
+    `<script>window.__PAGE_LANG=${JSON.stringify(l)};</script>`,
+    pixels()
+  ].join("\n");
+  html = html.replace('<html lang="es">', `<html lang="${l}">`).replace(/<title>[^<]*<\/title>/, `<title>${escH(title)}</title>`).replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${escH(desc)}">`).replace(/<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${escH(title)}">`).replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${escH(desc)}">`).replace("<!--SEO_HEAD-->", head);
+  return html;
+}
+// ---- политика конфиденциальности и условия ----
+var LEGAL = {
+  es: {
+    privacy: ["Política de privacidad", [
+      ["Qué datos usamos", "Las fotos y vídeos que subes para crear tu vídeo, el vídeo terminado, tu código personal y tu saldo de rubíes. No pedimos nombre ni contraseña."],
+      ["Para qué", "Solo para crear tu vídeo de baile. Las fotos y vídeos se envían a proveedores de IA (fal.ai) únicamente para la generación."],
+      ["Cuánto tiempo", "Las fotos y vídeos de referencia se borran automáticamente a los 3 días. Los vídeos terminados se guardan para que puedas descargarlos con tu código."],
+      ["Pagos", "Los pagos los procesa Stripe. No vemos ni guardamos los datos de tu tarjeta; solo recibimos el correo electrónico del recibo."],
+      ["Cookies y analítica", "Usamos almacenamiento local para recordar tu código e idioma, y herramientas de analítica (Google Analytics, píxeles de TikTok y Meta) para medir visitas y publicidad."],
+      ["Tus derechos", "Puedes pedir que borremos tus datos escribiéndonos al correo de contacto del sitio."]
+    ]],
+    terms: ["Términos de uso", [
+      ["Edad y permiso", "Debes ser mayor de 18 años. Solo puedes subir fotos de ti mismo o de personas mayores de 18 que te hayan dado permiso."],
+      ["Contenido prohibido", "No se permiten vídeos de menores, contenido sexual, violento, engañoso o que suplante a otras personas."],
+      ["Rubíes", "Los rubíes se usan para crear vídeos y no caducan. Si una generación falla, los rubíes vuelven automáticamente a tu saldo. Los rubíes no usados no se reembolsan, salvo cuando lo exija la ley."],
+      ["Resultado", "Los vídeos se crean con IA y pueden variar. Puedes usarlos en tus redes sociales; eres responsable de cómo los publicas."],
+      ["Servicio", "El servicio se ofrece tal cual. Podemos cambiar precios y funciones; los rubíes ya comprados se mantienen."]
+    ]]
+  },
+  en: {
+    privacy: ["Privacy policy", [
+      ["What we use", "The photos and videos you upload to create your video, the finished video, your personal code and your ruby balance. We don't ask for a name or password."],
+      ["Why", "Only to create your dance video. Photos and videos are sent to AI providers (fal.ai) solely for generation."],
+      ["How long", "Photos and reference videos are deleted automatically after 3 days. Finished videos are kept so you can download them with your code."],
+      ["Payments", "Payments are processed by Stripe. We never see or store your card details; we only receive the receipt email."],
+      ["Cookies and analytics", "We use local storage to remember your code and language, and analytics tools (Google Analytics, TikTok and Meta pixels) to measure visits and advertising."],
+      ["Your rights", "You can ask us to delete your data by writing to the contact email on the site."]
+    ]],
+    terms: ["Terms of use", [
+      ["Age and consent", "You must be 18 or older. Only upload photos of yourself or of adults (18+) who gave you permission."],
+      ["Prohibited content", "Videos of minors, sexual, violent or misleading content, or impersonating other people are not allowed."],
+      ["Rubies", "Rubies are used to create videos and never expire. If a generation fails, rubies return to your balance automatically. Unused rubies are not refunded unless required by law."],
+      ["Results", "Videos are made with AI and may vary. You may use them on your social media; you are responsible for how you publish them."],
+      ["Service", "The service is provided as is. We may change prices and features; rubies you already bought are kept."]
+    ]]
+  },
+  ru: {
+    privacy: ["Политика конфиденциальности", [
+      ["Какие данные", "Фото и видео, которые вы загружаете для создания ролика, готовое видео, ваш личный код и баланс рубинов. Имя и пароль мы не спрашиваем."],
+      ["Зачем", "Только чтобы сделать ваше танцевальное видео. Фото и видео передаются ИИ-провайдерам (fal.ai) исключительно для генерации."],
+      ["Как долго", "Фото и ролики-образцы автоматически удаляются через 3 дня. Готовые видео хранятся, чтобы вы могли скачать их по своему коду."],
+      ["Оплата", "Платежи обрабатывает Stripe. Мы не видим и не храним данные карты; получаем только e-mail для чека."],
+      ["Cookies и аналитика", "Мы храним в браузере ваш код и язык и используем аналитику (Google Analytics, пиксели TikTok и Meta), чтобы измерять посещения и рекламу."],
+      ["Ваши права", "Вы можете попросить удалить ваши данные, написав на контактную почту сайта."]
+    ]],
+    terms: ["Условия использования", [
+      ["Возраст и согласие", "Вам должно быть 18+. Загружайте только свои фото или фото взрослых (18+), которые дали согласие."],
+      ["Запрещено", "Видео с несовершеннолетними, сексуальный, жестокий или вводящий в заблуждение контент, выдача себя за других людей."],
+      ["Рубины", "Рубины тратятся на создание видео и не сгорают. Если генерация не удалась, рубины автоматически возвращаются. Неиспользованные рубины не возвращаются, если иное не требует закон."],
+      ["Результат", "Видео создаются ИИ и могут отличаться. Их можно публиковать в соцсетях; вы отвечаете за то, как их публикуете."],
+      ["Сервис", "Сервис предоставляется «как есть». Мы можем менять цены и функции; купленные рубины сохраняются."]
+    ]]
+  }
+};
+function legalPage(req, l, kind) {
+  const [h, items] = LEGAL[l][kind], o = siteOrigin(req), pre = l === "es" ? "" : "/" + l;
+  const back = { es: "← Volver a SnapDance", en: "← Back to SnapDance", ru: "← Назад в SnapDance" }[l];
+  const contact = CONTACT ? `<p class="c">${{ es: "Contacto", en: "Contact", ru: "Контакт" }[l]}: <a href="mailto:${escH(CONTACT)}">${escH(CONTACT)}</a></p>` : "";
+  return `<!doctype html><html lang="${l}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escH(h)} — ${escH(BRAND)}</title><link rel="canonical" href="${escH(o + pre + "/" + kind)}">${HOME_LANGS.map((x) => `<link rel="alternate" hreflang="${x}" href="${escH(o + (x === "es" ? "" : "/" + x) + "/" + kind)}">`).join("")}<meta name="theme-color" content="#0c0b10"><style>body{margin:0;background:#0c0b10;color:#f2f0f7;font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}main{max-width:720px;margin:0 auto;padding:28px 18px 60px}a{color:#c6ff3d}h1{font-size:28px;line-height:1.2;margin:18px 0}h2{font-size:17px;margin:22px 0 4px}p{margin:0;color:#c9c5d6}.c{margin-top:28px}</style></head><body><main><a href="${HOME_PATH[l]}">${back}</a><h1>${escH(h)}</h1>${items.map(([t, p]) => `<h2>${escH(t)}</h2><p>${escH(p)}</p>`).join("")}${contact}</main></body></html>`;
+}
+function sitemapXml(req) {
+  const o = siteOrigin(req), d = new Date().toISOString().slice(0, 10);
+  const alt = (path) => HOME_LANGS.map((x) => `<xhtml:link rel="alternate" hreflang="${x}" href="${escH(o + (path === "" ? HOME_PATH[x] : (x === "es" ? "" : "/" + x) + path))}"/>`).join("") + `<xhtml:link rel="alternate" hreflang="x-default" href="${escH(o + (path || "/"))}"/>`;
+  const urls = [];
+  for (const x of HOME_LANGS) urls.push(`<url><loc>${escH(o + HOME_PATH[x])}</loc><lastmod>${d}</lastmod><priority>${x === "es" ? "1.0" : "0.9"}</priority>${alt("")}</url>`);
+  for (const k of ["/privacy", "/terms"]) for (const x of HOME_LANGS) urls.push(`<url><loc>${escH(o + (x === "es" ? "" : "/" + x) + k)}</loc><priority>0.3</priority>${alt(k)}</url>`);
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join("\n")}\n</urlset>`;
+}
+function robotsTxt(req) {
+  const rules = "Allow: /\nAllow: /media/ex-\nDisallow: /admin\nDisallow: /api/\nDisallow: /media/\n";
+  const bots = ["Googlebot", "Bingbot", "Google-Extended", "GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "Claude-User", "PerplexityBot", "Perplexity-User", "Applebot", "Applebot-Extended", "DuckDuckBot", "YandexBot", "CCBot", "meta-externalagent"];
+  return `User-agent: *\n${rules}\n${bots.map((b) => "User-agent: " + b).join("\n")}\n${rules}\nSitemap: ${siteOrigin(req)}/sitemap.xml\n`;
+}
+function llmsText(req) {
+  const o = siteOrigin(req);
+  const I = siteDict(fs6.readFileSync(path6.join(PUBLIC, "index.html"), "utf8"));
+  const ps = (packs() || []).filter((p) => p.price);
+  return [
+    `# ${BRAND}`, "",
+    `> ${BRAND} turns one photo into a vertical 9:16 dance video that looks filmed on a phone, ready for TikTok, Instagram Reels and YouTube Shorts. Copy any trending dance from a TikTok clip or pick a dance style. Available in Spanish, English and Russian.`, "",
+    "## Key facts",
+    `- Website: ${o}/ (Spanish), ${o}/en (English), ${o}/ru (Russian)`,
+    "- Input: one full-body photo (optionally 1–2 face photos for better likeness) and either a reference dance video or a dance style.",
+    "- Output: vertical 1080×1920 video with the original trend sound, up to Full HD 60 fps.",
+    "- Time: usually 3–8 minutes; the video appears in “My videos”.",
+    "- Payment: rubies bought in one-time packs via Stripe; the exact price of each video is shown before creating it; rubies never expire; failed generations are refunded automatically.",
+    "- Privacy: uploaded photos and reference videos are deleted after 3 days.",
+    "- Rules: 18+ only, and only with the consent of the person in the photo.", "",
+    ...ps.length ? ["## Packs", ...ps.map((p) => `- ${p.name?.en || p.id}: ${p.credits} rubies for ${money(p.price, "en")}`), ""] : [],
+    "## FAQ",
+    ...(I.en?.faq || []).flatMap(([q, a]) => [`### ${q}`, a, ""]),
+    "## Links",
+    `- [Make a video](${o}/en)`, `- [Privacy](${o}/en/privacy)`, `- [Terms](${o}/en/terms)`, ""
+  ].join("\n");
+}
+
+var PAGES = { "/admin": "admin.html" };
 function serveStatic(req, res, pathname) {
   const page = PAGES[pathname];
   const file = page && path6.join(PUBLIC, page);
   if (file && fs6.existsSync(file)) {
     const h = { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache", "x-content-type-options": "nosniff" };
     if (pathname === "/admin") h["x-robots-tag"] = "noindex, nofollow";
-    if (pathname === "/" && db.settings.marketing) {
-      let html = fs6.readFileSync(file, "utf8");
-      const m = db.settings.marketing;
-      let inject = "";
-      // Google Analytics 4
-      if (m.ga4) {
-        inject += `<script async src="https://www.googletagmanager.com/gtag/js?id=${m.ga4}"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${m.ga4}');</script>\n`;
-      }
-      // Facebook Pixel
-      if (m.fbPixel) {
-        inject += `<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${m.fbPixel}');fbq('track','PageView');</script>
-<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${m.fbPixel}&ev=PageView&noscript=1"/></noscript>\n`;
-      }
-      // TikTok Pixel
-      if (m.tiktokPixel) {
-        inject += `<script>!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e};ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=i;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript";o.async=!0;o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};ttq.load('${m.tiktokPixel}');ttq.page();}(window,document,'ttq');</script>\n`;
-      }
-      // Google Search Console meta
-      if (m.gscMeta) {
-        inject += `<meta name="google-site-verification" content="${m.gscMeta}">\n`;
-      }
-      // AI Optimization (schema + meta for Google AI / GPT crawlers)
-      if (m.enableAIOpt !== false) {
-        inject += `<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"SnapDance","applicationCategory":"MultimediaApplication","operatingSystem":"Web, iOS, Android","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"description":"Turn a selfie into a trending TikTok dance video with AI. Upload a photo, pick a dance, get a vertical 9:16 video.","url":"${process.env.PUBLIC_URL || ""}","featureList":["AI dance generation from photo","TikTok/Reels/Shorts ready","Trending templates","Creator monetization"]}
-</script>
-<meta name="description" content="AI-powered dance video generator from a single selfie. Perfect for TikTok, Instagram Reels and YouTube Shorts. Upload photo → pick trend → get viral video.">
-<meta name="keywords" content="AI dance video, TikTok dance generator, selfie to dance, AI video generator, SnapDance">
-<link rel="alternate" type="text/plain" href="/llms.txt" title="LLM-friendly summary">
-\n`;
-      }
-      if (inject) {
-        html = html.replace("</head>", inject + "</head>");
-      }
-      res.writeHead(200, h);
-      return res.end(html);
-    }
     res.writeHead(200, h);
     return fs6.createReadStream(file).pipe(res);
   }
-  if (pathname === "/robots.txt") {
-    res.writeHead(200, { "content-type": "text/plain" });
-    return res.end("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nSitemap: " + (process.env.PUBLIC_URL || "") + "/sitemap.xml\n");
+  // главная на трёх языках; старые адреса ?lang=… ведут на новые
+  const q = new URL(req.url, "http://x").searchParams, ql = q.get("lang");
+  if (pathname === "/" && HOME_LANGS.includes(ql)) {
+    q.delete("lang");
+    res.writeHead(301, { location: HOME_PATH[ql] + (q.toString() ? "?" + q : "") });
+    return res.end();
   }
-  if (pathname === "/llms.txt") {
-    res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
-    return res.end(`# SnapDance — AI Dance Video Generator
-
-SnapDance lets users upload a selfie and get a trending vertical dance video ready for TikTok, Reels and Shorts.
-
-## How it works
-1. Upload 1-3 photos of the same person (full body + face angles).
-2. Choose a viral dance template or a style.
-3. AI generates a 9:16 video that looks phone-shot.
-4. Share or download.
-
-Creators can upload their own dance templates and earn when others use them.
-
-Official site: ${process.env.PUBLIC_URL || "https://snapdance.app"}
-`);
-  }
+  if (pathname === "/es") { res.writeHead(301, { location: "/" }); return res.end(); }
+  if (pathname === "/" || pathname === "/en" || pathname === "/ru") return sendHtml(req, res, 200, renderHome(req, pathname === "/" ? "es" : pathname.slice(1)));
+  const lm = pathname.match(/^(?:\/(en|ru))?\/(privacy|terms)$/);
+  if (lm) return sendHtml(req, res, 200, legalPage(req, lm[1] || "es", lm[2]));
+  if (pathname === "/sitemap.xml") { res.writeHead(200, { "content-type": "application/xml; charset=utf-8" }); return res.end(sitemapXml(req)); }
+  if (pathname === "/robots.txt") { res.writeHead(200, { "content-type": "text/plain; charset=utf-8" }); return res.end(robotsTxt(req)); }
+  if (pathname === "/llms.txt") { res.writeHead(200, { "content-type": "text/markdown; charset=utf-8" }); return res.end(llmsText(req)); }
   res.writeHead(302, { location: "/" });
   res.end();
 }
