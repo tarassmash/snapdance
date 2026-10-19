@@ -1121,12 +1121,41 @@ async function post(j) {
   } catch {
   }
   j.result = `/media/sd-${j.id}.mp4`;
+  // проверка, что человек действительно двигается: сравниваем кадры из начала, середины и конца
+  try {
+    const m = await motionScore(out);
+    j.motion = m;
+    if (m < 1.2) j.notes.push(`видео почти статичное (движение ${m}) — попробуйте Kling 3 Pro или Veo 3.1`);
+  } catch {}
   j.status = "done";
   j.stage = "";
   j.done = Date.now();
   delete j.posting;
   posting--;
   save();
+}
+// средняя разница между кадрами (0–255) на маленьких серых кадрах: < ~1.2 — почти неподвижная картинка
+async function motionScore(file) {
+  const info = await probe2(file);
+  const d = info.duration || 0;
+  if (d < 1) return 0;
+  const frames = [];
+  for (const t of [0.2, 0.4, 0.6, 0.8].map((k) => (d * k).toFixed(2))) {
+    const raw = await new Promise((ok, no) => {
+      const p = spawn(FFMPEG, ["-hide_banner", "-loglevel", "error", "-ss", t, "-i", file, "-frames:v", "1", "-vf", "scale=36:64,format=gray", "-f", "rawvideo", "-"], { stdio: ["ignore", "pipe", "pipe"] });
+      const parts = [];
+      p.stdout.on("data", (c) => parts.push(c));
+      p.on("close", (code) => code === 0 ? ok(Buffer.concat(parts)) : no(new Error("ffmpeg " + code)));
+      p.on("error", no);
+    });
+    frames.push(raw);
+  }
+  let sum = 0, n = 0;
+  for (let i = 1; i < frames.length; i++) {
+    const a = frames[i - 1], b = frames[i], len = Math.min(a.length, b.length);
+    for (let k = 0; k < len; k++) { sum += Math.abs(a[k] - b[k]); n++; }
+  }
+  return n ? +(sum / n).toFixed(2) : 0;
 }
 var running = null;
 var busy = () => db.jobs.some((j) => j.status === "working");
@@ -1505,7 +1534,16 @@ var CHAR_POOL = {
   ]
 };
 var GENDER = { female: "young woman", male: "young man", nb: "androgynous young person" };
-var publicChar = (c) => ({ ...c, faceJob: void 0, sheetJobs: void 0, videos: db.jobs.filter((j) => j.character === c.id).slice(0, 30).map((j) => ({ id: j.id, status: j.status, stage: j.stage, result: j.result, poster: j.poster, mode: j.mode, style: j.style, created: j.created, error: j.error, usd: j.usd })) });
+var publicChar = (c) => ({ ...c, faceJob: void 0, sheetJobs: void 0, videos: db.jobs.filter((j) => j.character === c.id).slice(0, 30).map((j) => ({ id: j.id, status: j.status, stage: j.stage, result: j.result, poster: j.poster, mode: j.mode, style: j.style, created: j.created, error: j.error, usd: j.usd, model: [...TREND_MODELS, ...STYLE_MODELS].find((m) => m.id === j.model)?.name || j.model, faceLock: j.faceLock, notes: j.notes || [], motion: j.motion })) });
+// модели для выбора в админке с примерной себестоимостью
+function charModels() {
+  const est = (mode, m, secs) => usdCost({ mode, model: m.id, frame: "nbpro", enhance: true, faceLock: false, seconds: secs });
+  return {
+    style: STYLE_MODELS.map((m) => ({ id: m.id, name: m.name, durs: m.durs, faces: !!m.elements, usd: Object.fromEntries(m.durs.map((d) => [d, est("style", m, d)])) })),
+    trend: TREND_MODELS.map((m) => ({ id: m.id, name: m.name, faces: !!m.elements, usd10: est("trend", m, 10) })),
+    lockPerSec: econ().lockUsd
+  };
+}
 function charIdentity(c) {
   return `a fictional adult ${GENDER[c.gender] || GENDER.female} in their mid-twenties with a unique futuristic look: ${c.look}`;
 }
@@ -1536,6 +1574,7 @@ async function createCharacter(b) {
   return c;
 }
 async function pickCharacter(id, index) {
+  if (!publicUrl("/media/x")) throw new UserError("Не задан адрес сайта: Railway → Variables → PUBLIC_URL = https://snapdance.us.");
   const c = db.characters.find((x) => x.id === id);
   if (!c) throw new UserError("Персонаж не найден.", 404);
   const face = c.candidates[index];
@@ -1601,11 +1640,15 @@ setInterval(() => {
 }, 5e3);
 // танец с персонажем: обычная генерация, но фото — «паспорт внешности», face-lock включён, оплата не списывается
 async function danceCharacter(b) {
+  if (!publicUrl("/media/x")) throw new UserError("Не задан адрес сайта: Railway → Variables → PUBLIC_URL = https://snapdance.us. Без него нейросеть не может скачать ролик-образец и фото, и видео выходит неподвижным.");
   const c = db.characters.find((x) => x.id === b.id);
   if (!c || c.status !== "ready") throw new UserError("Персонаж ещё не готов.");
   db.keys[STUDIO_KEY] ||= { credits: 0, spent: 0, created: Date.now(), source: "studio", note: "внутренний ключ: персонажи из админки" };
-  const o = options({ ...b, mode: b.mode === "trend" ? "trend" : "style", frame: "nbpro", phone: "oldiphone", cam: b.cam || "tripod", place: PLACE[b.place] ? b.place : "room" });
-  o.faceLock = true;
+  const mode = b.mode === "trend" ? "trend" : "style";
+  // по умолчанию Kling 3 Pro: держит лицо по опорным фото (elements) и хорошо двигает человека
+  const model = b.model || (mode === "trend" ? "mc3p" : "kling3");
+  const o = options({ ...b, mode, model, frame: "nbpro", phone: "oldiphone", cam: b.cam || "tripod", place: PLACE[b.place] ? b.place : "room" });
+  o.faceLock = b.faceLock === true;
   o.enhance = b.enhance !== false;
   let seconds = o.dur, ref2 = null;
   if (o.mode === "trend") {
@@ -1909,20 +1952,24 @@ var routes = {
   // ИИ-персонажи для аккаунтов студии
   "GET /api/admin/characters": async (req, res) => {
     isAdmin(req);
+    origin(req); // адрес сайта нужен, чтобы fal.ai скачивал фото и ролики по ссылке
     await Promise.race([stepCharacters().catch(() => {}), new Promise((ok) => setTimeout(ok, 4e3))]);
-    json(res, { characters: db.characters.map(publicChar), styles: STYLES.map((s) => ({ id: s.id, name: s.name, icon: s.icon })), places: Object.keys(PLACE) });
+    json(res, { characters: db.characters.map(publicChar), styles: STYLES.map((s) => ({ id: s.id, name: s.name, icon: s.icon })), places: Object.keys(PLACE), models: charModels() });
   },
   "POST /api/admin/characters": async (req, res) => {
     isAdmin(req);
+    origin(req); // адрес сайта нужен, чтобы fal.ai скачивал фото и ролики по ссылке
     json(res, publicChar(await createCharacter(await body(req))));
   },
   "POST /api/admin/characters/pick": async (req, res) => {
     isAdmin(req);
+    origin(req); // адрес сайта нужен, чтобы fal.ai скачивал фото и ролики по ссылке
     const b = await body(req);
     json(res, publicChar(await pickCharacter(b.id, +b.index)));
   },
   "POST /api/admin/characters/dance": async (req, res) => {
     isAdmin(req);
+    origin(req); // адрес сайта нужен, чтобы fal.ai скачивал фото и ролики по ссылке
     const j = await danceCharacter(await body(req));
     json(res, { id: j.id, usd: j.usd });
   },
@@ -1934,6 +1981,7 @@ var routes = {
   // рекламный ролик из примера (голос + танец + призыв), собирается в фоне 1–2 минуты
   "POST /api/admin/examples/ad": async (req, res) => {
     isAdmin(req);
+    origin(req); // адрес сайта нужен, чтобы fal.ai скачивал фото и ролики по ссылке
     const b = await body(req);
     json(res, await startAd(b.id, b.lang, b.voice === "male" ? "male" : "female"));
   },
