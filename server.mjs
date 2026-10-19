@@ -1953,6 +1953,34 @@ function llmsText(req) {
   ].join("\n");
 }
 
+// язык посетителя: выбор, сохранённый в cookie, или язык телефона/браузера (Accept-Language).
+// Испанский (и каталанский, галисийский, баскский) → /, русский (и украинский, белорусский, казахский) → /ru, остальные → /en.
+var AUTO_BOT = /bot|crawl|spider|slurp|preview|facebookexternalhit|lighthouse|headless|inspectiontool/i;
+function langFromHeader(h) {
+  const list = String(h || "").split(",").map((part, i) => {
+    const [tag, ...params] = part.trim().toLowerCase().split(";");
+    const q = params.map((p) => p.trim()).find((p) => p.startsWith("q="));
+    return { base: tag.split("-")[0], q: q ? parseFloat(q.slice(2)) || 0 : 1, i };
+  }).filter((x) => x.base && x.base !== "*" && x.q > 0).sort((a, b) => b.q - a.q || a.i - b.i);
+  for (const { base } of list) {
+    if (["es", "ca", "gl", "eu"].includes(base)) return "es";
+    if (["ru", "uk", "be", "kk"].includes(base)) return "ru";
+    if (base === "en") return "en";
+  }
+  return list.length ? "en" : "";
+}
+function cookieLang(req) {
+  const m = /(?:^|;\s*)site_lang=(es|en|ru)\b/.exec(req.headers.cookie || "");
+  return m ? m[1] : "";
+}
+// для "/" — куда перенаправить человека (или "" — оставить испанскую версию)
+function autoLangRedirect(req, url, paths) {
+  if (url.searchParams.has("session_id") || url.searchParams.has("canceled") || url.searchParams.has("nolang")) return "";
+  if (AUTO_BOT.test(req.headers["user-agent"] || "")) return "";
+  const want = cookieLang(req) || langFromHeader(req.headers["accept-language"]);
+  if (!want || want === "es" || !paths[want]) return "";
+  return paths[want] + url.search;
+}
 var PAGES = { "/admin": "admin.html" };
 function serveStatic(req, res, pathname) {
   const page = PAGES[pathname];
@@ -1971,6 +1999,11 @@ function serveStatic(req, res, pathname) {
     return res.end();
   }
   if (pathname === "/es") { res.writeHead(301, { location: "/" }); return res.end(); }
+  // первый заход на /: сразу открываем версию на языке телефона или ранее выбранную
+  if (pathname === "/" && !ql) {
+    const to = autoLangRedirect(req, new URL(req.url, "http://x"), HOME_PATH);
+    if (to) { res.writeHead(302, { location: to, vary: "Accept-Language, Cookie", "cache-control": "no-store" }); return res.end(); }
+  }
   if (pathname === "/" || pathname === "/en" || pathname === "/ru") return sendHtml(req, res, 200, renderHome(req, pathname === "/" ? "es" : pathname.slice(1)));
   const lm = pathname.match(/^(?:\/(en|ru))?\/(privacy|terms)$/);
   if (lm) return sendHtml(req, res, 200, legalPage(req, lm[1] || "es", lm[2]));
