@@ -322,6 +322,7 @@ img, video { max-width: 100%; }
 .chips button { min-height: 40px; min-width: 48px; }
 .btn.huge { white-space: nowrap; font-size: clamp(16px, 4.8vw, 19px); padding-inline: 14px; }
 .btn.huge .go-cost { flex: none; }
+.go-cost .eur { font-size: .72em; font-weight: 700; opacity: .75; margin-left: 4px; }
 .codebox { display: flex; gap: 8px; } .codebox input { min-width: 0; flex: 1; font-size: 16px; }
 .card { padding: clamp(14px, 4vw, 18px); }
 /* экран с видео: на телефоне появляется, только когда видео делается или готово */
@@ -459,7 +460,7 @@ img, video, iframe { max-width: 100% !important; height: auto; }
 
   <footer class="foot">
     <span>© <span id="year"></span> SnapDance · <span data-t="foot.rule">Solo con el permiso de la persona de la foto, 18+</span></span>
-    <span class="foot-links"><a href="/privacy" id="lnkPriv" data-t="foot.privacy">Privacidad</a><a href="/terms" id="lnkTerms" data-t="foot.terms">Términos</a><span id="contact"></span></span>
+    <span class="foot-links"><a href="/privacy" id="lnkPriv" data-t="foot.privacy">Privacidad</a><a href="/terms" id="lnkTerms" data-t="foot.terms">Términos</a><a href="/report" id="lnkReport" data-t="foot.report">Denunciar contenido</a><span id="contact"></span></span>
   </footer>
 </div>
 
@@ -727,10 +728,13 @@ Object.assign(I18N.en, {"fmt.ready": "✅ Ready for TikTok, Reels and Shorts · 
 Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и Shorts · 1080×1920", "plat.hint": "Подпись для:", "plat.ig": ["#reels", "#reelsinstagram", "#рилс", "#танцы", "#viral"], "plat.yt": ["#shorts", "#танцы", "#танец"], "inc": "Уже включено: лучшая нейросеть под ваш бюджет · формат для TikTok, Reels и Shorts · оригинальный звук"});
 
 // ---- вопросы, подвал, уведомления ----
+Object.assign(I18N.es, {"foot.report": "Denunciar contenido"});
 Object.assign(I18N.es, {"ex.user": "tu_perfil"});
 Object.assign(I18N.es, {"faq.h": "Preguntas frecuentes", "foot.privacy": "Privacidad", "foot.terms": "Términos", "price.from": "Paquetes desde {p} · sin suscripción", "notif.title": "✅ ¡Tu vídeo está listo!", "notif.body": "Ábrelo en SnapDance para verlo y descargarlo.", "title.work": "⏳ {p}% · creando tu vídeo", "faq": [["¿Cómo funciona?", "Sube una foto de cuerpo entero, elige un baile o sube el vídeo de una tendencia de TikTok, y la IA crea un vídeo vertical 9:16 en el que bailas tú, como grabado con el móvil."], ["¿Cuánto tarda?", "Normalmente de 3 a 8 minutos. Puedes cerrar la página: el vídeo aparecerá en «Mis vídeos» y te avisaremos cuando esté listo."], ["¿Cuánto cuesta?", "Pagas con rubíes. El precio exacto de cada vídeo aparece en el botón antes de crearlo y depende de la IA y la duración. Sin suscripción: los rubíes no caducan."], ["¿Y si el vídeo sale mal?", "Si la generación falla, los rubíes vuelven automáticamente a tu saldo. Si falla solo un paso, te devolvemos su coste."], ["¿Qué pasa con mis fotos?", "Se usan solo para crear tu vídeo y se borran automáticamente a los 3 días. Los vídeos terminados se guardan para que puedas descargarlos con tu código."], ["¿Puedo usar la foto de otra persona?", "Solo con su permiso y si es mayor de 18 años. Está prohibido crear vídeos de menores o de personas sin su consentimiento."]]});
+Object.assign(I18N.en, {"foot.report": "Report content"});
 Object.assign(I18N.en, {"ex.user": "you"});
 Object.assign(I18N.en, {"faq.h": "Frequently asked questions", "foot.privacy": "Privacy", "foot.terms": "Terms", "price.from": "Packs from {p} · no subscription", "notif.title": "✅ Your video is ready!", "notif.body": "Open SnapDance to watch and download it.", "title.work": "⏳ {p}% · making your video", "faq": [["How does it work?", "Upload a full-body photo, pick a dance or upload a TikTok trend video, and the AI creates a vertical 9:16 video of you dancing, as if filmed on a phone."], ["How long does it take?", "Usually 3 to 8 minutes. You can close the page: the video will appear in “My videos” and we'll let you know when it's ready."], ["How much does it cost?", "You pay with rubies. The exact price of each video is shown on the button before you create it and depends on the AI and the length. No subscription: rubies never expire."], ["What if the video fails?", "If a generation fails, the rubies go back to your balance automatically. If only one step fails, we refund its cost."], ["What happens to my photos?", "They are used only to create your video and are deleted automatically after 3 days. Finished videos are kept so you can download them with your code."], ["Can I use someone else's photo?", "Only with their permission and if they are over 18. Creating videos of minors or of people without their consent is not allowed."]]});
+Object.assign(I18N.ru, {"foot.report": "Пожаловаться"});
 Object.assign(I18N.ru, {"ex.user": "вы"});
 Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": "Конфиденциальность", "foot.terms": "Условия", "price.from": "Пакеты от {p} · без подписки", "notif.title": "✅ Ваше видео готово!", "notif.body": "Откройте SnapDance, чтобы посмотреть и скачать.", "title.work": "⏳ {p}% · делаем ваше видео", "faq": [["Как это работает?", "Загрузите фото в полный рост, выберите танец или загрузите видео тренда из TikTok — нейросеть сделает вертикальное видео 9:16, где танцуете вы, как снятое на телефон."], ["Сколько ждать?", "Обычно 3–8 минут. Страницу можно закрыть: видео появится в «Мои видео», и мы сообщим, когда оно будет готово."], ["Сколько это стоит?", "Оплата рубинами. Точная цена видео видна на кнопке до создания и зависит от нейросети и длительности. Без подписки: рубины не сгорают."], ["А если видео не получится?", "Если генерация не удалась, рубины автоматически вернутся на баланс. Если не сработал отдельный шаг, вернём его стоимость."], ["Что происходит с моими фото?", "Они используются только для создания видео и автоматически удаляются через 3 дня. Готовые видео хранятся, чтобы вы могли скачать их по своему коду."], ["Можно использовать фото другого человека?", "Только с его согласия и если ему больше 18 лет. Видео с несовершеннолетними или без согласия человека создавать нельзя."]]});
 
@@ -788,7 +792,7 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
     const md = document.querySelector('meta[name="description"]'); if (md) md.content = t("meta.desc");
     $("lang").value = L;
     $("faqList").innerHTML = (I18N[L].faq || []).map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("");
-    const pre = L === "es" ? "" : "/" + L; $("lnkPriv").href = pre + "/privacy"; $("lnkTerms").href = pre + "/terms";
+    const pre = L === "es" ? "" : "/" + L; $("lnkPriv").href = pre + "/privacy"; $("lnkTerms").href = pre + "/terms"; $("lnkReport").href = pre + "/report";
     renderFrom();
     renderSlots();
     if (cfg) { renderStyles(); renderExamples(cfg.examples); renderPacks(); }
@@ -947,6 +951,12 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
   }
   const describe = (o) => t("bud.pick", { m: o.name, q: o.enhance ? t("bud.hd") : t("bud.std"), s: t("secs", { s: Math.round(o.seconds) }) });
   const quote = (o) => { if (!cfg) return 0; const p = pick(); return o?.mode === "trend" ? options("trend")[0].price : (p.best || p.top).price; };
+  // примерная цена в евро: по курсу рубина в самом популярном пакете
+  function eur(rubies) {
+    const pk = (cfg?.packs || []).find(p => p.popular) || (cfg?.packs || [])[0];
+    if (!pk?.price || !pk.credits) return "";
+    return new Intl.NumberFormat(L === "ru" ? "ru-RU" : L === "es" ? "es-ES" : "en-GB", { style: "currency", currency: (cfg.currency || "eur").toUpperCase() }).format(Math.round(rubies * pk.price / pk.credits * 100) / 100);
+  }
   function price() {
     if (!cfg) { $("go").innerHTML = esc(t("go2")); return; }
     const p = pick(), approx = mode() === "trend" && !ref?.duration;
@@ -958,7 +968,7 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
     }
     const better = options(mode()).filter(o => o.score > p.best.score + 0.5 && o.price > budget() && describe(o) !== describe(p.best)).sort((a, b) => a.price - b.price)[0] || null;
     $("budPick").innerHTML = `<b>${esc(describe(p.best))}</b>${better ? "<br>" + esc(t("bud.up", { n: better.price, m: describe(better).replace(/^[^:]+:\s*/, "") })) : ""}`;
-    $("go").innerHTML = `${esc(t("go2"))} <span class="go-cost">${approx ? "≈" : ""}${RB}${p.best.price}</span>`;
+    $("go").innerHTML = `${esc(t("go2"))} <span class="go-cost">${approx ? "≈" : ""}${RB}${p.best.price}${eur(p.best.price) ? `<small class="eur">≈ ${eur(p.best.price)}</small>` : ""}</span>`;
   }
   $("budget").addEventListener("input", () => { store.set("sd-budget", $("budget").value); price(); });
   $("budChips").onclick = e => { const b = e.target.closest("[data-b]"); if (!b) return; $("budget").value = b.dataset.b; store.set("sd-budget", b.dataset.b); price(); };
@@ -1060,7 +1070,7 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
     shown = j.id; renderMine(); makeCaption(j);
   }
   function renderMine() {
-    const list = jobs.filter(j => j.status !== "failed").slice(0, 30);
+    const list = jobs.filter(j => j.status !== "failed" && j.status !== "removed").slice(0, 30);
     $("myvids").hidden = !list.length;
     $("mv").innerHTML = list.map(j => `<button type="button" data-id="${j.id}" aria-pressed="${j.id === shown}" style="${j.poster ? `background-image:url('${esc(j.poster)}')` : ""}">${j.status === "working" ? "<span>⏳</span>" : ""}</button>`).join("");
   }

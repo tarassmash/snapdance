@@ -49,6 +49,13 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
 .drop2 img, .drop2 video { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
 .exi .m { position: relative; } .exi .bf { position: absolute; left: 8px; top: 8px; width: 34%; aspect-ratio: 3/4; border: 2px solid #fff; border-radius: 8px; overflow: hidden; } .exi .bf img { width: 100%; height: 100%; object-fit: cover; }
 .exi .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.reps { display: grid; gap: 10px; margin-top: 12px; }
+.rep { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; gap: 8px; }
+.rep.new { border-color: var(--bad); }
+.rep .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.rep .lnk { word-break: break-all; }
+.rep video { width: 90px; aspect-ratio: 9 / 16; border-radius: 8px; background: #000; }
+.rep input { width: 190px; }
 .chform { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; align-items: end; }
 .chars { display: grid; gap: 14px; margin-top: 14px; }
 .chc { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 12px; }
@@ -91,6 +98,7 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
       <button data-tab="examples" aria-selected="false">Примеры до/после</button>
       <button data-tab="chars" aria-selected="false">ИИ-персонажи</button>
       <button data-tab="orders" aria-selected="false">Заказы</button>
+      <button data-tab="reports" aria-selected="false">Жалобы <span id="repN" class="bad"></span></button>
       <button data-tab="keys" aria-selected="false">Коды клиентов</button>
       <button data-tab="prices" aria-selected="false">Пакеты и цены</button>
       <button data-tab="marketing" aria-selected="false">Маркетинг & AI</button>
@@ -121,6 +129,11 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
         </div>
       </div>
       <div class="chars" id="chList"></div>
+    </section>
+
+    <section data-pane="reports" hidden>
+      <div class="card"><h2>Жалобы и запросы на удаление</h2><p class="muted" style="margin:0;font-size:13px">Люди отправляют их через форму /report (ссылка «Denunciar contenido» в подвале сайта). Рассматривайте в течение 24–48 часов: если видео сделано без согласия, с несовершеннолетним или нарушает закон — «Удалить видео». Ответьте человеку на указанный e-mail. Это важно для Stripe и законов ЕС/США о дипфейках.</p></div>
+      <div class="reps" id="repList"></div>
     </section>
 
     <section data-pane="examples" hidden>
@@ -234,7 +247,7 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
     if (!r.ok) throw new Error(d.error || "Ошибка " + r.status);
     return d;
   }
-  async function enter() { pass = $("pass").value || pass; try { await api("/api/admin/stats"); } catch { return; } ss.set("sd_admin", pass); $("login").hidden = true; $("app").hidden = false; show(tab); }
+  async function enter() { pass = $("pass").value || pass; try { await api("/api/admin/stats"); } catch { return; } ss.set("sd_admin", pass); $("login").hidden = true; $("app").hidden = false; show(tab); api("/api/admin/reports").then(l => { const n = l.filter(r => r.status === "new").length; $("repN").textContent = n ? `(${n})` : ""; }).catch(() => {}); }
   $("enter").onclick = enter; $("pass").onkeydown = e => { if (e.key === "Enter") enter(); };
   $("out").onclick = () => { ss.del("sd_admin"); location.reload(); };
   function show(n) { tab = n; document.querySelectorAll("[data-tab]").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === n)); document.querySelectorAll("[data-pane]").forEach(p => p.hidden = p.dataset.pane !== n); load(); }
@@ -247,6 +260,7 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
       if (tab === "orders") renderOrders(await api("/api/admin/orders"));
       if (tab === "examples") renderEx(await api("/api/admin/examples"));
       if (tab === "chars") renderChars(await api("/api/admin/characters"));
+      if (tab === "reports") renderReports(await api("/api/admin/reports"));
       if (tab === "keys") renderKeys(await api("/api/admin/keys"));
       if (tab === "prices") await renderPrices();
     } catch {}
@@ -323,6 +337,26 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
         ${adHtml(x)}</div></div></div>`).join("") || '<p class="muted">Примеров пока нет — добавьте первый выше или нажмите «⭐ В примеры» у готового видео во вкладке «Видео».</p>';
     EXL = list; pollAds();
   }
+  // ---------- жалобы ----------
+  const RR = { consent: "Без согласия", minor: "Несовершеннолетний", sexual: "Сексуальный/жестокий контент", other: "Другое" };
+  const RS = { new: "🔴 Новая", removed: "✓ Видео удалено", closed: "Закрыта" };
+  function renderReports(list) {
+    const n = list.filter(r => r.status === "new").length; $("repN").textContent = n ? `(${n})` : "";
+    $("repList").innerHTML = list.map(r => `<div class="rep ${r.status === "new" ? "new" : ""}" data-id="${r.id}">
+      <div class="row"><b>${RS[r.status] || r.status}</b><span class="muted">${date(r.created)} · ${esc(RR[r.reason] || r.reason)} · ${esc((r.lang || "").toUpperCase())}</span><a href="mailto:${esc(r.email)}">${esc(r.email)}</a></div>
+      <div class="lnk">${/^https?:\/\//.test(r.link) ? `<a href="${esc(r.link)}" target="_blank" rel="noopener">${esc(r.link)}</a>` : esc(r.link)}</div>
+      ${r.details ? `<div class="muted">${esc(r.details)}</div>` : ""}
+      ${r.jobInfo?.id ? `<div class="row">${r.jobInfo.result ? `<video src="${esc(r.jobInfo.result)}" ${r.jobInfo.poster ? `poster="${esc(r.jobInfo.poster)}"` : ""} controls preload="none" playsinline></video>` : ""}<span class="muted">Найдено видео ${esc(r.jobInfo.id)} · клиент ${esc(r.jobInfo.email || r.jobInfo.key || "")} · ${esc(r.jobInfo.status || "")}</span></div>` : ""}
+      <div class="row"><input data-rjob value="${esc(r.job || "")}" placeholder="ID видео (16 символов)"><button class="btn sm" data-r="delete" style="background:var(--bad);color:#fff">Удалить видео</button>${r.status === "new" ? `<button class="btn ghost sm" data-r="close">Закрыть без удаления</button>` : `<button class="btn ghost sm" data-r="reopen">Вернуть в работу</button>`}</div>
+    </div>`).join("") || '<p class="muted">Жалоб нет.</p>';
+  }
+  $("repList").addEventListener("click", async e => {
+    const b = e.target.closest("[data-r]"); if (!b) return;
+    const box = b.closest("[data-id]"), job = box.querySelector("[data-rjob]").value.trim();
+    if (b.dataset.r === "delete") { if (!job) return alert("Укажите ID видео — его видно во вкладке «Видео» или в ссылке /media/sd-<ID>.mp4"); if (!confirm("Удалить видео " + job + " навсегда?")) return; }
+    try { await api("/api/admin/reports/resolve", { id: box.dataset.id, action: b.dataset.r, job }); renderReports(await api("/api/admin/reports")); } catch (err) { alert(err.message); }
+  });
+
   // ---------- ИИ-персонажи ----------
   let CH = { characters: [], styles: [], places: [] }, chTimer = null;
   const CST = { faces: "⏳ рисуем 4 варианта (≈1 мин)…", pick: "Выберите вариант", sheet: "⏳ делаем паспорт внешности: 3 фото (≈1–2 мин)…", ready: "✓ Паспорт готов", failed: "✕ Ошибка" };
