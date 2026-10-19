@@ -8,7 +8,7 @@
 <meta name="description" content="Sube una foto y recibe un vídeo de baile de tendencia, como grabado con el móvil. Repite cualquier baile viral o elige un estilo. Vertical 9:16 para TikTok, Reels y Shorts.">
 <meta property="og:title" content="SnapDance — baile desde una foto para TikTok">
 <meta property="og:description" content="Una foto — un baile de tendencia, como grabado con el móvil.">
-<link rel="alternate" hreflang="es" href="/?lang=es"><link rel="alternate" hreflang="en" href="/?lang=en"><link rel="alternate" hreflang="ru" href="/?lang=ru"><link rel="alternate" hreflang="x-default" href="/">
+<!--SEO_HEAD-->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230c0b10'/%3E%3Cpath d='M12 8v12.5a3.5 3.5 0 1 1-2-3.2V8h8v3h-6' fill='%23c6ff3d'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -218,6 +218,16 @@ label.f { display: grid; gap: 6px; font-size: 13px; font-weight: 700; color: var
 .ex figcaption { font-size: 13.5px; color: var(--muted); margin-top: 6px; }
 footer.foot { margin-top: 30px; color: var(--muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 16px; }
 footer.foot a { color: var(--muted); }
+.foot-links { display: flex; gap: 14px; flex-wrap: wrap; }
+.from { margin: 8px 0 0; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--lime); }
+.faq { margin-top: 26px; display: grid; gap: 8px; }
+.faq h2 { font: 800 20px/1.2 "Unbounded", sans-serif; margin: 0 0 6px; }
+.faq details { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.faq summary { cursor: pointer; font-weight: 700; font-size: 15px; list-style: none; display: flex; justify-content: space-between; gap: 10px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; color: var(--lime); font-weight: 800; }
+.faq details[open] summary::after { content: "–"; }
+.faq p { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
 .trendcard { border-color: #ff2e5b55; background: linear-gradient(160deg, #ff2e5b22, var(--panel2)); }
 .trendcard[aria-pressed="true"] { border-color: #ff2e5b; }
 .styles { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
@@ -390,6 +400,7 @@ img, video, iframe { max-width: 100% !important; height: auto; }
         </div>
         <div class="checks"><label><input type="checkbox" id="consent"> <span data-t="ok.consent">Tengo el permiso de la persona de la foto y es mayor de 18 años.</span></label></div>
         <button class="btn wide huge" id="go"></button>
+        <p class="from" id="fromPrice" hidden></p>
         <p class="inc" data-t="inc">Ya incluido: la mejor IA para tu presupuesto · formato para TikTok, Reels y Shorts · sonido original</p>
         <div class="msg" id="err" hidden></div>
       </section>
@@ -415,9 +426,14 @@ img, video, iframe { max-width: 100% !important; height: auto; }
     </aside>
   </div>
 
+  <section class="faq" id="faq">
+    <h2 data-t="faq.h">Preguntas frecuentes</h2>
+    <div id="faqList"></div>
+  </section>
+
   <footer class="foot">
     <span>© <span id="year"></span> SnapDance · <span data-t="foot.rule">Solo con el permiso de la persona de la foto, 18+</span></span>
-    <span id="contact"></span>
+    <span class="foot-links"><a href="/privacy" id="lnkPriv" data-t="foot.privacy">Privacidad</a><a href="/terms" id="lnkTerms" data-t="foot.terms">Términos</a><span id="contact"></span></span>
   </footer>
 </div>
 
@@ -684,6 +700,11 @@ Object.assign(I18N.es, {"fmt.ready": "✅ Listo para TikTok, Reels y Shorts · 1
 Object.assign(I18N.en, {"fmt.ready": "✅ Ready for TikTok, Reels and Shorts · 1080×1920", "plat.hint": "Caption for:", "plat.ig": ["#reels", "#reelsinstagram", "#explore", "#dance", "#viral"], "plat.yt": ["#shorts", "#dance", "#dancechallenge"], "inc": "Included: the best AI for your budget · TikTok, Reels and Shorts format · original sound"});
 Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и Shorts · 1080×1920", "plat.hint": "Подпись для:", "plat.ig": ["#reels", "#reelsinstagram", "#рилс", "#танцы", "#viral"], "plat.yt": ["#shorts", "#танцы", "#танец"], "inc": "Уже включено: лучшая нейросеть под ваш бюджет · формат для TikTok, Reels и Shorts · оригинальный звук"});
 
+// ---- вопросы, подвал, уведомления ----
+Object.assign(I18N.es, {"faq.h": "Preguntas frecuentes", "foot.privacy": "Privacidad", "foot.terms": "Términos", "price.from": "Paquetes desde {p} · sin suscripción", "notif.title": "✅ ¡Tu vídeo está listo!", "notif.body": "Ábrelo en SnapDance para verlo y descargarlo.", "title.work": "⏳ {p}% · creando tu vídeo", "faq": [["¿Cómo funciona?", "Sube una foto de cuerpo entero, elige un baile o sube el vídeo de una tendencia de TikTok, y la IA crea un vídeo vertical 9:16 en el que bailas tú, como grabado con el móvil."], ["¿Cuánto tarda?", "Normalmente de 3 a 8 minutos. Puedes cerrar la página: el vídeo aparecerá en «Mis vídeos» y te avisaremos cuando esté listo."], ["¿Cuánto cuesta?", "Pagas con rubíes. El precio exacto de cada vídeo aparece en el botón antes de crearlo y depende de la IA y la duración. Sin suscripción: los rubíes no caducan."], ["¿Y si el vídeo sale mal?", "Si la generación falla, los rubíes vuelven automáticamente a tu saldo. Si falla solo un paso, te devolvemos su coste."], ["¿Qué pasa con mis fotos?", "Se usan solo para crear tu vídeo y se borran automáticamente a los 3 días. Los vídeos terminados se guardan para que puedas descargarlos con tu código."], ["¿Puedo usar la foto de otra persona?", "Solo con su permiso y si es mayor de 18 años. Está prohibido crear vídeos de menores o de personas sin su consentimiento."]]});
+Object.assign(I18N.en, {"faq.h": "Frequently asked questions", "foot.privacy": "Privacy", "foot.terms": "Terms", "price.from": "Packs from {p} · no subscription", "notif.title": "✅ Your video is ready!", "notif.body": "Open SnapDance to watch and download it.", "title.work": "⏳ {p}% · making your video", "faq": [["How does it work?", "Upload a full-body photo, pick a dance or upload a TikTok trend video, and the AI creates a vertical 9:16 video of you dancing, as if filmed on a phone."], ["How long does it take?", "Usually 3 to 8 minutes. You can close the page: the video will appear in “My videos” and we'll let you know when it's ready."], ["How much does it cost?", "You pay with rubies. The exact price of each video is shown on the button before you create it and depends on the AI and the length. No subscription: rubies never expire."], ["What if the video fails?", "If a generation fails, the rubies go back to your balance automatically. If only one step fails, we refund its cost."], ["What happens to my photos?", "They are used only to create your video and are deleted automatically after 3 days. Finished videos are kept so you can download them with your code."], ["Can I use someone else's photo?", "Only with their permission and if they are over 18. Creating videos of minors or of people without their consent is not allowed."]]});
+Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": "Конфиденциальность", "foot.terms": "Условия", "price.from": "Пакеты от {p} · без подписки", "notif.title": "✅ Ваше видео готово!", "notif.body": "Откройте SnapDance, чтобы посмотреть и скачать.", "title.work": "⏳ {p}% · делаем ваше видео", "faq": [["Как это работает?", "Загрузите фото в полный рост, выберите танец или загрузите видео тренда из TikTok — нейросеть сделает вертикальное видео 9:16, где танцуете вы, как снятое на телефон."], ["Сколько ждать?", "Обычно 3–8 минут. Страницу можно закрыть: видео появится в «Мои видео», и мы сообщим, когда оно будет готово."], ["Сколько это стоит?", "Оплата рубинами. Точная цена видео видна на кнопке до создания и зависит от нейросети и длительности. Без подписки: рубины не сгорают."], ["А если видео не получится?", "Если генерация не удалась, рубины автоматически вернутся на баланс. Если не сработал отдельный шаг, вернём его стоимость."], ["Что происходит с моими фото?", "Они используются только для создания видео и автоматически удаляются через 3 дня. Готовые видео хранятся, чтобы вы могли скачать их по своему коду."], ["Можно использовать фото другого человека?", "Только с его согласия и если ему больше 18 лет. Видео с несовершеннолетними или без согласия человека создавать нельзя."]]});
+
   // Постоянные настройки; модель, длительность, кадр и 1080p подбираются под бюджет клиента
   const FIXED = { phone: "oldiphone", cam: "tripod", place: "photo" };
   // оценка качества: модель важнее всего, потом Full HD 60, потом кадр Pro
@@ -693,13 +714,41 @@ Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и S
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
+  // ---------- аналитика: GA4 + TikTok + Meta ----------
+  // GA4 считает время только по событиям: без них визиты из браузеров TikTok/Instagram видны как 0 сек
+  const TTE = { view_content: "ViewContent", add_photo: "AddToCart", begin_checkout: "InitiateCheckout", purchase: "CompletePayment", generate: "SubmitForm", cta_click: "ClickButton" };
+  const FBE = { view_content: "ViewContent", add_photo: "AddToCart", begin_checkout: "InitiateCheckout", purchase: "Purchase", generate: "Lead" };
+  const sent = new Set();
+  function sdTrack(ev, params = {}, once = false) {
+    if (once) { if (sent.has(ev)) return; sent.add(ev); }
+    try { window.gtag && gtag("event", ev, params); } catch {}
+    try { if (window.ttq && TTE[ev]) ttq.track(TTE[ev], { content_type: "product", content_id: params.item_id || "video", ...(params.value ? { value: params.value, currency: params.currency } : {}) }); } catch {}
+    try { if (window.fbq && FBE[ev]) fbq("track", FBE[ev], params.value ? { value: params.value, currency: params.currency } : {}); } catch {}
+  }
+  (() => {
+    const t0 = Date.now(); let active = 0, last = t0, vis = !document.hidden;
+    const tick = () => { const n = Date.now(); if (vis) active += n - last; last = n; };
+    document.addEventListener("visibilitychange", () => { tick(); vis = !document.hidden; });
+    [10, 30, 60, 120].forEach(sec => setTimeout(function w() { tick(); if (active >= sec * 1e3) sdTrack("time_on_page", { seconds: sec, engagement_time_msec: sec * 1e3 }); else if (Date.now() - t0 < 18e5) setTimeout(w, 2000); }, sec * 1e3));
+    const marks = [25, 50, 75, 90];
+    addEventListener("scroll", () => { const h = document.documentElement, p = (h.scrollTop + innerHeight) / h.scrollHeight * 100; while (marks.length && p >= marks[0]) sdTrack("scroll_depth", { percent: marks.shift() }); }, { passive: true });
+    document.addEventListener("click", e => { const b = e.target.closest("button, a"); if (b && (b.classList.contains("btn") || b.id)) sdTrack("cta_click", { label: (b.id || b.dataset.t || b.textContent || "").trim().slice(0, 40) }); }, true);
+  })();
   const toast = (m, ms = 2800) => { const el = $("toast"); el.textContent = m; el.hidden = false; clearTimeout(el._t); el._t = setTimeout(() => el.hidden = true, ms); };
   const RB = '<i class="rb"></i>';
 
   // ---------- язык (ES по умолчанию) ----------
-  const LANGS = ["es", "en", "ru"];
-  const qsLang = new URLSearchParams(location.search).get("lang");
-  let L = LANGS.includes(qsLang) ? qsLang : (LANGS.includes(store.get("sd-lang")) ? store.get("sd-lang") : "es");
+  // язык задаёт адрес: / — испанский, /en, /ru (так их видят поисковики);
+  // при первом заходе человека переводим на версию на языке его телефона
+  const LANGS = ["es", "en", "ru"], LANG_PATH = { es: "/", en: "/en", ru: "/ru" };
+  const isBot = /bot|crawl|spider|slurp|lighthouse|inspectiontool|preview/i.test(navigator.userAgent);
+  const byDevice = () => { const l = (navigator.languages?.[0] || navigator.language || "").toLowerCase().slice(0, 2); return ["es", "ca", "gl", "eu"].includes(l) ? "es" : ["ru", "uk", "be", "kk"].includes(l) ? "ru" : "en"; };
+  const pageLang = LANGS.includes(window.__PAGE_LANG) ? window.__PAGE_LANG : "es";
+  if (!isBot && !store.get("sd-lang") && !/session_id|canceled/.test(location.search) && byDevice() !== pageLang) {
+    store.set("sd-lang", byDevice());
+    location.replace(LANG_PATH[byDevice()] + location.search + location.hash);
+  }
+  let L = pageLang;
   const t = (k, v) => { let s = I18N[L][k] ?? I18N.es[k] ?? k; if (v && typeof s === "string") for (const [a, b] of Object.entries(v)) s = s.replaceAll(`{${a}}`, b); return s; };
   function applyLang() {
     document.documentElement.lang = L;
@@ -709,6 +758,9 @@ Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и S
     document.title = t("meta.title");
     const md = document.querySelector('meta[name="description"]'); if (md) md.content = t("meta.desc");
     $("lang").value = L;
+    $("faqList").innerHTML = (I18N[L].faq || []).map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("");
+    const pre = L === "es" ? "" : "/" + L; $("lnkPriv").href = pre + "/privacy"; $("lnkTerms").href = pre + "/terms";
+    renderFrom();
     renderSlots();
     if (cfg) { renderStyles(); renderExamples(cfg.examples); renderPacks(); }
     if (ref && ref.file && $("refVid").hidden) $("refPh").innerHTML = `<span class="big">✅</span><b>${esc(t("ref.ok", { name: ref.file.name || "video" }))}</b>`;
@@ -716,7 +768,7 @@ Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и S
     if (capJob) makeCaption(capJob);
     if (!$("busy").hidden) track();
   }
-  $("lang").onchange = () => { L = $("lang").value; store.set("sd-lang", L); const u = new URL(location.href); u.searchParams.set("lang", L); history.replaceState(null, "", u); applyLang(); };
+  $("lang").onchange = () => { const l = $("lang").value; store.set("sd-lang", l); location.href = LANG_PATH[l] + location.search.replace(/[?&]lang=\w+/, "") + location.hash; };
 
   let KEY = store.get("sd-key") || "", credits = 0, cfg = null;
 
@@ -729,6 +781,14 @@ Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и S
 
   // ---------- баланс, покупка, код ----------
   function setCredits(n) { credits = n; $("balN").textContent = n; }
+  // «Пакеты от …» под кнопкой — человек сразу видит порядок цен
+  function renderFrom() {
+    const ps = (cfg?.packs || []).map(p => p.price).filter(Boolean);
+    if (!ps.length) return void ($("fromPrice").hidden = true);
+    const v = Math.min(...ps), cur = (cfg.currency || "eur").toUpperCase();
+    $("fromPrice").textContent = t("price.from", { p: new Intl.NumberFormat(L === "ru" ? "ru-RU" : L === "es" ? "es-ES" : "en-GB", { style: "currency", currency: cur }).format(v) });
+    $("fromPrice").hidden = false;
+  }
   function openBuy(why) {
     $("buyWhy").hidden = !why; $("buyWhy").textContent = why || ""; $("buyErr").hidden = true;
     renderPacks(); $("buySheet").hidden = false;
@@ -745,7 +805,9 @@ Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и S
   $("packs").onclick = async (e) => {
     const b = e.target.closest("[data-pack]"); if (!b) return;
     b.disabled = true;
-    try { const d = await api("/api/checkout", { pack: b.dataset.pack, key: KEY, lang: L }); saveDraft(); location.href = d.url; }
+    const pk = cfg.packs?.find(x => x.id === b.dataset.pack);
+    sdTrack("begin_checkout", { item_id: b.dataset.pack, value: pk?.price, currency: (cfg.currency || "eur").toUpperCase() });
+    try { const d = await api("/api/checkout", { pack: b.dataset.pack, key: KEY, lang: L }); saveDraft(); setTimeout(() => location.href = d.url, 300); }
     catch (err) { $("buyErr").textContent = err.message; $("buyErr").hidden = false; b.disabled = false; }
   };
   async function login(code) {
@@ -788,7 +850,7 @@ Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и S
     for (const f of files) {
       const i = photos[at] == null ? at : photos.findIndex(x => !x);
       if (i < 0) { toast(t("toast.max3")); break; }
-      try { photos[i] = { ...(await prepPhoto(f)), path: "" }; } catch (e) { showErr(e.message); }
+      try { photos[i] = { ...(await prepPhoto(f)), path: "" }; sdTrack("add_photo", {}, true); sdTrack("view_content", { item_id: "studio" }, true); } catch (e) { showErr(e.message); }
       at = i + 1;
     }
     renderSlots(); hideErr();
@@ -917,6 +979,7 @@ Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и S
         frame: choice.frame, faceLock: false, enhance: choice.enhance, phone: FIXED.phone, cam: FIXED.cam, place: FIXED.place, author: "", lang: L,
       });
       setCredits(d.credits); activeId = d.job.id; jobs.unshift(d.job); renderMine(); track();
+      sdTrack("generate", { item_id: mode(), rubies: choice.price });
     } catch (e) {
       if (e.status === 402) openBuy(e.message);
       else if (e.status === 401) { KEY = ""; store.del("sd-key"); openBuy(t("buy.relogin")); }
@@ -924,7 +987,19 @@ Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и S
       busy(false); if (!jobs.some(j => j.status === "done")) $("idle").hidden = false;
     } finally { sending = false; }
   }
-  $("go").onclick = () => !$("go").disabled && generate();
+  $("go").onclick = () => {
+    if ($("go").disabled) return;
+    // разрешение на уведомление спрашиваем сразу по нажатию: видео делается несколько минут
+    try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission().catch?.(() => {}); } catch {}
+    generate();
+  };
+  const baseTitle = () => t("meta.title");
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && document.title.startsWith("✅")) document.title = baseTitle(); });
+  function notifyDone() {
+    document.title = t("notif.title");
+    try { if (document.hidden && "Notification" in window && Notification.permission === "granted") { const n = new Notification(t("notif.title"), { body: t("notif.body"), tag: "snapdance-done" }); n.onclick = () => { focus(); n.close(); }; } } catch {}
+    try { navigator.vibrate?.(120); } catch {}
+  }
 
   // ---------- мои видео ----------
   let jobs = [], timer = null, shown = "";
@@ -939,12 +1014,13 @@ Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и S
     if (act && act.status === "working") {
       activeId = act.id;
       busy(true, act.stage ? t(`stage.${act.stage}`) + "…" : t("busy.prep"), t("busy.wait"), PCT[act.stage] || 10);
+      document.title = t("title.work", { p: PCT[act.stage] || 10 });
       if (act.frame) $("phone").style.background = `#000 center / cover no-repeat url("${act.frame.replace(/"/g, "%22")}")`;
       timer = setTimeout(loadJobs, 4000);
     } else if (act && activeId === act.id) {
       busy(false); activeId = "";
-      if (act.status === "done") { show(act); toast(t("toast.done")); }
-      else { showErr(t("err.failed")); if (!jobs.some(j => j.status === "done")) $("idle").hidden = false; }
+      if (act.status === "done") { show(act); toast(t("toast.done")); notifyDone(); }
+      else { document.title = baseTitle(); showErr(t("err.failed")); if (!jobs.some(j => j.status === "done")) $("idle").hidden = false; }
     } else if (!sending) busy(false);
   }
   function show(j) {
@@ -1021,17 +1097,17 @@ Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и S
     try { cfg = await (await fetch("/api/config")).json(); } catch { return showErr(t("err.net")); }
     $("brand").textContent = cfg.brand;
     if (cfg.contact) $("contact").innerHTML = `<a href="mailto:${esc(cfg.contact)}">${esc(cfg.contact)}</a>`;
-    renderStyles(); renderExamples(cfg.examples); price();
+    renderStyles(); renderExamples(cfg.examples); price(); renderFrom();
     const qs = new URLSearchParams(location.search);
     if (qs.get("session_id")) {
-      history.replaceState(null, "", "/");
+      history.replaceState(null, "", location.pathname);
       try {
         const r = await fetch(`/api/checkout/confirm?session_id=${encodeURIComponent(qs.get("session_id"))}`, { headers: { "x-lang": L } }); const d = await r.json(); if (!r.ok) throw new Error(d.error);
         const isNew = d.key !== KEY; KEY = d.key; store.set("sd-key", KEY); setCredits(d.credits);
-        if (d.added) toast(t("toast.paid", { n: d.added }), 4000);
+        if (d.added) { toast(t("toast.paid", { n: d.added }), 4000); sdTrack("purchase", { transaction_id: qs.get("session_id"), item_id: d.pack || "", value: d.amount, currency: (d.currency || cfg.currency || "eur").toUpperCase() }); }
         if (isNew) { $("codeTitle").textContent = t("code.save"); $("codeShow").textContent = KEY; $("codeSheet").hidden = false; }
       } catch (e) { showErr(e.message); }
-    } else if (qs.get("canceled")) { history.replaceState(null, "", "/"); toast(t("toast.cancel")); }
+    } else if (qs.get("canceled")) { history.replaceState(null, "", location.pathname); toast(t("toast.cancel")); }
     await restoreDraft();
     if (KEY) { try { const me = await api("/api/me"); setCredits(me.credits); } catch { KEY = ""; store.del("sd-key"); } }
     loadJobs();
