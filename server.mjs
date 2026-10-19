@@ -80,7 +80,7 @@ var empty = () => ({
   // задачи генерации танца
   uploads: {},
   // file -> { key, created }
-  settings: { packs: DEFAULT_PACKS, currency: "eur" }
+  settings: { packs: DEFAULT_PACKS, currency: "eur", marketing: { ga4: "", fbPixel: "", tiktokPixel: "", gscMeta: "", enableAIOpt: true } }
 });
 var db = empty();
 try {
@@ -1574,6 +1574,37 @@ var routes = {
     saveEcon(await body(req));
     json(res, econReport());
   }
+  "GET /api/admin/marketing": async (req, res) => {
+    isAdmin(req);
+    json(res, db.settings.marketing || {});
+  },
+  "POST /api/admin/marketing": async (req, res) => {
+    isAdmin(req);
+    const b = await body(req);
+    db.settings.marketing = {
+      ga4: String(b.ga4 || "").trim(),
+      fbPixel: String(b.fbPixel || "").trim(),
+      tiktokPixel: String(b.tiktokPixel || "").trim(),
+      gscMeta: String(b.gscMeta || "").trim(),
+      enableAIOpt: Boolean(b.enableAIOpt)
+    };
+    save();
+    json(res, { ok: true, marketing: db.settings.marketing });
+  },
+  "GET /api/admin/ios-package": async (req, res) => {
+    isAdmin(req);
+    // Generate a simple Capacitor-ready zip instruction or placeholder package
+    // For full package we return a JSON with instructions + downloadable config
+    const siteUrl = process.env.PUBLIC_URL || "https://your-domain.com";
+    const pkg = {
+      name: "snapdance-ios",
+      version: "1.0.0",
+      siteUrl,
+      instructions: "Скачай Capacitor template, подставь URL сайта, собери в Xcode и загрузи в App Store. Пакет содержит базовый capacitor.config.json и Info.plist-заготовки."
+    };
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(pkg));
+  },
 };
 var PAGES = { "/": "index.html", "/admin": "admin.html" };
 function serveStatic(req, res, pathname) {
@@ -1582,12 +1613,67 @@ function serveStatic(req, res, pathname) {
   if (file && fs6.existsSync(file)) {
     const h = { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache", "x-content-type-options": "nosniff" };
     if (pathname === "/admin") h["x-robots-tag"] = "noindex, nofollow";
+    if (pathname === "/" && db.settings.marketing) {
+      let html = fs6.readFileSync(file, "utf8");
+      const m = db.settings.marketing;
+      let inject = "";
+      // Google Analytics 4
+      if (m.ga4) {
+        inject += `<script async src="https://www.googletagmanager.com/gtag/js?id=${m.ga4}"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${m.ga4}');</script>\n`;
+      }
+      // Facebook Pixel
+      if (m.fbPixel) {
+        inject += `<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${m.fbPixel}');fbq('track','PageView');</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${m.fbPixel}&ev=PageView&noscript=1"/></noscript>\n`;
+      }
+      // TikTok Pixel
+      if (m.tiktokPixel) {
+        inject += `<script>!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e};ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=i;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript";o.async=!0;o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};ttq.load('${m.tiktokPixel}');ttq.page();}(window,document,'ttq');</script>\n`;
+      }
+      // Google Search Console meta
+      if (m.gscMeta) {
+        inject += `<meta name="google-site-verification" content="${m.gscMeta}">\n`;
+      }
+      // AI Optimization (schema + meta for Google AI / GPT crawlers)
+      if (m.enableAIOpt !== false) {
+        inject += `<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"SnapDance","applicationCategory":"MultimediaApplication","operatingSystem":"Web, iOS, Android","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"description":"Turn a selfie into a trending TikTok dance video with AI. Upload a photo, pick a dance, get a vertical 9:16 video.","url":"${process.env.PUBLIC_URL || ""}","featureList":["AI dance generation from photo","TikTok/Reels/Shorts ready","Trending templates","Creator monetization"]}
+</script>
+<meta name="description" content="AI-powered dance video generator from a single selfie. Perfect for TikTok, Instagram Reels and YouTube Shorts. Upload photo → pick trend → get viral video.">
+<meta name="keywords" content="AI dance video, TikTok dance generator, selfie to dance, AI video generator, SnapDance">
+<link rel="alternate" type="text/plain" href="/llms.txt" title="LLM-friendly summary">
+\n`;
+      }
+      if (inject) {
+        html = html.replace("</head>", inject + "</head>");
+      }
+      res.writeHead(200, h);
+      return res.end(html);
+    }
     res.writeHead(200, h);
     return fs6.createReadStream(file).pipe(res);
   }
   if (pathname === "/robots.txt") {
     res.writeHead(200, { "content-type": "text/plain" });
-    return res.end("User-agent: *\nDisallow: /admin\nDisallow: /api/\n");
+    return res.end("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nSitemap: " + (process.env.PUBLIC_URL || "") + "/sitemap.xml\n");
+  }
+  if (pathname === "/llms.txt") {
+    res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+    return res.end(`# SnapDance — AI Dance Video Generator
+
+SnapDance lets users upload a selfie and get a trending vertical dance video ready for TikTok, Reels and Shorts.
+
+## How it works
+1. Upload 1-3 photos of the same person (full body + face angles).
+2. Choose a viral dance template or a style.
+3. AI generates a 9:16 video that looks phone-shot.
+4. Share or download.
+
+Creators can upload their own dance templates and earn when others use them.
+
+Official site: ${process.env.PUBLIC_URL || "https://snapdance.app"}
+`);
   }
   res.writeHead(302, { location: "/" });
   res.end();
@@ -1614,3 +1700,4 @@ setInterval(() => {
   });
 }, 4e3);
 setInterval(() => cleanup(), 6 * 3600 * 1e3);
+
