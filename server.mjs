@@ -1573,7 +1573,7 @@ var routes = {
     isAdmin(req);
     saveEcon(await body(req));
     json(res, econReport());
-  }
+  },
   "GET /api/admin/marketing": async (req, res) => {
     isAdmin(req);
     json(res, db.settings.marketing || {});
