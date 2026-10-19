@@ -162,6 +162,28 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
         <p class="muted" style="font-size:12px;margin-bottom:0">* по самому выгодному пакету. При меньших пакетах клиент платит за рубин больше — ваша наценка ещё выше.</p>
       </div>
     </section>
+
+    <section data-pane="marketing" hidden>
+      <div class="card">
+        <h2>Интеграции для рекламы и аналитики</h2>
+        <p class="muted" style="margin-top:0;font-size:13px">Подключи пиксели и аналитику. Скрипты вставляются чисто (стандартные от Google/Meta/TikTok) — без обфускации, чтобы рекламные кабинеты не банили за подозрительный код.</p>
+        <div class="row">
+          <label class="f">Google Analytics 4 (G-XXXXXXXX)<input id="mGA4" placeholder="G-XXXXXXXXXX"></label>
+          <label class="f">Facebook Pixel ID<input id="mFB" placeholder="1234567890"></label>
+          <label class="f">TikTok Pixel ID<input id="mTT" placeholder="XXXXXXXXXXXXXXXX"></label>
+          <label class="f">Google Search Console (meta content)<input id="mGSC" placeholder="код из meta google-site-verification"></label>
+        </div>
+        <label class="f" style="margin-top:10px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="mAI" checked style="width:auto"> Авто-оптимизация под AI-поиск (Google AI Overviews, ChatGPT, Perplexity) — Schema.org + /llms.txt</label>
+        <button class="btn" id="mSave" style="margin-top:12px">Сохранить интеграции</button>
+        <div class="msg" id="mMsg"></div>
+      </div>
+      <div class="card">
+        <h2>iOS-приложение для App Store</h2>
+        <p class="muted" style="margin-top:0;font-size:13px">Сайт уже можно добавить на домашний экран как PWA. Для полноценной загрузки в App Store скачай пакет Capacitor (WebView-обёртка) — подставь URL, собери в Xcode и отправь на ревью.</p>
+        <button class="btn" id="iosBtn">Скачать пакет для iOS-приложения</button>
+        <div class="msg" id="iosMsg"></div>
+      </div>
+    </section>
   </div>
 </div>
 <script>
