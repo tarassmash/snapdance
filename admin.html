@@ -318,7 +318,8 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
       <div class="acts"><button class="btn ghost sm" data-a="up" ${i ? "" : "disabled"}>↑</button><button class="btn ghost sm" data-a="down" ${i < list.length - 1 ? "" : "disabled"}>↓</button>
       <button class="btn ghost sm" data-a="pub">${x.published ? "Скрыть" : "Показать"}</button><button class="btn ghost sm" data-a="del" style="color:var(--bad)">Удалить</button></div>
       <div class="adbox"><b>🎬 Рекламный ролик для TikTok / Reels / Shorts</b>
-        <div class="acts"><select data-adlang><option value="es">Испанский</option><option value="en">Английский</option><option value="ru">Русский</option></select><select data-advoice><option value="female">Женский голос</option><option value="male">Мужской голос</option></select><button class="btn sm" data-a="ad">Сделать ролик</button></div>
+        <div class="acts"><select data-adlang><option value="es">Испанский</option><option value="en">Английский</option><option value="ru">Русский</option></select><select data-advoice><option value="female">Женский голос</option><option value="male">Мужской голос</option></select><select data-adtext><option value="std">Стандартный текст</option><option value="ai">✨ Новый текст от ИИ</option></select><button class="btn sm" data-a="ad">Сделать ролик</button></div>
+        <span class="muted" style="font-size:12px">«Новый текст от ИИ» каждый раз пишет другой вариант (юмор, вызов, вопрос, история…) — удобно для A/B-тестов в рекламе.</span>
         ${adHtml(x)}</div></div></div>`).join("") || '<p class="muted">Примеров пока нет — добавьте первый выше или нажмите «⭐ В примеры» у готового видео во вкладке «Видео».</p>';
     EXL = list; pollAds();
   }
@@ -354,10 +355,12 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
 
   let EXL = [], adTimer = null;
   const LN = { es: "ES", en: "EN", ru: "RU" };
+  const ANG = { humor: "юмор", challenge: "вызов", curiosity: "интрига", transformation: "до/после", FOMO: "все уже делают", storytelling: "история", practical: "без съёмки", "gift idea": "подарок" };
   function adHtml(x) {
-    return Object.entries(x.ads || {}).map(([l, a]) => a.status === "working" ? `<div class="muted">⏳ ${LN[l]}: собираем ролик (1–2 минуты)…</div>`
-      : a.status === "failed" ? `<div class="bad">✕ ${LN[l]}: ${esc(a.error || "ошибка")}</div>`
-      : `<div class="adres"><video src="${esc(a.url)}" controls preload="metadata" playsinline></video><div><b>${LN[l]} · ${a.seconds || ""} с</b><a class="btn sm" href="${esc(a.url)}" download="snapdance-ad-${l}.mp4">⬇ Скачать</a><textarea readonly rows="4">${esc(a.caption || "")}</textarea><button class="btn ghost sm" data-a="adcopy" data-l="${l}">📋 Копировать</button></div></div>`).join("");
+    const label = (k, a) => { const l = a.lang || k.split("-")[0]; return `${LN[l] || l} · ${a.text === "ai" ? `✨ ИИ-вариант ${a.n || ""}${a.angle ? " (" + (ANG[a.angle] || a.angle) + ")" : ""}` : "стандарт"}`; };
+    return Object.entries(x.ads || {}).sort((a, b) => (b[1].created || b[1].started || 0) - (a[1].created || a[1].started || 0)).map(([k, a]) => a.status === "working" ? `<div class="muted">⏳ ${label(k, a)}: ${a.text === "ai" ? "пишем текст и " : ""}собираем ролик (1–2 минуты)…</div>`
+      : a.status === "failed" ? `<div class="bad">✕ ${label(k, a)}: ${esc(a.error || "ошибка")} <button class="btn ghost sm" data-a="addel" data-k="${k}">✕</button></div>`
+      : `<div class="adres"><video src="${esc(a.url)}" controls preload="metadata" playsinline></video><div><b>${label(k, a)} · ${a.seconds || ""} с</b>${a.hook ? `<span class="muted" style="font-size:12px">«${esc(a.hook.replace(/\n/g, " "))}»</span>` : ""}<a class="btn sm" href="${esc(a.url)}" download="snapdance-ad-${k}.mp4">⬇ Скачать</a><textarea readonly rows="4">${esc(a.caption || "")}</textarea><span class="acts"><button class="btn ghost sm" data-a="adcopy" data-l="${k}">📋 Копировать</button><button class="btn ghost sm" data-a="addel" data-k="${k}" style="color:var(--bad)">Удалить</button></span></div></div>`).join("");
   }
   function pollAds() { clearTimeout(adTimer); if (EXL.some(x => Object.values(x.ads || {}).some(a => a.status === "working"))) adTimer = setTimeout(async () => { try { renderEx(await api("/api/admin/examples")); } catch {} pollAds(); }, 5000); }
   $("exList").addEventListener("click", async e => {
@@ -368,7 +371,8 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
       if (b.dataset.a === "pub") await api("/api/admin/examples/update", { id, published: !x.published });
       if (b.dataset.a === "del") { if (!confirm("Удалить пример?")) return; await api("/api/admin/examples/delete", { id }); }
       if (b.dataset.a === "adcopy") { await navigator.clipboard?.writeText(x.ads?.[b.dataset.l]?.caption || ""); b.textContent = "✓ Скопировано"; return; }
-      if (b.dataset.a === "ad") { const box = b.closest(".adbox"); b.disabled = true; await api("/api/admin/examples/ad", { id, lang: box.querySelector("[data-adlang]").value, voice: box.querySelector("[data-advoice]").value }); }
+      if (b.dataset.a === "ad") { const box = b.closest(".adbox"); b.disabled = true; await api("/api/admin/examples/ad", { id, lang: box.querySelector("[data-adlang]").value, voice: box.querySelector("[data-advoice]").value, text: box.querySelector("[data-adtext]").value }); }
+      if (b.dataset.a === "addel") { if (!confirm("Удалить этот ролик?")) return; await api("/api/admin/examples/ad/delete", { id, key: b.dataset.k }); }
       load();
     } catch (err) { alert(err.message); }
   });

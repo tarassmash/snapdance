@@ -1422,16 +1422,73 @@ async function adVoice(text, lang, voice) {
   return Buffer.from(await a.arrayBuffer());
 }
 // drawtext по строкам: ffmpeg 5 не умеет выравнивать многострочный текст по центру
+// перенос по словам: ширина строки ~0.6 размера шрифта на символ при кадре 1080 px
+function adWrap(text, size) {
+  const max = Math.max(8, Math.floor(960 / (size * 0.6)));
+  const out = [];
+  for (const para of String(text || "").split("\n")) {
+    let line = "";
+    for (const w of para.split(/\s+/).filter(Boolean)) {
+      if (!line) line = w;
+      else if ((line + " " + w).length <= max) line += " " + w;
+      else { out.push(line); line = w; }
+    }
+    if (line) out.push(line);
+  }
+  return out.slice(0, 4);
+}
 function adLines(text, { size, color = "white", y, box = false, tmp }) {
-  const lines = text.split("\n");
+  const lines = adWrap(text, size);
   return lines.map((ln, i) => {
     const f = path5.join(tmp, `t${Math.random().toString(36).slice(2)}.txt`);
     fs5.writeFileSync(f, ln);
     return `drawtext=fontfile='${AD_FONT}':textfile='${f}':fontsize=${size}:fontcolor=${color}:x=(w-text_w)/2:y=${y}+${i}*${Math.round(size * 1.22)}:shadowcolor=black@0.6:shadowx=3:shadowy=3${box ? `:box=1:boxcolor=black@0.45:boxborderw=${Math.round(size * 0.28)}` : ""}`;
   }).join(",");
 }
-async function buildAd(ex, lang, voice) {
-  const C = AD_COPY[lang] || AD_COPY.es;
+// ИИ-копирайтер: новый вариант текста ролика с другим подходом, без обещаний просмотров и денег
+var AD_ANGLES = [
+  "humor: a funny, self-ironic hook about not being able to dance",
+  "challenge: dare the viewer to try the trend themselves",
+  "curiosity: a surprising question that makes people watch to the end",
+  "transformation: before and after, from a boring photo to a dancing video",
+  "FOMO: everyone is posting this trend, you can join in minutes",
+  "storytelling: a tiny first-person story in one sentence",
+  "practical: no camera, no filming, no dancing skills needed",
+  "gift idea: surprise a friend with a dance video from their photo (only with their permission)"
+];
+var AD_LANG_NAME = { es: "Spanish (Spain), casual and natural", en: "English, casual and natural", ru: "Russian, casual and natural" };
+var AD_SITE_SPOKEN = { es: "snapdance punto us", en: "snapdance dot u s", ru: "снэпдэнс точка ю эс" };
+async function adCopyAI(lang, avoid = []) {
+  const angle = pickOne(AD_ANGLES);
+  const prompt = `Write copy for a 14-second vertical ad video (TikTok, Instagram Reels, YouTube Shorts) for ${AD_SITE}: an online service that turns ONE uploaded photo into a video of that person dancing a trending dance, made by AI.
+The video: 1) the original photo (3 s) with a big hook text, 2) the dance video (8 s) with a short caption, 3) an end card with the site name.
+Language: ${AD_LANG_NAME[lang]}. Angle: ${angle}.
+Rules: no promises of views, followers, money or virality; no claims about being the best; no celebrity names; nothing about minors; 18+ only and only with the person's permission if it is someone else's photo.
+${avoid.length ? `Do not reuse these hooks: ${avoid.map((h) => JSON.stringify(h)).join(", ")}.` : ""}
+Return ONLY JSON with these string fields:
+"hook": hook on the photo, max 30 characters,
+"mid": caption over the dance, max 46 characters,
+"endTop": call to action above the site name, max 30 characters,
+"endBottom": where to find it, max 44 characters, must mention the link in the profile/bio and searching it on Google,
+"voice": voice-over for the whole video, 25–38 words, spoken naturally, must end by saying the site as "${AD_SITE_SPOKEN[lang]}",
+"caption": post caption with 1–2 emoji and 6–8 hashtags, must mention ${AD_SITE}.`;
+  const r = await submit2("fal-ai/any-llm", { model: process.env.AD_LLM_MODEL || "google/gemini-2.5-flash", system_prompt: "You are a senior performance-marketing copywriter for short vertical video ads. You answer with valid JSON only.", prompt });
+  if (!r.ok) throw new Error("текст: " + r.error.admin);
+  let out = "";
+  for (let i = 0; i < 40; i++) {
+    await new Promise((ok) => setTimeout(ok, 1500));
+    const c = await check2(r.job);
+    if (c.state === "done") { out = String(c.data?.output || ""); break; }
+    if (c.state === "failed") throw new Error("текст: " + c.error);
+  }
+  const m = out.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error("текст: нейросеть не вернула JSON");
+  const j = JSON.parse(m[0]), base = AD_COPY[lang];
+  const pick = (k, max) => { const v = String(j[k] || "").replace(/\s+/g, " ").trim(); return v && v.length <= max ? v : base[k]; };
+  return { hook: pick("hook", 48), mid: pick("mid", 72), endTop: pick("endTop", 48), endBottom: pick("endBottom", 64), voice: pick("voice", 320), caption: pick("caption", 400), angle: angle.split(":")[0] };
+}
+async function buildAd(ex, lang, voice, copy, key) {
+  const C = copy || AD_COPY[lang] || AD_COPY.es;
   if (!AD_FONT) throw new Error("на сервере нет шрифта DejaVu (Dockerfile: fonts-dejavu-core)");
   const tmp = fs5.mkdtempSync(path5.join(MEDIA_DIR, "tmp-ad-"));
   try {
@@ -1450,7 +1507,7 @@ async function buildAd(ex, lang, voice) {
     const ax = dInfo.audio
       ? `[1:a]atrim=duration=${D2},asetpts=PTS-STARTPTS,volume=0.32,afade=t=out:st=${(D2 - 0.6).toFixed(2)}:d=0.6,adelay=${ms}|${ms}[m];[3:a]adelay=250|250,volume=1.5[vo];[m][vo]amix=inputs=2:duration=longest:normalize=0,apad,atrim=duration=${T.toFixed(2)}[a]`
       : `[3:a]adelay=250|250,volume=1.5,apad,atrim=duration=${T.toFixed(2)}[a]`;
-    const out = `ad-${ex.id}-${lang}.mp4`;
+    const out = `ad-${ex.id}-${key || lang}.mp4`;
     await exec(FFMPEG, [
       "-y", "-hide_banner", "-loglevel", "error",
       "-loop", "1", "-framerate", "30", "-t", String(D1 + 0.5), "-i", fileOf(ex.before),
@@ -1463,28 +1520,44 @@ async function buildAd(ex, lang, voice) {
       "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-movflags", "+faststart",
       path5.join(MEDIA_DIR, out)
     ], 8 * 60e3);
-    return { url: `/media/${out}?v=${Date.now()}`, caption: C.caption, seconds: Math.round(T) };
+    return { url: `/media/${out}?v=${Date.now()}`, caption: C.caption, seconds: Math.round(T), hook: C.hook };
   } finally {
     fs5.rmSync(tmp, { recursive: true, force: true });
   }
 }
-async function startAd(id, lang, voice) {
+// text: "std" — стандартный текст (один ролик на язык), "ai" — новый вариант от ИИ (каждый раз отдельный ролик)
+async function startAd(id, lang, voice, text = "std") {
   const ex = db.examples.find((x) => x.id === id);
   if (!ex) throw new UserError("Пример не найден.", 404);
   if (!mediaExists(ex.before) || !mediaExists(ex.after)) throw new UserError("Файлы примера не найдены.");
   lang = AD_COPY[lang] ? lang : "es";
   ex.ads ||= {};
-  if (ex.ads[lang]?.status === "working") return ex.ads[lang];
-  ex.ads[lang] = { status: "working", started: Date.now(), voice };
+  const ai = text === "ai";
+  const n = ai ? Object.keys(ex.ads).filter((k) => k.startsWith(lang + "-ai")).length + 1 : 0;
+  const key = ai ? `${lang}-ai${n}` : lang;
+  if (ex.ads[key]?.status === "working") return ex.ads[key];
+  ex.ads[key] = { status: "working", started: Date.now(), voice, lang, text: ai ? "ai" : "std", n };
   save();
-  buildAd(ex, lang, voice).then((r) => {
-    ex.ads[lang] = { status: "done", ...r, voice, created: Date.now() };
+  (async () => {
+    const avoid = Object.values(ex.ads).filter((a) => a?.lang === lang && a.hook).map((a) => a.hook);
+    const copy = ai ? await adCopyAI(lang, avoid) : null;
+    return buildAd(ex, lang, voice, copy, key).then((r) => ({ ...r, angle: copy?.angle || "" }));
+  })().then((r) => {
+    ex.ads[key] = { status: "done", ...r, voice, lang, text: ai ? "ai" : "std", n, created: Date.now() };
     save();
   }).catch((e) => {
-    ex.ads[lang] = { status: "failed", error: String(e.message || e).slice(0, 300), voice };
+    ex.ads[key] = { status: "failed", error: String(e.message || e).slice(0, 300), voice, lang, text: ai ? "ai" : "std", n };
     save();
   });
-  return ex.ads[lang];
+  return ex.ads[key];
+}
+function removeAd(id, key) {
+  const ex = db.examples.find((x) => x.id === id);
+  const a = ex?.ads?.[key];
+  if (!a) throw new UserError("Ролик не найден.", 404);
+  if (a.url) fs5.rmSync(fileOf(a.url), { force: true });
+  delete ex.ads[key];
+  save();
 }
 // после перезапуска сервера незаконченные ролики помечаем как прерванные
 for (const ex of db.examples) for (const [l, a] of Object.entries(ex.ads || {})) if (a?.status === "working") ex.ads[l] = { status: "failed", error: "сервер перезапустился — нажмите ещё раз" };
@@ -1931,7 +2004,13 @@ var routes = {
     isAdmin(req);
     origin(req); // адрес сайта нужен, чтобы fal.ai скачивал фото и ролики по ссылке
     const b = await body(req);
-    json(res, await startAd(b.id, b.lang, b.voice === "male" ? "male" : "female"));
+    json(res, await startAd(b.id, b.lang, b.voice === "male" ? "male" : "female", b.text === "ai" ? "ai" : "std"));
+  },
+  "POST /api/admin/examples/ad/delete": async (req, res) => {
+    isAdmin(req);
+    const b = await body(req);
+    removeAd(b.id, b.key);
+    json(res, { ok: true });
   },
   "POST /api/admin/examples/delete": async (req, res) => {
     isAdmin(req);
