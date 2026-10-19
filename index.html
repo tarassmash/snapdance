@@ -216,6 +216,24 @@ label.f { display: grid; gap: 6px; font-size: 13px; font-weight: 700; color: var
 .ex .after { right: 10px; top: 10px; background: var(--lime); color: var(--lime-ink); }
 .ex .snd { position: absolute; right: 10px; bottom: 10px; background: rgba(0,0,0,.6); color: #fff; border-radius: 999px; padding: 5px 9px; font: 700 12px var(--f); pointer-events: none; }
 .ex figcaption { font-size: 13.5px; color: var(--muted); margin-top: 6px; }
+/* вид ленты коротких видео поверх примера: кнопки справа, растущие счётчики, летящие сердечки */
+.ex .feed { position: absolute; inset: 0; pointer-events: none; color: #fff; font-family: var(--f); text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.ex .feed::after { content: ""; position: absolute; inset: auto 0 0 0; height: 38%; background: linear-gradient(transparent, rgba(0,0,0,.55)); z-index: -1; }
+.ex .side { position: absolute; right: 8px; bottom: 54px; display: grid; gap: 12px; justify-items: center; }
+.ex .side .av { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #fff; background: linear-gradient(135deg, var(--violet), var(--lime)); position: relative; }
+.ex .side .av::after { content: "+"; position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); width: 16px; height: 16px; border-radius: 50%; background: #ff2d55; font: 800 13px/16px var(--f); text-align: center; }
+.ex .side .it { display: grid; justify-items: center; gap: 2px; font: 700 11px var(--f); }
+.ex .side svg { width: 28px; height: 28px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
+.ex .side .like svg { fill: #fff; transition: fill .2s, transform .2s; }
+.ex .side .like.on svg { fill: #ff2d55; transform: scale(1.12); }
+.ex .views { position: absolute; left: 10px; bottom: 40px; display: inline-flex; align-items: center; gap: 4px; font: 800 13px var(--f); background: rgba(0,0,0,.35); padding: 3px 8px; border-radius: 999px; }
+.ex .views svg { width: 13px; height: 13px; fill: #fff; }
+.ex .user { position: absolute; left: 10px; bottom: 12px; right: 92px; font: 700 12.5px var(--f); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ex .user small { font-weight: 500; opacity: .9; }
+.ex .heart { position: absolute; right: 16px; bottom: 150px; width: 22px; height: 22px; fill: #ff2d55; opacity: 0; animation: heartUp 1.8s ease-out forwards; }
+@keyframes heartUp { 0% { opacity: 0; transform: translate(0, 0) scale(.6); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx, -20px), -150px) scale(1.25) rotate(var(--rot, -12deg)); } }
+.ex .snd { bottom: auto; top: 42px; }
+@media (prefers-reduced-motion: reduce) { .ex .heart { display: none; } }
 /* стрелка от фото «до» к готовому видео: сразу видно, что видео сделано из фото */
 .ex .arr { position: absolute; left: calc(10px + 31%); top: 9%; width: 34%; aspect-ratio: 1; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
 .ex .arr path { fill: none; stroke: #fff; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
@@ -709,8 +727,11 @@ Object.assign(I18N.en, {"fmt.ready": "✅ Ready for TikTok, Reels and Shorts · 
 Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и Shorts · 1080×1920", "plat.hint": "Подпись для:", "plat.ig": ["#reels", "#reelsinstagram", "#рилс", "#танцы", "#viral"], "plat.yt": ["#shorts", "#танцы", "#танец"], "inc": "Уже включено: лучшая нейросеть под ваш бюджет · формат для TikTok, Reels и Shorts · оригинальный звук"});
 
 // ---- вопросы, подвал, уведомления ----
+Object.assign(I18N.es, {"ex.user": "tu_perfil"});
 Object.assign(I18N.es, {"faq.h": "Preguntas frecuentes", "foot.privacy": "Privacidad", "foot.terms": "Términos", "price.from": "Paquetes desde {p} · sin suscripción", "notif.title": "✅ ¡Tu vídeo está listo!", "notif.body": "Ábrelo en SnapDance para verlo y descargarlo.", "title.work": "⏳ {p}% · creando tu vídeo", "faq": [["¿Cómo funciona?", "Sube una foto de cuerpo entero, elige un baile o sube el vídeo de una tendencia de TikTok, y la IA crea un vídeo vertical 9:16 en el que bailas tú, como grabado con el móvil."], ["¿Cuánto tarda?", "Normalmente de 3 a 8 minutos. Puedes cerrar la página: el vídeo aparecerá en «Mis vídeos» y te avisaremos cuando esté listo."], ["¿Cuánto cuesta?", "Pagas con rubíes. El precio exacto de cada vídeo aparece en el botón antes de crearlo y depende de la IA y la duración. Sin suscripción: los rubíes no caducan."], ["¿Y si el vídeo sale mal?", "Si la generación falla, los rubíes vuelven automáticamente a tu saldo. Si falla solo un paso, te devolvemos su coste."], ["¿Qué pasa con mis fotos?", "Se usan solo para crear tu vídeo y se borran automáticamente a los 3 días. Los vídeos terminados se guardan para que puedas descargarlos con tu código."], ["¿Puedo usar la foto de otra persona?", "Solo con su permiso y si es mayor de 18 años. Está prohibido crear vídeos de menores o de personas sin su consentimiento."]]});
+Object.assign(I18N.en, {"ex.user": "you"});
 Object.assign(I18N.en, {"faq.h": "Frequently asked questions", "foot.privacy": "Privacy", "foot.terms": "Terms", "price.from": "Packs from {p} · no subscription", "notif.title": "✅ Your video is ready!", "notif.body": "Open SnapDance to watch and download it.", "title.work": "⏳ {p}% · making your video", "faq": [["How does it work?", "Upload a full-body photo, pick a dance or upload a TikTok trend video, and the AI creates a vertical 9:16 video of you dancing, as if filmed on a phone."], ["How long does it take?", "Usually 3 to 8 minutes. You can close the page: the video will appear in “My videos” and we'll let you know when it's ready."], ["How much does it cost?", "You pay with rubies. The exact price of each video is shown on the button before you create it and depends on the AI and the length. No subscription: rubies never expire."], ["What if the video fails?", "If a generation fails, the rubies go back to your balance automatically. If only one step fails, we refund its cost."], ["What happens to my photos?", "They are used only to create your video and are deleted automatically after 3 days. Finished videos are kept so you can download them with your code."], ["Can I use someone else's photo?", "Only with their permission and if they are over 18. Creating videos of minors or of people without their consent is not allowed."]]});
+Object.assign(I18N.ru, {"ex.user": "вы"});
 Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": "Конфиденциальность", "foot.terms": "Условия", "price.from": "Пакеты от {p} · без подписки", "notif.title": "✅ Ваше видео готово!", "notif.body": "Откройте SnapDance, чтобы посмотреть и скачать.", "title.work": "⏳ {p}% · делаем ваше видео", "faq": [["Как это работает?", "Загрузите фото в полный рост, выберите танец или загрузите видео тренда из TikTok — нейросеть сделает вертикальное видео 9:16, где танцуете вы, как снятое на телефон."], ["Сколько ждать?", "Обычно 3–8 минут. Страницу можно закрыть: видео появится в «Мои видео», и мы сообщим, когда оно будет готово."], ["Сколько это стоит?", "Оплата рубинами. Точная цена видео видна на кнопке до создания и зависит от нейросети и длительности. Без подписки: рубины не сгорают."], ["А если видео не получится?", "Если генерация не удалась, рубины автоматически вернутся на баланс. Если не сработал отдельный шаг, вернём его стоимость."], ["Что происходит с моими фото?", "Они используются только для создания видео и автоматически удаляются через 3 дня. Готовые видео хранятся, чтобы вы могли скачать их по своему коду."], ["Можно использовать фото другого человека?", "Только с его согласия и если ему больше 18 лет. Видео с несовершеннолетними или без согласия человека создавать нельзя."]]});
 
   // Постоянные настройки; модель, длительность, кадр и 1080p подбираются под бюджет клиента
@@ -1070,13 +1091,53 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
         <video src="${esc(x.after)}" ${x.poster ? `poster="${esc(x.poster)}"` : ""} muted loop playsinline preload="metadata"></video>
         <div class="before"><img src="${esc(x.before)}" alt="${t("ex.beforeAlt")}" loading="lazy"><span class="lbl">${t("ex.before")}</span></div>
         <svg class="arr" viewBox="0 0 100 100" aria-hidden="true"><path class="ln" d="M8 14 C 52 6, 84 30, 80 82"/><path class="hd" d="M66 70 L80 86 L92 68"/></svg>
-        <span class="lbl after">${t("ex.after")}</span><span class="snd">🔇</span></div>
+        <span class="lbl after">${t("ex.after")}</span><span class="snd">🔇</span>
+        <div class="feed" aria-hidden="true">
+          <div class="side">
+            <span class="av"></span>
+            <span class="it like"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.1C.9 8.6 2.9 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4.7-1.2 2.2-2.4 4.3-2.4 3.8 0 5.8 4.1 4.3 7.4C19.5 16.4 12 21 12 21z"/></svg><b data-n="likes">1</b></span>
+            <span class="it"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.5 3.4 6L4.6 21l4.3-2.2c1 .3 2 .4 3.1.4 5.5 0 10-3.6 10-8.1S17.5 3 12 3z"/></svg><b data-n="comments">0</b></span>
+            <span class="it"><svg viewBox="0 0 24 24" fill="#fff"><path d="M14 4l8 7.5-8 7.5v-4.6c-5.6 0-9 1.8-11.5 5.6 1-5.5 4.2-10.6 11.5-11.6V4z"/></svg><b data-n="shares">0</b></span>
+          </div>
+          <span class="views"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><b data-n="views">1</b></span>
+          <div class="user">@${esc(t("ex.user"))} <small>#baile #fyp #ai</small></div>
+        </div></div>
         ${x.caption ? `<figcaption>${esc(x.caption)}</figcaption>` : ""}</figure>`).join("");
     const vids = [...$("exRow").querySelectorAll("video")];
-    if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) e.target.play().catch(() => {}); else e.target.pause(); }), { threshold: .5 });
-      vids.forEach(v => io.observe(v));
+    const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const nf = new Intl.NumberFormat(L === "ru" ? "ru-RU" : L === "es" ? "es-ES" : "en-US", { notation: "compact", maximumFractionDigits: 1 });
+    // у каждого примера свои итоговые цифры: просмотры растут с 1 примерно до 10–25 тысяч
+    const goals = (i) => { const v = 10400 + ((i * 7919) % 14600); return { views: v, likes: Math.round(v * (0.11 + (i % 4) * 0.02)), comments: Math.round(v * 0.006) + 3, shares: Math.round(v * 0.013) + 5 }; };
+    const feeds = [...$("exRow").querySelectorAll("[data-ex]")].map((box, i) => ({ box, goal: goals(i), raf: 0, hearts: 0 }));
+    const setN = (f, k) => { const b = f.box.querySelector(`[data-n="${k}"]`); return (v) => b.textContent = nf.format(Math.round(v)); };
+    function runFeed(f) {
+      cancelAnimationFrame(f.raf); clearInterval(f.hearts);
+      const keys = ["views", "likes", "comments", "shares"], set = Object.fromEntries(keys.map(k => [k, setN(f, k)]));
+      if (RM) { keys.forEach(k => set[k](f.goal[k])); f.box.querySelector(".like").classList.add("on"); return; }
+      const t0 = performance.now(), dur = 6500;
+      // медленный старт и быстрый рост — как у ролика, который «залетел»
+      const step = (now) => { const k = Math.min(1, (now - t0) / dur), e = k < 1 ? Math.pow(k, 2.6) : 1; keys.forEach(x => set[x](x === "views" ? 1 + (f.goal[x] - 1) * e : f.goal[x] * e)); if (k < 1) f.raf = requestAnimationFrame(step); };
+      f.raf = requestAnimationFrame(step);
+      setTimeout(() => f.box.querySelector(".like").classList.add("on"), 1400);
+      let n = 0;
+      f.hearts = setInterval(() => {
+        if (++n > 26) return clearInterval(f.hearts);
+        const h = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        h.setAttribute("viewBox", "0 0 24 24"); h.classList.add("heart");
+        h.innerHTML = '<path d="M12 21s-7.5-4.6-9.6-9.1C.9 8.6 2.9 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4.7-1.2 2.2-2.4 4.3-2.4 3.8 0 5.8 4.1 4.3 7.4C19.5 16.4 12 21 12 21z"/>';
+        h.style.setProperty("--dx", (-10 - Math.random() * 40) + "px"); h.style.setProperty("--rot", (-25 + Math.random() * 30) + "deg");
+        f.box.querySelector(".feed").appendChild(h); setTimeout(() => h.remove(), 1900);
+      }, n < 10 ? 380 : 220);
     }
+    function stopFeed(f) { cancelAnimationFrame(f.raf); clearInterval(f.hearts); }
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver(es => es.forEach(e => {
+        const f = feeds.find(x => x.box.contains(e.target)); if (!f) return;
+        if (e.isIntersecting) { if (!RM) e.target.play().catch(() => {}); if (!f.ran) { f.ran = true; runFeed(f); } }
+        else { e.target.pause(); stopFeed(f); f.ran = false; f.box.querySelector(".like").classList.remove("on"); }
+      }), { threshold: .5 });
+      vids.forEach(v => io.observe(v));
+    } else feeds.forEach(runFeed);
     $("exRow").onclick = e => {
       const box = e.target.closest("[data-ex]"); if (!box) return;
       const v = box.querySelector("video"), on = v.muted;
