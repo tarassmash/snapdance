@@ -797,7 +797,7 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
     if (capJob) makeCaption(capJob);
     if (!$("busy").hidden) track();
   }
-  $("lang").onchange = () => { const l = $("lang").value; store.set("sd-lang", l); location.href = LANG_PATH[l] + location.search.replace(/[?&]lang=\w+/, "") + location.hash; };
+  $("lang").onchange = () => { const l = $("lang").value; store.set("sd-lang", l); try { document.cookie = `site_lang=${l}; path=/; max-age=31536000; samesite=lax`; } catch {} location.href = LANG_PATH[l] + location.search.replace(/[?&]lang=\w+/, "") + location.hash; };
 
   let KEY = store.get("sd-key") || "", credits = 0, cfg = null;
 
