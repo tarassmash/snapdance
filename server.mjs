@@ -1492,12 +1492,11 @@ for (const ex of db.examples) for (const [l, a] of Object.entries(ex.ads || {}))
 
 // src/characters.mjs — свои ИИ-блогеры-танцоры для аккаунтов студии.
 // 1) 4 варианта лица уникального футуристичного персонажа → 2) выбранный вариант превращается в «паспорт
-// внешности» из трёх фото (полный рост, лицо анфас, лицо 3/4) → 3) танцы с этими фото и face-lock,
-// чтобы лицо было одинаковым во всех роликах. Персонажи вымышленные, совершеннолетние.
+// внешности» из трёх фото (полный рост, лицо анфас, лицо 3/4). Эти фото загружают в обычную генерацию
+// на сайте, чтобы лицо было одинаковым во всех роликах. Персонажи вымышленные, совершеннолетние.
 db.characters ||= [];
 var CHAR_T2I = process.env.CHAR_T2I_MODEL || "fal-ai/nano-banana-pro";
 var CHAR_EDIT = process.env.CHAR_EDIT_MODEL || "fal-ai/nano-banana-pro/edit";
-var STUDIO_KEY = "SD-STUDIO";
 var pickOne = (a) => a[Math.floor(Math.random() * a.length)];
 var CHAR_POOL = {
   hair: [
@@ -1534,16 +1533,8 @@ var CHAR_POOL = {
   ]
 };
 var GENDER = { female: "young woman", male: "young man", nb: "androgynous young person" };
-var publicChar = (c) => ({ ...c, faceJob: void 0, sheetJobs: void 0, videos: db.jobs.filter((j) => j.character === c.id).slice(0, 30).map((j) => ({ id: j.id, status: j.status, stage: j.stage, result: j.result, poster: j.poster, mode: j.mode, style: j.style, created: j.created, error: j.error, usd: j.usd, model: [...TREND_MODELS, ...STYLE_MODELS].find((m) => m.id === j.model)?.name || j.model, faceLock: j.faceLock, notes: j.notes || [], motion: j.motion })) });
-// модели для выбора в админке с примерной себестоимостью
-function charModels() {
-  const est = (mode, m, secs) => usdCost({ mode, model: m.id, frame: "nbpro", enhance: true, faceLock: false, seconds: secs });
-  return {
-    style: STYLE_MODELS.map((m) => ({ id: m.id, name: m.name, durs: m.durs, faces: !!m.elements, usd: Object.fromEntries(m.durs.map((d) => [d, est("style", m, d)])) })),
-    trend: TREND_MODELS.map((m) => ({ id: m.id, name: m.name, faces: !!m.elements, usd10: est("trend", m, 10) })),
-    lockPerSec: econ().lockUsd
-  };
-}
+var publicChar = (c) => ({ ...c, faceJob: void 0, sheetJobs: void 0 });
+
 function charIdentity(c) {
   return `a fictional adult ${GENDER[c.gender] || GENDER.female} in their mid-twenties with a unique futuristic look: ${c.look}`;
 }
@@ -1638,43 +1629,6 @@ async function stepCharacters() {
 setInterval(() => {
   if (db.characters.some((c) => c.status === "faces" || c.status === "sheet")) stepCharacters().catch(() => {});
 }, 5e3);
-// танец с персонажем: обычная генерация, но фото — «паспорт внешности», face-lock включён, оплата не списывается
-async function danceCharacter(b) {
-  if (!publicUrl("/media/x")) throw new UserError("Не задан адрес сайта: Railway → Variables → PUBLIC_URL = https://snapdance.us. Без него нейросеть не может скачать ролик-образец и фото, и видео выходит неподвижным.");
-  const c = db.characters.find((x) => x.id === b.id);
-  if (!c || c.status !== "ready") throw new UserError("Персонаж ещё не готов.");
-  db.keys[STUDIO_KEY] ||= { credits: 0, spent: 0, created: Date.now(), source: "studio", note: "внутренний ключ: персонажи из админки" };
-  const mode = b.mode === "trend" ? "trend" : "style";
-  // по умолчанию Kling 3 Pro: держит лицо по опорным фото (elements) и хорошо двигает человека
-  const model = b.model || (mode === "trend" ? "mc3p" : "kling3");
-  const o = options({ ...b, mode, model, frame: "nbpro", phone: "oldiphone", cam: b.cam || "tripod", place: PLACE[b.place] ? b.place : "room" });
-  o.faceLock = b.faceLock === true;
-  o.enhance = b.enhance !== false;
-  let seconds = o.dur, ref2 = null;
-  if (o.mode === "trend") {
-    if (!/^\/media\/ex-[\w-]+\.\w+$/.test(String(b.ref || "")) || !mediaExists(b.ref)) throw new UserError("Загрузите ролик с танцем.");
-    const info = await probe2(fileOf(b.ref)).catch(() => null);
-    if (!info?.duration || info.duration > 30.5) throw new UserError("Ролик-образец должен быть до 30 секунд.");
-    ref2 = b.ref;
-    seconds = info.duration;
-  }
-  const q = quote({ ...o, seconds });
-  const j = {
-    id: newId(), key: STUDIO_KEY, character: c.id, created: Date.now(), status: "working", stage: "frame",
-    ...o, seconds, photos: [c.photos.full, c.photos.face, c.photos.angle], faceIdx: 1, ref: ref2,
-    paid: 0, parts: q.parts, usd: usdCost({ ...o, seconds }), notes: [], extra: clean2(b.extra, 200)
-  };
-  db.jobs.unshift(j);
-  try {
-    await startFrame(j);
-  } catch (e) {
-    fail(j, e.message);
-    save();
-    throw new UserError("Не удалось запустить генерацию: " + e.message, 502);
-  }
-  save();
-  return j;
-}
 function removeCharacter(id) {
   const c = db.characters.find((x) => x.id === id);
   if (!c) throw new UserError("Персонаж не найден.", 404);
@@ -1954,7 +1908,7 @@ var routes = {
     isAdmin(req);
     origin(req); // адрес сайта нужен, чтобы fal.ai скачивал фото и ролики по ссылке
     await Promise.race([stepCharacters().catch(() => {}), new Promise((ok) => setTimeout(ok, 4e3))]);
-    json(res, { characters: db.characters.map(publicChar), styles: STYLES.map((s) => ({ id: s.id, name: s.name, icon: s.icon })), places: Object.keys(PLACE), models: charModels() });
+    json(res, { characters: db.characters.map(publicChar) });
   },
   "POST /api/admin/characters": async (req, res) => {
     isAdmin(req);
@@ -1966,12 +1920,6 @@ var routes = {
     origin(req); // адрес сайта нужен, чтобы fal.ai скачивал фото и ролики по ссылке
     const b = await body(req);
     json(res, publicChar(await pickCharacter(b.id, +b.index)));
-  },
-  "POST /api/admin/characters/dance": async (req, res) => {
-    isAdmin(req);
-    origin(req); // адрес сайта нужен, чтобы fal.ai скачивал фото и ролики по ссылке
-    const j = await danceCharacter(await body(req));
-    json(res, { id: j.id, usd: j.usd });
   },
   "POST /api/admin/characters/delete": async (req, res) => {
     isAdmin(req);
