@@ -9,14 +9,12 @@
 /* Begin PBXBuildFile section */
 		A10000000000000000000001 /* SnapDanceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* SnapDanceApp.swift */; };
 		A10000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* ContentView.swift */; };
-		A10000000000000000000003 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* WebView.swift */; };
 		A10000000000000000000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A20000000000000000000001 /* SnapDanceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapDanceApp.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		A20000000000000000000003 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		A20000000000000000000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A20000000000000000000010 /* SnapDance.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SnapDance.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -45,7 +43,6 @@
 			children = (
 				A20000000000000000000001 /* SnapDanceApp.swift */,
 				A20000000000000000000002 /* ContentView.swift */,
-				A20000000000000000000003 /* WebView.swift */,
 				A20000000000000000000004 /* Assets.xcassets */,
 			);
 			path = SnapDance;
@@ -132,7 +129,6 @@
 			files = (
 				A10000000000000000000001 /* SnapDanceApp.swift in Sources */,
 				A10000000000000000000002 /* ContentView.swift in Sources */,
-				A10000000000000000000003 /* WebView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

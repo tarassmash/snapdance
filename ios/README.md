@@ -22,4 +22,4 @@
 
 ## Настройки
 
-Всё в `SnapDance/SnapDanceApp.swift`, блок `AppConfig`: адрес сайта, домены, которые открываются внутри приложения, и метка User-Agent.
+Всё в `SnapDance/ContentView.swift`, блок `SDConfig`: адрес сайта, домены, которые открываются внутри приложения, и метка User-Agent.
