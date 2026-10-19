@@ -142,6 +142,7 @@ var UserError = class extends Error {
     this.status = status;
   }
 };
+var KEEP_DAYS = Math.max(1, parseInt(process.env.VIDEO_KEEP_DAYS, 10) || 7);
 function falKey() {
   const k = (process.env.FAL_KEY || process.env.FAL_API_KEY || "").trim();
   if (!k) throw new UserError("\u041D\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435 \u043D\u0435 \u0437\u0430\u0434\u0430\u043D FAL_KEY. Railway \u2192 \u0441\u0435\u0440\u0432\u0438\u0441 \u2192 Variables.", 500);
@@ -150,7 +151,8 @@ function falKey() {
 async function falFetch(url, opts = {}) {
   const res = await fetch(url, {
     ...opts,
-    headers: { authorization: "Key " + falKey(), "content-type": "application/json", ...opts.headers || {} }
+    // результаты нейросети в облаке fal.ai удаляются сами через KEEP_DAYS дней
+    headers: { authorization: "Key " + falKey(), "content-type": "application/json", "X-Fal-Object-Lifecycle-Preference": JSON.stringify({ expiration_duration_seconds: KEEP_DAYS * 86400 }), ...opts.headers || {} }
   });
   const text = await res.text();
   let data;
@@ -1220,6 +1222,7 @@ async function step() {
 for (const j of db.jobs) delete j.posting;
 var STAGE = { frame: "\u0413\u043E\u0442\u043E\u0432\u0438\u043C \u043F\u0435\u0440\u0432\u044B\u0439 \u043A\u0430\u0434\u0440 \u043F\u043E \u0442\u0435\u043C\u0435", video: "\u0427\u0435\u043B\u043E\u0432\u0435\u043A \u0441 \u0444\u043E\u0442\u043E \u0442\u0430\u043D\u0446\u0443\u0435\u0442", lock: "\u0424\u0438\u043A\u0441\u0438\u0440\u0443\u0435\u043C \u043B\u0438\u0446\u043E \u0432 \u043A\u0430\u0436\u0434\u043E\u043C \u043A\u0430\u0434\u0440\u0435", enhance: "\u041F\u043E\u0432\u044B\u0448\u0430\u0435\u043C \u0434\u043E 1080p \u0438 60 \u043A\u0430\u0434\u0440\u043E\u0432", post: "\u0414\u0435\u043B\u0430\u0435\u043C \xAB\u043A\u0430\u043A \u0441 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0430\xBB" };
 var summary = (j) => ({
+  expires: j.status === "done" ? (j.done || j.created) + KEEP_DAYS * 864e5 : 0,
   id: j.id,
   mode: j.mode,
   style: j.style,
@@ -1252,6 +1255,15 @@ function remove(key, id) {
   save();
 }
 function cleanup() {
+  const expired = Date.now() - KEEP_DAYS * 864e5;
+  for (const j of db.jobs) {
+    if (j.status === "done" && (j.done || j.created) < expired) {
+      removeMedia(`sd-${j.id}`);
+      for (const p of [j.result, j.poster]) if (p) fs4.rmSync(fileOf(p), { force: true });
+      j.status = "expired"; j.result = ""; j.poster = ""; j.expired = Date.now();
+      delete j.videoUrl; delete j.lockedUrl; delete j.enhancedUrl; delete j.frameUrl; delete j.frame_img;
+    }
+  }
   const old = Date.now() - 3 * 864e5;
   for (const [file, u] of Object.entries(db.uploads)) {
     if (u.created < old && !db.jobs.some((j) => j.status === "working" && (j.photos?.includes(u.path) || j.ref === u.path))) {
@@ -2164,7 +2176,7 @@ var LEGAL = {
     privacy: ["Política de privacidad", [
       ["Qué datos usamos", "Las fotos y vídeos que subes para crear tu vídeo, el vídeo terminado, tu código personal y tu saldo de rubíes. No pedimos nombre ni contraseña."],
       ["Para qué", "Solo para crear tu vídeo de baile. Las fotos y vídeos se envían a proveedores de IA (fal.ai) únicamente para la generación."],
-      ["Cuánto tiempo", "Las fotos y vídeos de referencia se borran automáticamente a los 3 días. Los vídeos terminados se guardan para que puedas descargarlos con tu código."],
+      ["Cuánto tiempo", "Las fotos y vídeos de referencia se borran automáticamente a los 3 días. Los vídeos terminados se guardan 7 días para que los descargues y después se borran de nuestro servidor y del de nuestro proveedor de IA."],
       ["Pagos", "Los pagos los procesa Stripe. No vemos ni guardamos los datos de tu tarjeta; solo recibimos el correo electrónico del recibo."],
       ["Cookies y analítica", "Usamos almacenamiento local para recordar tu código e idioma, y herramientas de analítica (Google Analytics, píxeles de TikTok y Meta) para medir visitas y publicidad."],
       ["Tus derechos", "Puedes pedir que borremos tus datos escribiéndonos al correo de contacto del sitio."]
@@ -2182,7 +2194,7 @@ var LEGAL = {
     privacy: ["Privacy policy", [
       ["What we use", "The photos and videos you upload to create your video, the finished video, your personal code and your ruby balance. We don't ask for a name or password."],
       ["Why", "Only to create your dance video. Photos and videos are sent to AI providers (fal.ai) solely for generation."],
-      ["How long", "Photos and reference videos are deleted automatically after 3 days. Finished videos are kept so you can download them with your code."],
+      ["How long", "Photos and reference videos are deleted automatically after 3 days. Finished videos are kept for 7 days so you can download them, then deleted from our server and our AI provider's storage."],
       ["Payments", "Payments are processed by Stripe. We never see or store your card details; we only receive the receipt email."],
       ["Cookies and analytics", "We use local storage to remember your code and language, and analytics tools (Google Analytics, TikTok and Meta pixels) to measure visits and advertising."],
       ["Your rights", "You can ask us to delete your data by writing to the contact email on the site."]
@@ -2200,7 +2212,7 @@ var LEGAL = {
     privacy: ["Политика конфиденциальности", [
       ["Какие данные", "Фото и видео, которые вы загружаете для создания ролика, готовое видео, ваш личный код и баланс рубинов. Имя и пароль мы не спрашиваем."],
       ["Зачем", "Только чтобы сделать ваше танцевальное видео. Фото и видео передаются ИИ-провайдерам (fal.ai) исключительно для генерации."],
-      ["Как долго", "Фото и ролики-образцы автоматически удаляются через 3 дня. Готовые видео хранятся, чтобы вы могли скачать их по своему коду."],
+      ["Как долго", "Фото и ролики-образцы автоматически удаляются через 3 дня. Готовые видео хранятся 7 дней, чтобы вы успели их скачать, затем удаляются с нашего сервера и из хранилища ИИ-провайдера."],
       ["Оплата", "Платежи обрабатывает Stripe. Мы не видим и не храним данные карты; получаем только e-mail для чека."],
       ["Cookies и аналитика", "Мы храним в браузере ваш код и язык и используем аналитику (Google Analytics, пиксели TikTok и Meta), чтобы измерять посещения и рекламу."],
       ["Ваши права", "Вы можете попросить удалить ваши данные, написав на контактную почту сайта."]
@@ -2247,7 +2259,7 @@ function llmsText(req) {
     "- Output: vertical 1080×1920 video with the original trend sound, up to Full HD 60 fps.",
     "- Time: usually 3–8 minutes; the video appears in “My videos”.",
     "- Payment: rubies bought in one-time packs via Stripe; the exact price of each video is shown before creating it; rubies never expire; failed generations are refunded automatically.",
-    "- Privacy: uploaded photos and reference videos are deleted after 3 days.",
+    "- Privacy: uploaded photos and reference videos are deleted after 3 days; finished videos after 7 days.",
     "- Rules: 18+ only, and only with the consent of the person in the photo.", "",
     ...ps.length ? ["## Packs", ...ps.map((p) => `- ${p.name?.en || p.id}: ${p.credits} rubies for ${money(p.price, "en")}`), ""] : [],
     "## FAQ",
@@ -2404,5 +2416,6 @@ setInterval(() => {
   if (busy()) poll().catch(() => {
   });
 }, 4e3);
-setInterval(() => cleanup(), 6 * 3600 * 1e3);
+setInterval(() => cleanup(), 3600 * 1e3);
+setTimeout(() => cleanup(), 60e3);
 
