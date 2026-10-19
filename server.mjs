@@ -701,7 +701,10 @@ function watermarkFilter() {
   if (!WATERMARK) return "";
   const esc = (s) => s.replace(/\\/g, "\\\\").replace(/'/g, "\u2019").replace(/:/g, "\\:").replace(/%/g, "\\%");
   // слева, на 3/4 высоты: не перекрывается кнопками и подписью TikTok/Reels
-  return `drawtext=${WM_FONT ? `fontfile='${esc(WM_FONT)}':` : ""}text='${esc(WATERMARK)}':fontsize=h/34:fontcolor=white@0.75:shadowcolor=black@0.55:shadowx=2:shadowy=2:x=w*0.05:y=h*0.74`;
+  // вторая строка — пометка о создании ИИ (требование EU AI Act и правил TikTok/Meta); AI_LABEL="" — убрать
+  const f = WM_FONT ? `fontfile='${esc(WM_FONT)}':` : "";
+  const label = (process.env.AI_LABEL ?? "AI-generated").trim();
+  return `drawtext=${f}text='${esc(WATERMARK)}':fontsize=h/34:fontcolor=white@0.75:shadowcolor=black@0.55:shadowx=2:shadowy=2:x=w*0.05:y=h*0.74` + (label ? `,drawtext=${f}text='${esc(label)}':fontsize=h/56:fontcolor=white@0.7:shadowcolor=black@0.55:shadowx=2:shadowy=2:x=w*0.05:y=h*0.74+h/30` : "");
 }
 async function watermarkOnly(src, out) {
   const wm = watermarkFilter();
@@ -1816,6 +1819,9 @@ var routes = {
     if (db.jobs.some((j) => j.key === k && j.status === "working")) await poll();
     json(res, { credits: db.keys[k].credits, jobs: mine(k) });
   },
+  "POST /api/report": async (req, res) => {
+    json(res, { ok: true, id: addReport(req, await body(req)).id });
+  },
   "POST /api/jobs/delete": async (req, res) => {
     const k = clientKey(req);
     remove(k, (await body(req)).id);
@@ -1902,6 +1908,22 @@ var routes = {
       disk: diskUsage(),
       system: { fal: p.text, falOk: p.ok, ffmpeg: FFMPEG_OK, stripe: stripeEnabled(), webhook: webhookEnabled(), persistent: PERSISTENT, dataDir: DATA_DIR, publicUrl: !!process.env.PUBLIC_URL }
     });
+  },
+  "GET /api/admin/reports": async (req, res) => {
+    isAdmin(req);
+    json(res, db.reports.slice(0, 300).map(({ ip, ...r }) => ({ ...r, jobInfo: r.job ? (({ id, status, result, poster, key, created }) => ({ id, status, result, poster, key, email: db.keys[key]?.email || "", created }))(db.jobs.find((j) => j.id === r.job) || {}) : null })));
+  },
+  "POST /api/admin/reports/resolve": async (req, res) => {
+    isAdmin(req);
+    const b = await body(req);
+    const r = db.reports.find((x) => x.id === b.id);
+    if (!r) throw new UserError2("Жалоба не найдена.", 404);
+    const jobId = String(b.job || r.job || "").trim();
+    if (b.action === "delete") { takedownJob(jobId); r.job = jobId; r.status = "removed"; }
+    else r.status = b.action === "reopen" ? "new" : "closed";
+    r.resolved = Date.now();
+    save();
+    json(res, { ok: true });
   },
   "GET /api/admin/jobs": async (req, res) => {
     isAdmin(req);
@@ -2113,7 +2135,7 @@ function renderHome(req, l) {
   const faq = Array.isArray(I[l]?.faq) ? I[l].faq : [];
   html = html.replace('<div id="faqList"></div>', `<div id="faqList">${faq.map(([q, a]) => `<details><summary>${escH(q)}</summary><p>${escH(a)}</p></details>`).join("")}</div>`);
   const pre = l === "es" ? "" : "/" + l;
-  html = html.replace('href="/privacy" id="lnkPriv"', `href="${pre}/privacy" id="lnkPriv"`).replace('href="/terms" id="lnkTerms"', `href="${pre}/terms" id="lnkTerms"`);
+  html = html.replace('href="/privacy" id="lnkPriv"', `href="${pre}/privacy" id="lnkPriv"`).replace('href="/terms" id="lnkTerms"', `href="${pre}/terms" id="lnkTerms"`).replace('href="/report" id="lnkReport"', `href="${pre}/report" id="lnkReport"`);
   html = html.replace(`<option value="${l}">`, `<option value="${l}" selected>`);
   const title = tt("meta.title"), desc = tt("meta.desc");
   const ps = (packs() || []).filter((p) => p.price);
@@ -2152,7 +2174,8 @@ var LEGAL = {
       ["Contenido prohibido", "No se permiten vídeos de menores, contenido sexual, violento, engañoso o que suplante a otras personas."],
       ["Rubíes", "Los rubíes se usan para crear vídeos y no caducan. Si una generación falla, los rubíes vuelven automáticamente a tu saldo. Los rubíes no usados no se reembolsan, salvo cuando lo exija la ley."],
       ["Resultado", "Los vídeos se crean con IA y pueden variar. Puedes usarlos en tus redes sociales; eres responsable de cómo los publicas."],
-      ["Servicio", "El servicio se ofrece tal cual. Podemos cambiar precios y funciones; los rubíes ya comprados se mantienen."]
+      ["Servicio", "El servicio se ofrece tal cual. Podemos cambiar precios y funciones; los rubíes ya comprados se mantienen."],
+      ["Etiqueta IA y eliminación", "Cada vídeo lleva la marca snapdance.us y la etiqueta \u00abAI-generated\u00bb; no las quites al publicar. Para denunciar un vídeo hecho sin consentimiento u otro contenido ilegal, usa el formulario en /report: normalmente lo eliminamos en 24\u201348 horas."]
     ]]
   },
   en: {
@@ -2169,7 +2192,8 @@ var LEGAL = {
       ["Prohibited content", "Videos of minors, sexual, violent or misleading content, or impersonating other people are not allowed."],
       ["Rubies", "Rubies are used to create videos and never expire. If a generation fails, rubies return to your balance automatically. Unused rubies are not refunded unless required by law."],
       ["Results", "Videos are made with AI and may vary. You may use them on your social media; you are responsible for how you publish them."],
-      ["Service", "The service is provided as is. We may change prices and features; rubies you already bought are kept."]
+      ["Service", "The service is provided as is. We may change prices and features; rubies you already bought are kept."],
+      ["AI label and removal", "Every video carries the snapdance.us mark and an \u201cAI-generated\u201d label; do not remove them when publishing. To report a video made without consent or other unlawful content, use the form at /en/report \u2014 we usually remove it within 24\u201348 hours."]
     ]]
   },
   ru: {
@@ -2186,7 +2210,8 @@ var LEGAL = {
       ["Запрещено", "Видео с несовершеннолетними, сексуальный, жестокий или вводящий в заблуждение контент, выдача себя за других людей."],
       ["Рубины", "Рубины тратятся на создание видео и не сгорают. Если генерация не удалась, рубины автоматически возвращаются. Неиспользованные рубины не возвращаются, если иное не требует закон."],
       ["Результат", "Видео создаются ИИ и могут отличаться. Их можно публиковать в соцсетях; вы отвечаете за то, как их публикуете."],
-      ["Сервис", "Сервис предоставляется «как есть». Мы можем менять цены и функции; купленные рубины сохраняются."]
+      ["Сервис", "Сервис предоставляется «как есть». Мы можем менять цены и функции; купленные рубины сохраняются."],
+      ["Пометка ИИ и удаление", "На каждом видео есть знак snapdance.us и пометка «AI-generated»; не удаляйте их при публикации. Чтобы пожаловаться на видео без согласия или другой незаконный контент, используйте форму /ru/report — обычно мы удаляем его в течение 24–48 часов."]
     ]]
   }
 };
@@ -2201,7 +2226,7 @@ function sitemapXml(req) {
   const alt = (path) => HOME_LANGS.map((x) => `<xhtml:link rel="alternate" hreflang="${x}" href="${escH(o + (path === "" ? HOME_PATH[x] : (x === "es" ? "" : "/" + x) + path))}"/>`).join("") + `<xhtml:link rel="alternate" hreflang="x-default" href="${escH(o + (path || "/"))}"/>`;
   const urls = [];
   for (const x of HOME_LANGS) urls.push(`<url><loc>${escH(o + HOME_PATH[x])}</loc><lastmod>${d}</lastmod><priority>${x === "es" ? "1.0" : "0.9"}</priority>${alt("")}</url>`);
-  for (const k of ["/privacy", "/terms"]) for (const x of HOME_LANGS) urls.push(`<url><loc>${escH(o + (x === "es" ? "" : "/" + x) + k)}</loc><priority>0.3</priority>${alt(k)}</url>`);
+  for (const k of ["/privacy", "/terms", "/report"]) for (const x of HOME_LANGS) urls.push(`<url><loc>${escH(o + (x === "es" ? "" : "/" + x) + k)}</loc><priority>0.3</priority>${alt(k)}</url>`);
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join("\n")}\n</urlset>`;
 }
 function robotsTxt(req) {
@@ -2260,6 +2285,70 @@ function autoLangRedirect(req, url, paths) {
   if (!want || want === "es" || !paths[want]) return "";
   return paths[want] + url.search;
 }
+// ---- жалобы и удаление контента (takedown) ----
+// Любой человек может сообщить о видео, сделанном без согласия, или о другом нарушении; жалоба попадает в админку,
+// где видео удаляется одной кнопкой. Требование EU AI Act / DSA, Take It Down Act и правил Stripe.
+db.reports ||= [];
+var REPORT_TXT = {
+  es: {
+    title: "Denunciar contenido o pedir su eliminación", back: "← Volver a SnapDance",
+    intro: "Si un vídeo de SnapDance muestra a una persona sin su consentimiento, a un menor, o infringe la ley de otra forma, cuéntanoslo. Revisamos cada denuncia y eliminamos el contenido normalmente en 24–48 horas.",
+    link: "Enlace al vídeo (TikTok, Instagram, nuestro enlace /media/…) o descripción", email: "Tu correo electrónico (para responderte)",
+    reason: "Motivo", reasons: { consent: "Soy yo (o mi familiar) y no di mi consentimiento", minor: "Aparece un menor", sexual: "Contenido sexual o violento", other: "Otro" },
+    details: "Detalles (opcional)", send: "Enviar denuncia", ok: "Gracias. Hemos recibido tu denuncia y la revisaremos lo antes posible.", err: "No se pudo enviar. Revisa los campos e inténtalo de nuevo.",
+    owner: "¿Es tu propio vídeo? Puedes borrarlo tú mismo en «Mis vídeos»."
+  },
+  en: {
+    title: "Report content or request removal", back: "← Back to SnapDance",
+    intro: "If a SnapDance video shows a person without their consent, shows a minor, or breaks the law in another way, tell us. We review every report and usually remove the content within 24–48 hours.",
+    link: "Link to the video (TikTok, Instagram, our /media/… link) or a description", email: "Your email (so we can reply)",
+    reason: "Reason", reasons: { consent: "It's me (or a relative) and I did not consent", minor: "A minor appears in it", sexual: "Sexual or violent content", other: "Other" },
+    details: "Details (optional)", send: "Send report", ok: "Thank you. We received your report and will review it as soon as possible.", err: "Couldn't send. Check the fields and try again.",
+    owner: "Is it your own video? You can delete it yourself in “My videos”."
+  },
+  ru: {
+    title: "Пожаловаться или запросить удаление", back: "← Назад в SnapDance",
+    intro: "Если видео SnapDance показывает человека без его согласия, несовершеннолетнего или иначе нарушает закон — напишите нам. Мы рассматриваем каждую жалобу и обычно удаляем контент в течение 24–48 часов.",
+    link: "Ссылка на видео (TikTok, Instagram, наша ссылка /media/…) или описание", email: "Ваш e-mail (чтобы ответить)",
+    reason: "Причина", reasons: { consent: "Это я (или мой родственник), согласия не было", minor: "На видео несовершеннолетний", sexual: "Сексуальный или жестокий контент", other: "Другое" },
+    details: "Подробности (необязательно)", send: "Отправить жалобу", ok: "Спасибо. Жалоба получена, мы рассмотрим её как можно скорее.", err: "Не удалось отправить. Проверьте поля и попробуйте ещё раз.",
+    owner: "Это ваше видео? Его можно удалить самостоятельно в «Мои видео»."
+  }
+};
+function reportPage(req, l) {
+  const T = REPORT_TXT[l], o = siteOrigin(req), pre = l === "es" ? "" : "/" + l;
+  return `<!doctype html><html lang="${l}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escH(T.title)} — ${escH(BRAND)}</title><link rel="canonical" href="${escH(o + pre + "/report")}"><meta name="theme-color" content="#0c0b10"><style>body{margin:0;background:#0c0b10;color:#f2f0f7;font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}main{max-width:640px;margin:0 auto;padding:28px 18px 60px}a{color:#c6ff3d}h1{font-size:26px;line-height:1.2;margin:18px 0 8px}p{color:#c9c5d6;margin:0 0 14px}form{display:grid;gap:14px;margin-top:10px}label{display:grid;gap:6px;font-weight:600;font-size:14px}input,select,textarea{font:inherit;color:inherit;background:#16141d;border:1px solid #2c2838;border-radius:12px;padding:11px 12px}button{font:700 16px system-ui,sans-serif;background:#c6ff3d;color:#10120a;border:0;border-radius:999px;padding:14px;cursor:pointer}#msg{font-weight:600}.ok{color:#5fe3a1}.err{color:#ff6b6b}.small{font-size:13.5px;color:#a29cb3}</style></head><body><main><a href="${HOME_PATH[l]}">${escH(T.back)}</a><h1>${escH(T.title)}</h1><p>${escH(T.intro)}</p><p class="small">${escH(T.owner)}</p>
+<form id="f"><label>${escH(T.link)}<input name="link" required maxlength="500"></label><label>${escH(T.email)}<input name="email" type="email" required maxlength="120"></label><label>${escH(T.reason)}<select name="reason">${Object.entries(T.reasons).map(([k, v]) => `<option value="${k}">${escH(v)}</option>`).join("")}</select></label><label>${escH(T.details)}<textarea name="details" rows="4" maxlength="1500"></textarea></label><button>${escH(T.send)}</button><p id="msg" role="status"></p></form>
+<script>document.getElementById("f").onsubmit=async e=>{e.preventDefault();const f=e.target,m=document.getElementById("msg"),b=f.querySelector("button");b.disabled=true;try{const r=await fetch("/api/report",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({...Object.fromEntries(new FormData(f)),lang:${JSON.stringify(l)}})});if(!r.ok)throw 0;f.reset();m.className="ok";m.textContent=${JSON.stringify(T.ok)};}catch{m.className="err";m.textContent=${JSON.stringify(T.err)};b.disabled=false;}};</script></main></body></html>`;
+}
+var reportIp = (req) => crypto.createHash("sha256").update("sd-report|" + (String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || req.socket?.remoteAddress || "")).digest("hex").slice(0, 20);
+function addReport(req, b) {
+  const link = String(b.link || "").trim().slice(0, 500), email = String(b.email || "").trim().slice(0, 120);
+  if (link.length < 3 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new UserError2("Проверьте ссылку и e-mail.");
+  const ip = reportIp(req), day = Date.now() - 864e5;
+  if (db.reports.filter((r) => r.ip === ip && r.created > day).length >= 5) throw new UserError2("Слишком много жалоб с одного адреса. Напишите нам на почту.", 429);
+  // пытаемся сразу найти видео по ссылке вида /media/sd-<id>.mp4 или по id
+  const m = link.match(/sd-([a-f0-9]{16})/) || link.match(/\b([a-f0-9]{16})\b/);
+  const job = m && db.jobs.find((j) => j.id === m[1]);
+  const r = { id: newId(), created: Date.now(), link, email, reason: ["consent", "minor", "sexual", "other"].includes(b.reason) ? b.reason : "other", details: String(b.details || "").trim().slice(0, 1500), lang: ["es", "en", "ru"].includes(b.lang) ? b.lang : "es", status: "new", ip, job: job?.id || "" };
+  db.reports.unshift(r);
+  if (db.reports.length > 2000) db.reports.length = 2000;
+  save();
+  return r;
+}
+// удалить видео по жалобе: файлы готового ролика, превью, и пример/рекламу, если их делали из него
+function takedownJob(id) {
+  const j = db.jobs.find((x) => x.id === id);
+  if (!j) throw new UserError2("Видео не найдено.", 404);
+  removeMedia(`sd-${j.id}`);
+  for (const p of [j.result, j.poster]) if (p) fs6.rmSync(fileOf(p), { force: true });
+  j.status = "removed";
+  j.result = "";
+  j.poster = "";
+  j.removed = Date.now();
+  save();
+}
+
 var PAGES = { "/admin": "admin.html" };
 function serveStatic(req, res, pathname) {
   const page = PAGES[pathname];
@@ -2284,6 +2373,8 @@ function serveStatic(req, res, pathname) {
     if (to) { res.writeHead(302, { location: to, vary: "Accept-Language, Cookie", "cache-control": "no-store" }); return res.end(); }
   }
   if (pathname === "/" || pathname === "/en" || pathname === "/ru") return sendHtml(req, res, 200, renderHome(req, pathname === "/" ? "es" : pathname.slice(1)));
+  const rm = pathname.match(/^(?:\/(en|ru))?\/report$/);
+  if (rm) return sendHtml(req, res, 200, reportPage(req, rm[1] || "es"));
   const lm = pathname.match(/^(?:\/(en|ru))?\/(privacy|terms)$/);
   if (lm) return sendHtml(req, res, 200, legalPage(req, lm[1] || "es", lm[2]));
   if (pathname === "/sitemap.xml") { res.writeHead(200, { "content-type": "application/xml; charset=utf-8" }); return res.end(sitemapXml(req)); }
