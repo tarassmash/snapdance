@@ -76,6 +76,7 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
       <button data-tab="orders" aria-selected="false">Заказы</button>
       <button data-tab="keys" aria-selected="false">Коды клиентов</button>
       <button data-tab="prices" aria-selected="false">Пакеты и цены</button>
+      <button data-tab="marketing" aria-selected="false">Маркетинг & AI</button>
     </nav>
 
     <section data-pane="home">
@@ -315,8 +316,43 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
   $("packs").onclick = e => { if (e.target.closest("[data-x]")) { PACKS = readPacks(); PACKS.splice(+e.target.closest("[data-i]").dataset.i, 1); drawPacks(); } };
   $("pAdd").onclick = () => { PACKS = readPacks(); PACKS.push({ id: "pack" + (PACKS.length + 1), name: { es: "Paquete", en: "Pack", ru: "Пакет" }, credits: 500, price: 39.99, popular: false }); drawPacks(); };
   $("pSave").onclick = async () => { try { const r = await api("/api/admin/packs", { packs: readPacks(), currency: $("cur").value }); PACKS = r.packs; cur = r.currency; drawPacks(); say("pMsg", "Сохранено — цены в рубинах пересчитаны под новые пакеты.", "ok"); showEcon(await api("/api/admin/prices")); } catch (e) { say("pMsg", e.message, "err"); } };
+  // Marketing tab
+  async function loadMarketing() {
+    try {
+      const m = await api("/api/admin/marketing");
+      $("mGA4").value = m.ga4 || "";
+      $("mFB").value = m.fbPixel || "";
+      $("mTT").value = m.tiktokPixel || "";
+      $("mGSC").value = m.gscMeta || "";
+      $("mAI").checked = m.enableAIOpt !== false;
+    } catch {}
+  }
+  $("mSave").onclick = async () => {
+    try {
+      await api("/api/admin/marketing", {
+        ga4: $("mGA4").value,
+        fbPixel: $("mFB").value,
+        tiktokPixel: $("mTT").value,
+        gscMeta: $("mGSC").value,
+        enableAIOpt: $("mAI").checked
+      });
+      say("mMsg", "Сохранено. Пиксели и аналитика уже работают на сайте.", "ok");
+    } catch (e) { say("mMsg", e.message, "err"); }
+  };
+  $("iosBtn").onclick = async () => {
+    try {
+      const r = await fetch("/api/admin/ios-package", { headers: { "x-admin": pass } });
+      const d = await r.json();
+      say("iosMsg", "Пакет готов. URL сайта: " + (d.siteUrl || "не задан") + ". Используй Capacitor + Xcode для сборки .ipa.", "ok");
+      // In real use one could trigger a zip download here
+    } catch (e) { say("iosMsg", e.message, "err"); }
+  };
+  // Load marketing when tab opens
+  const origShow = show;
+  show = function(n) { origShow(n); if (n === "marketing") loadMarketing(); };
   if (pass) enter();
 })();
 </script>
 </body>
 </html>
+
