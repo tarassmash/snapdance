@@ -1461,6 +1461,185 @@ async function startAd(id, lang, voice) {
 for (const ex of db.examples) for (const [l, a] of Object.entries(ex.ads || {})) if (a?.status === "working") ex.ads[l] = { status: "failed", error: "сервер перезапустился — нажмите ещё раз" };
 
 
+// src/characters.mjs — свои ИИ-блогеры-танцоры для аккаунтов студии.
+// 1) 4 варианта лица уникального футуристичного персонажа → 2) выбранный вариант превращается в «паспорт
+// внешности» из трёх фото (полный рост, лицо анфас, лицо 3/4) → 3) танцы с этими фото и face-lock,
+// чтобы лицо было одинаковым во всех роликах. Персонажи вымышленные, совершеннолетние.
+db.characters ||= [];
+var CHAR_T2I = process.env.CHAR_T2I_MODEL || "fal-ai/nano-banana-pro";
+var CHAR_EDIT = process.env.CHAR_EDIT_MODEL || "fal-ai/nano-banana-pro/edit";
+var STUDIO_KEY = "SD-STUDIO";
+var pickOne = (a) => a[Math.floor(Math.random() * a.length)];
+var CHAR_POOL = {
+  hair: [
+    "a platinum-white bob with a razor-sharp blunt fringe and iridescent violet tips",
+    "glossy jet-black hair in two high space buns with neon-lime streaks",
+    "a silver buzz cut with fine geometric lines shaved on the sides",
+    "long holographic lilac hair in a sleek high ponytail",
+    "a copper-red wolf cut with chrome-silver highlights",
+    "deep teal box braids with tiny metallic rings",
+    "a sculpted ash-blue undercut with a long side-swept top",
+    "white-blonde curls with a pale pink ombré"
+  ],
+  eyes: [
+    "striking heterochromia: one ice-blue eye and one amber eye",
+    "pale silver-grey eyes with a faint luminous ring",
+    "vivid emerald-green eyes",
+    "dark eyes framed by a thin graphic metallic-violet eyeliner",
+    "light hazel eyes with gold flecks"
+  ],
+  marks: [
+    "a thin glowing line tattoo along the left cheekbone",
+    "a constellation of small freckles across the nose",
+    "a tiny chrome stud above the right eyebrow",
+    "a delicate pattern of silver dots under the eyes",
+    "a small geometric tattoo just below the left ear",
+    "a beauty mark above the upper lip and a slim silver septum ring"
+  ],
+  outfit: [
+    "a cropped iridescent techwear jacket over a black top, black cargo pants and chunky white sneakers",
+    "a fitted metallic-silver bomber jacket, black joggers and platform sneakers",
+    "an oversized translucent jacket over a neon-lime sports top, wide grey trousers and futuristic trainers",
+    "a black high-collar techwear vest with reflective straps, slim black pants and white sneakers",
+    "a lilac holographic windbreaker, white crop top, baggy denim and chunky sneakers"
+  ]
+};
+var GENDER = { female: "young woman", male: "young man", nb: "androgynous young person" };
+var publicChar = (c) => ({ ...c, faceJob: void 0, sheetJobs: void 0, videos: db.jobs.filter((j) => j.character === c.id).slice(0, 30).map((j) => ({ id: j.id, status: j.status, stage: j.stage, result: j.result, poster: j.poster, mode: j.mode, style: j.style, created: j.created, error: j.error, usd: j.usd })) });
+function charIdentity(c) {
+  return `a fictional adult ${GENDER[c.gender] || GENDER.female} in their mid-twenties with a unique futuristic look: ${c.look}`;
+}
+async function createCharacter(b) {
+  const c = {
+    id: newId(),
+    name: clean2(b.name, 40) || "Nova",
+    gender: GENDER[b.gender] ? b.gender : "female",
+    idea: clean2(b.idea, 300),
+    look: [pickOne(CHAR_POOL.hair), pickOne(CHAR_POOL.eyes), pickOne(CHAR_POOL.marks)].join(", "),
+    outfit: pickOne(CHAR_POOL.outfit),
+    status: "faces",
+    candidates: [],
+    created: Date.now()
+  };
+  const prompt = [
+    `Photorealistic portrait photo of ${charIdentity(c)}.`,
+    c.idea ? `The owner's wishes take priority over any feature above if they conflict: ${c.idea}.` : "",
+    "A charismatic social-media dance creator, confident friendly expression. Head and shoulders, facing the camera, natural skin texture with pores, sharp focus, soft studio light, plain light-grey background.",
+    "Not a celebrity and not resembling any real person. Each image shows a slightly different take on the same concept."
+  ].filter(Boolean).join(" ");
+  const r = await submit2(CHAR_T2I, { prompt, num_images: 4, aspect_ratio: "3:4", resolution: "1K", output_format: "jpeg" }, ["resolution", "output_format"]);
+  if (!r.ok) throw new UserError("Не удалось запустить генерацию: " + r.error.admin, 502);
+  c.faceJob = r.job;
+  c.prompt = prompt;
+  db.characters.unshift(c);
+  save();
+  return c;
+}
+async function pickCharacter(id, index) {
+  const c = db.characters.find((x) => x.id === id);
+  if (!c) throw new UserError("Персонаж не найден.", 404);
+  const face = c.candidates[index];
+  if (!face || !mediaExists(face)) throw new UserError("Вариант не найден.");
+  c.picked = face;
+  const same = `The same person as in the reference photo: identical face, facial proportions, hairstyle and hair color, eye colors, skin tone and every distinctive mark (${c.look}). Photorealistic, natural skin texture, sharp focus.`;
+  const shots = {
+    full: `${same} Full-body photo, standing naturally, head to toe visible with space around, facing the camera, wearing ${c.outfit}. Plain light-grey studio background, soft even light, vertical framing.`,
+    face: `${same} Close-up of the face, front view, neutral relaxed expression, even soft light, plain light-grey background.`,
+    angle: `${same} Three-quarter view portrait, head and shoulders, slight smile, wearing ${c.outfit}, plain light-grey background.`
+  };
+  c.sheetJobs = {};
+  c.photos = {};
+  for (const [k, prompt] of Object.entries(shots)) {
+    const r = await submit2(CHAR_EDIT, { prompt, image_urls: [ref(face)], num_images: 1, aspect_ratio: k === "full" ? "9:16" : "3:4", resolution: "2K", output_format: "jpeg" }, ["resolution", "output_format"]);
+    if (!r.ok) throw new UserError("Не удалось запустить опорные фото: " + r.error.admin, 502);
+    c.sheetJobs[k] = r.job;
+  }
+  c.status = "sheet";
+  c.error = "";
+  save();
+  return c;
+}
+var charStepping = false;
+async function stepCharacters() {
+  if (charStepping) return;
+  charStepping = true;
+  try {
+    for (const c of db.characters) {
+      if (c.status === "faces" && c.faceJob) {
+        const st = await check2(c.faceJob);
+        if (st.state === "failed") { c.status = "failed"; c.error = st.error; delete c.faceJob; }
+        if (st.state === "done") {
+          const imgs = imagesOf(st.data).slice(0, 4);
+          c.candidates = [];
+          for (let i = 0; i < imgs.length; i++) c.candidates.push(await saveRemote(imgs[i], `chr-${c.id}-c${i}`, "jpg"));
+          c.status = c.candidates.length ? "pick" : "failed";
+          if (!c.candidates.length) c.error = "модель не вернула фото";
+          delete c.faceJob;
+        }
+        save();
+      }
+      if (c.status === "sheet" && c.sheetJobs) {
+        for (const [k, job] of Object.entries(c.sheetJobs)) {
+          if (!job || c.photos[k]) continue;
+          const st = await check2(job);
+          if (st.state === "failed") { c.status = "failed"; c.error = `опорное фото (${k}): ${st.error}`; }
+          if (st.state === "done") {
+            const u = imagesOf(st.data)[0];
+            if (u) c.photos[k] = await saveRemote(u, `chr-${c.id}-${k}`, "jpg");
+          }
+        }
+        if (c.status === "sheet" && ["full", "face", "angle"].every((k) => c.photos[k])) { c.status = "ready"; delete c.sheetJobs; }
+        save();
+      }
+    }
+  } finally {
+    charStepping = false;
+  }
+}
+setInterval(() => {
+  if (db.characters.some((c) => c.status === "faces" || c.status === "sheet")) stepCharacters().catch(() => {});
+}, 5e3);
+// танец с персонажем: обычная генерация, но фото — «паспорт внешности», face-lock включён, оплата не списывается
+async function danceCharacter(b) {
+  const c = db.characters.find((x) => x.id === b.id);
+  if (!c || c.status !== "ready") throw new UserError("Персонаж ещё не готов.");
+  db.keys[STUDIO_KEY] ||= { credits: 0, spent: 0, created: Date.now(), source: "studio", note: "внутренний ключ: персонажи из админки" };
+  const o = options({ ...b, mode: b.mode === "trend" ? "trend" : "style", frame: "nbpro", phone: "oldiphone", cam: b.cam || "tripod", place: PLACE[b.place] ? b.place : "room" });
+  o.faceLock = true;
+  o.enhance = b.enhance !== false;
+  let seconds = o.dur, ref2 = null;
+  if (o.mode === "trend") {
+    if (!/^\/media\/ex-[\w-]+\.\w+$/.test(String(b.ref || "")) || !mediaExists(b.ref)) throw new UserError("Загрузите ролик с танцем.");
+    const info = await probe2(fileOf(b.ref)).catch(() => null);
+    if (!info?.duration || info.duration > 30.5) throw new UserError("Ролик-образец должен быть до 30 секунд.");
+    ref2 = b.ref;
+    seconds = info.duration;
+  }
+  const q = quote({ ...o, seconds });
+  const j = {
+    id: newId(), key: STUDIO_KEY, character: c.id, created: Date.now(), status: "working", stage: "frame",
+    ...o, seconds, photos: [c.photos.full, c.photos.face, c.photos.angle], faceIdx: 1, ref: ref2,
+    paid: 0, parts: q.parts, usd: usdCost({ ...o, seconds }), notes: [], extra: clean2(b.extra, 200)
+  };
+  db.jobs.unshift(j);
+  try {
+    await startFrame(j);
+  } catch (e) {
+    fail(j, e.message);
+    save();
+    throw new UserError("Не удалось запустить генерацию: " + e.message, 502);
+  }
+  save();
+  return j;
+}
+function removeCharacter(id) {
+  const c = db.characters.find((x) => x.id === id);
+  if (!c) throw new UserError("Персонаж не найден.", 404);
+  for (const p of [...c.candidates || [], ...Object.values(c.photos || {})]) if (p) fs5.rmSync(fileOf(p), { force: true });
+  db.characters = db.characters.filter((x) => x !== c);
+  save();
+}
+
 // src/server.mjs
 var { UserError: UserError2 } = fal_exports;
 var BRAND = process.env.STUDIO_NAME || "SnapDance";
@@ -1725,6 +1904,31 @@ var routes = {
   "POST /api/admin/examples/update": async (req, res) => {
     isAdmin(req);
     update(await body(req));
+    json(res, { ok: true });
+  },
+  // ИИ-персонажи для аккаунтов студии
+  "GET /api/admin/characters": async (req, res) => {
+    isAdmin(req);
+    await Promise.race([stepCharacters().catch(() => {}), new Promise((ok) => setTimeout(ok, 4e3))]);
+    json(res, { characters: db.characters.map(publicChar), styles: STYLES.map((s) => ({ id: s.id, name: s.name, icon: s.icon })), places: Object.keys(PLACE) });
+  },
+  "POST /api/admin/characters": async (req, res) => {
+    isAdmin(req);
+    json(res, publicChar(await createCharacter(await body(req))));
+  },
+  "POST /api/admin/characters/pick": async (req, res) => {
+    isAdmin(req);
+    const b = await body(req);
+    json(res, publicChar(await pickCharacter(b.id, +b.index)));
+  },
+  "POST /api/admin/characters/dance": async (req, res) => {
+    isAdmin(req);
+    const j = await danceCharacter(await body(req));
+    json(res, { id: j.id, usd: j.usd });
+  },
+  "POST /api/admin/characters/delete": async (req, res) => {
+    isAdmin(req);
+    removeCharacter((await body(req)).id);
     json(res, { ok: true });
   },
   // рекламный ролик из примера (голос + танец + призыв), собирается в фоне 1–2 минуты
