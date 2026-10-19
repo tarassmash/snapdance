@@ -55,17 +55,9 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
 .chc h3 { margin: 0; font-size: 17px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .chc .look { font-size: 12.5px; color: var(--muted); margin: 0; }
 .chimgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
-.chimgs figure { margin: 0; display: grid; gap: 6px; }
+.chimgs figure { margin: 0; display: grid; gap: 6px; justify-items: start; }
 .chimgs img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 10px; background: #000; }
 .chimgs figcaption { font-size: 12px; color: var(--muted); }
-.chdance { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.chdance select, .chdance input[type=text] { width: auto; }
-.chdance .ck { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); }
-.chdance .ck input { width: auto; }
-.chvids .warn { display: block; }
-.chvids { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
-.chvids .v { display: grid; gap: 4px; font-size: 12px; }
-.chvids video, .chvids .ph { width: 100%; aspect-ratio: 9 / 16; border-radius: 10px; background: #000; object-fit: cover; display: grid; place-items: center; color: var(--muted); }
 .adbox { display: grid; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
 .adbox select { width: auto; }
 .adres { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 8px; align-items: start; }
@@ -120,7 +112,7 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
     <section data-pane="chars" hidden>
       <div class="card">
         <h2>Новый ИИ-блогер-танцор</h2>
-        <p class="muted" style="margin-top:0;font-size:13px">Вымышленный персонаж с уникальной футуристичной внешностью для ваших TikTok/Reels-аккаунтов. 1) нейросеть рисует 4 варианта лица → 2) вы выбираете одного, и создаётся «паспорт внешности» из 3 фото → 3) танцы с ним делаются одной кнопкой, лицо одинаковое во всех видео (опорные фото + face-lock). Себестоимость: варианты ≈ $0.60, паспорт ≈ $0.45, танец — как обычное видео с face-lock и 1080p. В TikTok такие ролики нужно отмечать как созданные ИИ.</p>
+        <p class="muted" style="margin-top:0;font-size:13px">Вымышленный персонаж с уникальной футуристичной внешностью для ваших TikTok/Reels-аккаунтов. 1) нейросеть рисует 4 варианта лица → 2) вы выбираете одного, и создаётся «паспорт внешности» из 3 фото: в полный рост, лицо анфас, лицо 3/4. Скачайте их и загружайте на сайте в 3 окошка фото — тогда лицо будет одинаковым во всех видео. Себестоимость: варианты ≈ $0.60, паспорт ≈ $0.45. В TikTok ролики с таким персонажем нужно отмечать как созданные ИИ.</p>
         <div class="chform">
           <label class="f">Имя / ник<input id="chName" maxlength="40" placeholder="Например: Nova"></label>
           <label class="f">Кто<select id="chGender"><option value="female">Девушка</option><option value="male">Парень</option><option value="nb">Андрогинный образ</option></select></label>
@@ -332,14 +324,7 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
   }
   // ---------- ИИ-персонажи ----------
   let CH = { characters: [], styles: [], places: [] }, chTimer = null;
-  const CST = { faces: "⏳ рисуем 4 варианта (≈1 мин)…", pick: "Выберите вариант", sheet: "⏳ делаем паспорт внешности: 3 фото (≈1–2 мин)…", ready: "✓ Готов к танцам", failed: "✕ Ошибка" };
-  // список моделей: рекомендуемая первой, у моделей с опорой на лицо — 👤, рядом примерная цена
-  function modelOpts(mode) {
-    const list = CH.models?.[mode] || [], rec = mode === "trend" ? "mc3p" : "kling3";
-    return [...list].sort((a, b) => (b.id === rec) - (a.id === rec)).map(m => `<option value="${m.id}">${m.id === rec ? "★ " : ""}${esc(m.name)}${m.faces ? " 👤" : ""} · ${mode === "trend" ? "≈$" + m.usd10 + " / 10 с" : "от $" + Math.min(...Object.values(m.usd))}</option>`).join("");
-  }
-  function durOpts(m) { return (m?.durs || []).map(d => `<option value="${d}" ${d === 8 || (d === 10 && !m.durs.includes(8)) ? "selected" : ""}>${d} с · $${m.usd[d]}</option>`).join(""); }
-  const PL = { room: "Комната", street: "Улица", gym: "Танцзал", party: "Вечеринка", photo: "Студия" };
+  const CST = { faces: "⏳ рисуем 4 варианта (≈1 мин)…", pick: "Выберите вариант", sheet: "⏳ делаем паспорт внешности: 3 фото (≈1–2 мин)…", ready: "✓ Паспорт готов", failed: "✕ Ошибка" };
   function renderChars(d) {
     CH = d;
     $("chList").innerHTML = d.characters.map(c => `<div class="chc" data-id="${c.id}">
@@ -347,51 +332,22 @@ label.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-
       <p class="look">${esc(c.look)}${c.idea ? " · " + esc(c.idea) : ""}</p>
       ${c.error ? `<p class="bad" style="margin:0;font-size:13px">${esc(c.error)}</p>` : ""}
       ${c.status === "pick" || (c.candidates?.length && c.status !== "ready" && c.status !== "sheet") ? `<div class="chimgs">${c.candidates.map((u, i) => `<figure><img src="${esc(u)}" alt=""><button class="btn sm" data-c="pick" data-i="${i}">Выбрать</button></figure>`).join("")}</div>` : ""}
-      ${c.photos && Object.keys(c.photos).length ? `<div class="chimgs">${["full", "face", "angle"].map(k => c.photos[k] ? `<figure><img src="${esc(c.photos[k])}" alt=""><figcaption>${{ full: "В полный рост", face: "Лицо анфас", angle: "Лицо 3/4" }[k]}</figcaption></figure>` : "").join("")}</div>` : ""}
-      ${c.status === "ready" ? `<div class="chdance">
-        <select data-cmode><option value="style">Танец по стилю</option><option value="trend">Повторить тренд (свой ролик)</option></select>
-        <select data-cstyle>${CH.styles.map(s => `<option value="${s.id}">${s.icon} ${esc(s.name)}</option>`).join("")}</select>
-        <select data-cplace>${CH.places.filter(p => p !== "photo").map(p => `<option value="${p}">${PL[p] || p}</option>`).join("")}</select>
-        <label class="btn ghost sm" data-ctrend hidden>🎬 Ролик-образец<input type="file" accept="video/*" hidden data-cref></label>
-        <select data-cmodel>${modelOpts("style")}</select>
-        <select data-cdur>${durOpts(CH.models.style.find(m => m.id === "kling3") || CH.models.style[0])}</select>
-        <label class="ck"><input type="checkbox" data-clock> face-lock</label>
-        <label class="ck"><input type="checkbox" data-chd checked> 1080p 60fps</label>
-        <button class="btn" data-c="dance">💃 Сделать танец</button></div>
-        <p class="muted" style="margin:0;font-size:12px">Модели с 👤 держат лицо по опорным фото сами — face-lock обычно не нужен (он дороже и иногда не срабатывает). Цена — примерная себестоимость в fal.ai.</p>` : ""}
-      ${c.videos?.length ? `<div class="chvids">${c.videos.map(v => `<div class="v">${v.status === "done" && v.result ? `<video src="${esc(v.result)}" ${v.poster ? `poster="${esc(v.poster)}"` : ""} controls preload="none" playsinline></video><a href="${esc(v.result)}" download>⬇ Скачать</a>` : `<div class="ph">${v.status === "failed" ? "✕" : "⏳ " + esc(v.stage || "")}</div>`}<span class="muted">${esc(v.model || "")}${v.faceLock ? " · face-lock" : ""} · ${v.status === "failed" ? esc(v.error || "ошибка") : "$" + (v.usd ?? "")}</span>${(v.notes || []).map(n => `<span class="warn" style="font-size:11.5px">⚠ ${esc(n)}</span>`).join("")}</div>`).join("")}</div><p class="muted" style="margin:0;font-size:12px">Готовые танцы появляются и во вкладке «Видео» — оттуда их можно добавить в примеры и сделать рекламный ролик.</p>` : ""}
+      ${c.photos && Object.keys(c.photos).length ? `<div class="chimgs">${["full", "face", "angle"].map(k => c.photos[k] ? `<figure><img src="${esc(c.photos[k])}" alt=""><figcaption>${{ full: "В полный рост", face: "Лицо анфас", angle: "Лицо 3/4" }[k]}</figcaption><a class="btn ghost sm" href="${esc(c.photos[k])}" download="${esc(c.name)}-${k}.jpg">⬇ Скачать</a></figure>` : "").join("")}</div>` : ""}
     </div>`).join("") || '<p class="muted">Персонажей пока нет — создайте первого выше.</p>';
     clearTimeout(chTimer);
-    if (d.characters.some(c => ["faces", "sheet"].includes(c.status) || c.videos?.some(v => v.status === "working"))) chTimer = setTimeout(async () => { if (tab === "chars") try { renderChars(await api("/api/admin/characters")); } catch {} }, 6000);
+    if (d.characters.some(c => ["faces", "sheet"].includes(c.status))) chTimer = setTimeout(async () => { if (tab === "chars") try { renderChars(await api("/api/admin/characters")); } catch {} }, 6000);
   }
   $("chGo").onclick = async () => {
     $("chGo").disabled = true; say("chMsg", "Запускаем…");
     try { await api("/api/admin/characters", { name: $("chName").value, gender: $("chGender").value, idea: $("chIdea").value }); $("chName").value = ""; $("chIdea").value = ""; say("chMsg", "", ""); renderChars(await api("/api/admin/characters")); }
     catch (e) { say("chMsg", e.message, "err"); } finally { $("chGo").disabled = false; }
   };
-  $("chList").addEventListener("change", e => {
-    if (e.target.matches("[data-cmode]")) {
-      const box = e.target.closest(".chdance"), tr = e.target.value === "trend";
-      box.querySelector("[data-cstyle]").hidden = tr; box.querySelector("[data-ctrend]").hidden = !tr; box.querySelector("[data-cdur]").hidden = tr;
-      box.querySelector("[data-cmodel]").innerHTML = modelOpts(tr ? "trend" : "style");
-      if (!tr) box.querySelector("[data-cdur]").innerHTML = durOpts(CH.models.style.find(m => m.id === box.querySelector("[data-cmodel]").value));
-    }
-    if (e.target.matches("[data-cmodel]")) { const box = e.target.closest(".chdance"); if (box.querySelector("[data-cmode]").value === "style") box.querySelector("[data-cdur]").innerHTML = durOpts(CH.models.style.find(m => m.id === e.target.value)); }
-    if (e.target.matches("[data-cref]")) { const f = e.target.files[0]; const lab = e.target.closest("[data-ctrend]"); if (!f) return; lab.firstChild.textContent = "⏳ загрузка… "; fetch("/api/admin/examples/upload?kind=video", { method: "POST", headers: { "x-admin": pass, "content-type": f.type || "video/mp4" }, body: f }).then(r => r.json()).then(d => { if (d.error) throw new Error(d.error); lab.dataset.path = d.path; lab.firstChild.textContent = "✓ " + f.name.slice(0, 18) + " "; }).catch(err => { lab.firstChild.textContent = "🎬 Ролик-образец "; alert(err.message); }); }
-  });
   $("chList").addEventListener("click", async e => {
     const b = e.target.closest("[data-c]"); if (!b) return;
     const box = b.closest("[data-id]"), id = box.dataset.id;
     try {
       if (b.dataset.c === "del") { if (!confirm("Удалить персонажа и его фото?")) return; await api("/api/admin/characters/delete", { id }); }
       if (b.dataset.c === "pick") { b.disabled = true; await api("/api/admin/characters/pick", { id, index: +b.dataset.i }); }
-      if (b.dataset.c === "dance") {
-        const d = box.querySelector(".chdance"), mode = d.querySelector("[data-cmode]").value, refPath = d.querySelector("[data-ctrend]").dataset.path;
-        if (mode === "trend" && !refPath) return alert("Сначала загрузите ролик-образец.");
-        b.disabled = true;
-        const r = await api("/api/admin/characters/dance", { id, mode, style: d.querySelector("[data-cstyle]").value, place: d.querySelector("[data-cplace]").value, ref: refPath, model: d.querySelector("[data-cmodel]").value, dur: +d.querySelector("[data-cdur]").value || undefined, faceLock: d.querySelector("[data-clock]").checked, enhance: d.querySelector("[data-chd]").checked });
-        b.textContent = `✓ Запущено ($${r.usd})`;
-      }
       renderChars(await api("/api/admin/characters"));
     } catch (err) { alert(err.message); b.disabled = false; }
   });
