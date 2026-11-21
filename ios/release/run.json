@@ -1,1 +1,1 @@
-{"action": "full", "send": false, "note": "store languages: uk -> de-DE, + fr-FR, sv; app UI in German/French/Swedish; new build to external TestFlight; NO App Review"}
+{"action": "submit", "send": true, "note": "user: vidpravlay — submit 1.0 (latest build) + IAPs to App Review"}
