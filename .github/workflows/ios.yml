@@ -3,6 +3,8 @@ on:
   push:
     paths: ["ios/**", ".github/workflows/ios.yml"]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: macos-15
@@ -28,6 +30,13 @@ jobs:
           sleep 12
           mkdir -p shots
           xcrun simctl io "$DEV" screenshot shots/main.png
+      - name: Save screenshots to branch ci-screens
+        run: |
+          cd shots
+          git init -q -b ci-screens
+          git -c user.name=ci -c user.email=ci@local add -A
+          git -c user.name=ci -c user.email=ci@local commit -qm "screens ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" ci-screens
       - uses: actions/upload-artifact@v4
         with:
           name: screenshots
