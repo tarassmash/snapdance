@@ -16,7 +16,7 @@ jobs:
       - name: Build for iOS Simulator (без подписи)
         run: |
           set -o pipefail
-          xcodebuild -project ios/SnapDance.xcodeproj -target SnapDance -sdk iphonesimulator -configuration Debug \
+          xcodebuild -project ios/SnapDance.xcodeproj -scheme SnapDance -sdk iphonesimulator -configuration Debug -derivedDataPath ios/build \
             CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=NO build 2>&1 | tee build.log | grep -E "error:|warning:|BUILD (SUCCEEDED|FAILED)" || true
           grep -q "BUILD SUCCEEDED" build.log
       - name: Run in simulator and take screenshots
