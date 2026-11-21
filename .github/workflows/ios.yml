@@ -44,6 +44,10 @@ jobs:
           xcrun simctl launch "$DEV" us.snapdance.app -AppleLanguages "(ru)" -sdSettings
           sleep 10
           xcrun simctl io "$DEV" screenshot shots/settings.png
+          xcrun simctl terminate "$DEV" us.snapdance.app || true
+          xcrun simctl launch "$DEV" us.snapdance.app -AppleLanguages "(ru)" -sdPhoto -sdBottom
+          sleep 14
+          xcrun simctl io "$DEV" screenshot shots/photo.png
           echo "---- log"; xcrun simctl spawn "$DEV" log show --last 3m --style compact --predicate 'process == "SnapDance"' 2>/dev/null | grep -iE "Fatal error|Unable to simultaneously|constraint" | tail -20 || true
       - name: Save screenshots to branch ci-screens
         run: |

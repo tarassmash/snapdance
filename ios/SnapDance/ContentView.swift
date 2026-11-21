@@ -52,6 +52,14 @@ struct ContentView: View {
         .task {
             #if DEBUG
             if ProcessInfo.processInfo.arguments.contains("-sdSettings") { showSettings = true }
+            if ProcessInfo.processInfo.arguments.contains("-sdPhoto") {
+                // широкое фото 4000×3000 — проверка, что ячейка не раздвигает экран
+                let img = UIGraphicsImageRenderer(size: CGSize(width: 4000, height: 3000)).image { c in
+                    UIColor.systemTeal.setFill(); c.fill(CGRect(x: 0, y: 0, width: 4000, height: 3000))
+                    UIColor.systemPink.setFill(); c.fill(CGRect(x: 1700, y: 600, width: 600, height: 2400))
+                }
+                if let d = img.jpegData(compressionQuality: 0.8) { model.setPhoto(d, slot: 0) }
+            }
             #endif
             await model.start()
         }
@@ -88,15 +96,16 @@ struct CreateView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         PhotosPicker(selection: $movieItem, matching: .videos, photoLibrary: .shared()) {
                             HStack(spacing: 12) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 10).fill(SDConfig.panel2)
-                                    if let t = thumb {
-                                        Image(uiImage: t).resizable().scaledToFill()
-                                    } else {
-                                        Image(systemName: "film").font(.title2).foregroundStyle(SDConfig.muted)
+                                RoundedRectangle(cornerRadius: 10).fill(SDConfig.panel2)
+                                    .frame(width: 64, height: 96)
+                                    .overlay {
+                                        if let t = thumb {
+                                            Image(uiImage: t).resizable().scaledToFill()
+                                        } else {
+                                            Image(systemName: "film").font(.title2).foregroundStyle(SDConfig.muted)
+                                        }
                                     }
-                                }
-                                .frame(width: 64, height: 96).clipShape(RoundedRectangle(cornerRadius: 10))
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(refSecs == nil ? L("ref.pick") : L("ref.change")).font(.headline).lineLimit(2).minimumScaleFactor(0.8)
                                     if let secs = refSecs { Text(L("secs", ["s": String(Int(secs.rounded()))])).font(.subheadline).foregroundStyle(SDConfig.muted) }
@@ -196,16 +205,18 @@ struct CreateView: View {
         let image = model.photos[i]?.image
         PhotosPicker(selection: binding, matching: .images, photoLibrary: .shared()) {
             VStack(spacing: 6) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12).fill(SDConfig.panel2)
-                    if let image {
-                        Image(uiImage: image).resizable().scaledToFill()
-                    } else {
-                        Image(systemName: i == 0 ? "person.fill" : "plus").font(.title2).foregroundStyle(i == 0 ? SDConfig.lime : SDConfig.muted)
+                // размер ячейки задаёт только рамка 3:4; фото рисуется поверх и обрезается, не раздвигая экран
+                RoundedRectangle(cornerRadius: 12).fill(SDConfig.panel2)
+                    .aspectRatio(3 / 4, contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+                    .overlay {
+                        if let image {
+                            Image(uiImage: image).resizable().scaledToFill()
+                        } else {
+                            Image(systemName: i == 0 ? "person.fill" : "plus").font(.title2).foregroundStyle(i == 0 ? SDConfig.lime : SDConfig.muted)
+                        }
                     }
-                }
-                .frame(maxWidth: .infinity).aspectRatio(3 / 4, contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(i == 0 && image == nil ? SDConfig.lime.opacity(0.6) : SDConfig.line, lineWidth: 1))
                 Text(L("slot.\(i + 1)")).font(.caption.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.7)
                 Text(i == 0 ? L("slot.1s") : L("opt")).font(.caption2).foregroundStyle(SDConfig.muted).lineLimit(1).minimumScaleFactor(0.7)
