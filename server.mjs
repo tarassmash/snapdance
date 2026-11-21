@@ -37,6 +37,18 @@ var T = [
   [/^Не получилось придумать подпись/, "No se pudo generar el texto.", "Couldn't write a caption."],
   [/^На сервере не задан FAL_KEY/, "El servicio est\xE1 en mantenimiento. Int\xE9ntalo m\xE1s tarde.", "The service is under maintenance. Try again later."],
   [/^Не найдено$/, "No encontrado.", "Not found."],
+  [/^Пока TikTok не одобрил приложение/, "Hasta que TikTok apruebe la app, solo se puede publicar en cuentas privadas y como \xABSolo yo\xBB.", "Until TikTok approves the app, posting only works for private accounts as \u201COnly me\u201D."],
+  [/^TikTok: на сегодня лимит публикаций/, "TikTok: has llegado al l\xEDmite de publicaciones de hoy. Int\xE9ntalo ma\xF1ana.", "TikTok: you've hit today's posting limit. Try tomorrow."],
+  [/^TikTok запретил этому аккаунту/, "TikTok ha bloqueado las publicaciones de esta cuenta.", "TikTok has blocked posting for this account."],
+  [/^TikTok: дневной лимит приложения/, "TikTok: se alcanz\xF3 el l\xEDmite diario de la app. Int\xE9ntalo m\xE1s tarde.", "TikTok: the app's daily limit is reached. Try later."],
+  [/^Выберите, кто увидит видео/, "Elige qui\xE9n podr\xE1 ver el v\xEDdeo.", "Choose who can see the video."],
+  [/^TikTok: слишком часто/, "TikTok: demasiadas solicitudes. Espera un minuto.", "TikTok: too many requests. Wait a minute."],
+  [/^(Вход в TikTok устарел|Нет разрешения на публикацию|Подключите TikTok)/, "Conecta TikTok de nuevo.", "Please connect TikTok again."],
+  [/^Публикация в TikTok ещё не настроена/, "La publicaci\xF3n en TikTok a\xFAn no est\xE1 configurada.", "Posting to TikTok isn't set up yet."],
+  [/^TikTok принимает от этого аккаунта видео до (\d+)/, "TikTok acepta v\xEDdeos de hasta $1 s en esta cuenta.", "TikTok accepts videos up to $1 s for this account."],
+  [/^Рекламный контент нельзя/, "El contenido de marca no puede ser privado (\xABSolo yo\xBB).", "Branded content can't be set to \u201COnly me\u201D."],
+  [/^Видео не найдено/, "No encontramos el v\xEDdeo.", "Video not found."],
+  [/^TikTok не (дал|принял)/, "TikTok no respondi\xF3 bien. Int\xE9ntalo otra vez.", "TikTok didn't respond properly. Please try again."],
   [/^Внутренняя ошибка сервера/, "Error interno del servidor. Int\xE9ntalo de nuevo.", "Internal server error. Please try again."]
 ];
 var langOf = (req) => {
@@ -1253,6 +1265,8 @@ var summary = (j) => ({
   error: j.status === "failed" ? "\u041D\u0435 \u043F\u043E\u043B\u0443\u0447\u0438\u043B\u043E\u0441\u044C. \u0420\u0443\u0431\u0438\u043D\u044B \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0435\u043D\u044B." : "",
   result: j.result || "",
   poster: j.poster || "",
+  seconds: Math.round(j.seconds || 0),
+  tiktok: j.tiktok ? { status: j.tiktok.status || "sent", at: j.tiktok.at } : null,
   frame: j.frame_img || "",
   created: j.created,
   paid: j.paid,
@@ -1815,7 +1829,202 @@ function fulfill(session) {
   save();
   return { key, added: credits, credits: db.keys[key].credits };
 }
+// src/tiktok.mjs — публикация в TikTok через официальный Content Posting API (Direct Post)
+// Railway → Variables: TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET. Redirect URI в TikTok Developers: {PUBLIC_URL}/api/tiktok/callback
+var TT_API = "https://open.tiktokapis.com";
+var ttKey = () => (process.env.TIKTOK_CLIENT_KEY || "").trim();
+var ttSecret = () => (process.env.TIKTOK_CLIENT_SECRET || "").trim();
+var ttEnabled = () => Boolean(ttKey() && ttSecret());
+var ttRedirect = () => (cleanOrigin(process.env.PUBLIC_URL) || ORIGIN || "") + "/api/tiktok/callback";
+var ttStates = /* @__PURE__ */ new Map();
+var TT_ERR = {
+  unaudited_client_can_only_post_to_private_accounts: "Пока TikTok не одобрил приложение, публикация работает только для закрытых аккаунтов и в режиме \xABТолько я\xBB.",
+  spam_risk_too_many_posts: "TikTok: на сегодня лимит публикаций исчерпан. Попробуйте завтра.",
+  spam_risk_user_banned_from_posting: "TikTok запретил этому аккаунту публиковать.",
+  reached_active_user_cap: "TikTok: дневной лимит приложения исчерпан. Попробуйте позже.",
+  privacy_level_option_mismatch: "Выберите, кто увидит видео.",
+  rate_limit_exceeded: "TikTok: слишком часто. Подождите минуту.",
+  access_token_invalid: "Вход в TikTok устарел — подключите TikTok заново.",
+  scope_not_authorized: "Нет разрешения на публикацию — подключите TikTok заново."
+};
+function ttNeed() {
+  if (!ttEnabled()) throw new UserError2("Публикация в TikTok ещё не настроена.", 503);
+}
+async function ttToken(params) {
+  const r = await fetch(TT_API + "/v2/oauth/token/", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", "cache-control": "no-cache" },
+    body: new URLSearchParams({ client_key: ttKey(), client_secret: ttSecret(), ...params })
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || !d.access_token) throw new UserError2("TikTok не дал доступ: " + String(d.error_description || d.error || r.status).slice(0, 160), 502);
+  return { open_id: d.open_id, scope: d.scope || "", access_token: d.access_token, refresh_token: d.refresh_token, expires_at: Date.now() + (d.expires_in || 86400) * 1e3, refresh_expires_at: Date.now() + (d.refresh_expires_in || 31536e3) * 1e3 };
+}
+async function ttAccess(key) {
+  const t = db.keys[key]?.tiktok;
+  if (!t) return null;
+  if (t.expires_at - Date.now() > 6e4) return t.access_token;
+  if (!t.refresh_token || t.refresh_expires_at < Date.now()) {
+    delete db.keys[key].tiktok;
+    save();
+    return null;
+  }
+  try {
+    db.keys[key].tiktok = { ...t, ...await ttToken({ grant_type: "refresh_token", refresh_token: t.refresh_token }) };
+    save();
+    return db.keys[key].tiktok.access_token;
+  } catch {
+    delete db.keys[key].tiktok;
+    save();
+    return null;
+  }
+}
+async function ttCall(key, pathName, payload) {
+  const tok = await ttAccess(key);
+  if (!tok) throw new UserError2("Подключите TikTok.", 401);
+  const r = await fetch(TT_API + pathName, { method: "POST", headers: { authorization: "Bearer " + tok, "content-type": "application/json; charset=UTF-8" }, body: JSON.stringify(payload || {}) });
+  const d = await r.json().catch(() => ({}));
+  const code = d?.error?.code || (r.ok ? "ok" : "http_" + r.status);
+  if (code !== "ok") {
+    if (code === "access_token_invalid") {
+      delete db.keys[key].tiktok;
+      save();
+    }
+    throw new UserError2(TT_ERR[code] || "TikTok: " + String(d?.error?.message || code).slice(0, 200), r.status >= 400 && r.status < 500 ? r.status === 401 ? 401 : 400 : 502);
+  }
+  return d.data || {};
+}
+async function ttCreator(key) {
+  const d = await ttCall(key, "/v2/post/publish/creator_info/query/", {});
+  return {
+    connected: true,
+    nickname: d.creator_nickname || "",
+    username: d.creator_username || "",
+    avatar: d.creator_avatar_url || "",
+    privacy: Array.isArray(d.privacy_level_options) ? d.privacy_level_options : [],
+    commentDisabled: !!d.comment_disabled,
+    duetDisabled: !!d.duet_disabled,
+    stitchDisabled: !!d.stitch_disabled,
+    maxSec: d.max_video_post_duration_sec || 0
+  };
+}
+async function ttPost(key, b) {
+  const j = db.jobs.find((x) => x.id === String(b.id || "") && x.key === key);
+  if (!j || j.status !== "done" || !j.result || !mediaExists(j.result)) throw new UserError2("Видео не найдено.", 404);
+  const c = await ttCreator(key);
+  const privacy = String(b.privacy || "");
+  if (!c.privacy.includes(privacy)) throw new UserError2(TT_ERR.privacy_level_option_mismatch);
+  if (c.maxSec && j.seconds > c.maxSec) throw new UserError2(`TikTok принимает от этого аккаунта видео до ${c.maxSec} сек.`);
+  const brandContent = !!b.brandContent, brandOrganic = !!b.brandOrganic;
+  if (brandContent && privacy === "SELF_ONLY") throw new UserError2("Рекламный контент нельзя публиковать с видимостью \xABТолько я\xBB.");
+  const file = fileOf(j.result), size = fs4.statSync(file).size;
+  // до 64 МБ — одним куском; больше — кусками по 10 МБ (последний забирает остаток)
+  const chunk = size <= 64e6 ? size : 1e7, count = size <= 64e6 ? 1 : Math.floor(size / chunk);
+  const d = await ttCall(key, "/v2/post/publish/video/init/", {
+    post_info: {
+      title: String(b.title || "").slice(0, 2200),
+      privacy_level: privacy,
+      disable_comment: c.commentDisabled || !b.allowComment,
+      disable_duet: c.duetDisabled || !b.allowDuet,
+      disable_stitch: c.stitchDisabled || !b.allowStitch,
+      video_cover_timestamp_ms: 800,
+      brand_content_toggle: brandContent,
+      brand_organic_toggle: brandOrganic,
+      is_aigc: true
+    },
+    source_info: { source: "FILE_UPLOAD", video_size: size, chunk_size: chunk, total_chunk_count: count }
+  });
+  if (!d.upload_url || !d.publish_id) throw new UserError2("TikTok не дал адрес для загрузки.", 502);
+  const fd = fs4.openSync(file, "r");
+  try {
+    for (let i = 0; i < count; i++) {
+      const start = i * chunk, end = i === count - 1 ? size - 1 : start + chunk - 1, len = end - start + 1;
+      const buf = Buffer.alloc(len);
+      fs4.readSync(fd, buf, 0, len, start);
+      let r;
+      for (let a = 0; a < 3; a++) {
+        r = await fetch(d.upload_url, { method: "PUT", headers: { "content-type": "video/mp4", "content-length": String(len), "content-range": `bytes ${start}-${end}/${size}` }, body: buf });
+        if (r.status < 500) break;
+        await new Promise((ok) => setTimeout(ok, 1500));
+      }
+      if (![200, 201, 206].includes(r.status)) throw new UserError2(`TikTok не принял файл (${r.status}).`, 502);
+    }
+  } finally {
+    fs4.closeSync(fd);
+  }
+  j.tiktok = { publish_id: d.publish_id, at: Date.now(), privacy };
+  save();
+  return { publishId: d.publish_id };
+}
+async function ttStatus(key, id) {
+  const j = db.jobs.find((x) => x.key === key && x.tiktok?.publish_id === id);
+  if (!j) throw new UserError2("Публикация не найдена.", 404);
+  const d = await ttCall(key, "/v2/post/publish/status/fetch/", { publish_id: id });
+  j.tiktok.status = d.status || "";
+  if (d.fail_reason) j.tiktok.fail = d.fail_reason;
+  save();
+  return { status: d.status || "", fail: d.fail_reason || "" };
+}
+
 var routes = {
+  "GET /api/tiktok/me": async (req, res) => {
+    const k = clientKey(req);
+    if (!ttEnabled()) return json(res, { enabled: false, connected: false });
+    if (!db.keys[k].tiktok) return json(res, { enabled: true, connected: false });
+    try {
+      json(res, { enabled: true, ...await ttCreator(k) });
+    } catch (e) {
+      if (!db.keys[k].tiktok) return json(res, { enabled: true, connected: false });
+      throw e;
+    }
+  },
+  "POST /api/tiktok/start": async (req, res) => {
+    ttNeed();
+    const k = clientKey(req);
+    const b = await body(req);
+    const state = crypto3.randomBytes(16).toString("hex");
+    for (const [s2, v] of ttStates) if (v.at < Date.now() - 6e5) ttStates.delete(s2);
+    ttStates.set(state, { key: k, at: Date.now(), back: /^[\w-]{4,40}$/.test(b.job || "") ? b.job : "" });
+    const q = new URLSearchParams({ client_key: ttKey(), scope: "user.info.basic,video.publish", response_type: "code", redirect_uri: ttRedirect(), state });
+    json(res, { url: "https://www.tiktok.com/v2/auth/authorize/?" + q });
+  },
+  "GET /api/tiktok/callback": async (req, res, url) => {
+    const st = ttStates.get(url.searchParams.get("state") || "");
+    ttStates.delete(url.searchParams.get("state") || "");
+    let to = "/?tt=";
+    if (!st || st.at < Date.now() - 6e5 || !db.keys[st.key]) to += "expired";
+    else if (url.searchParams.get("error") || !url.searchParams.get("code")) to += "denied";
+    else {
+      try {
+        db.keys[st.key].tiktok = await ttToken({ grant_type: "authorization_code", code: url.searchParams.get("code"), redirect_uri: ttRedirect() });
+        save();
+        to += "ok" + (st.back ? "&job=" + st.back : "");
+      } catch (e) {
+        console.error("TikTok OAuth:", e.message);
+        to += "fail";
+      }
+    }
+    res.writeHead(302, { location: to, "cache-control": "no-store" });
+    res.end();
+  },
+  "POST /api/tiktok/post": async (req, res) => {
+    ttNeed();
+    const k = clientKey(req);
+    json(res, await ttPost(k, await body(req)));
+  },
+  "GET /api/tiktok/status": async (req, res, url) => {
+    ttNeed();
+    const k = clientKey(req);
+    json(res, await ttStatus(k, String(url.searchParams.get("id") || "")));
+  },
+  "POST /api/tiktok/disconnect": async (req, res) => {
+    const k = clientKey(req);
+    const t = db.keys[k].tiktok;
+    if (t && ttEnabled()) await fetch(TT_API + "/v2/oauth/revoke/", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ client_key: ttKey(), client_secret: ttSecret(), token: t.access_token }) }).catch(() => {});
+    delete db.keys[k].tiktok;
+    save();
+    json(res, { ok: true });
+  },
   "GET /api/config": async (req, res) => json(res, {
     brand: BRAND,
     contact: CONTACT,
@@ -1824,7 +2033,8 @@ var routes = {
     packs: packs(),
     catalog: publicCatalog(),
     styles: STYLES.map(({ id, icon, name, hint }) => ({ id, icon, name, hint })),
-    examples: published()
+    examples: published(),
+    tiktokDirect: ttEnabled()
   }),
   "GET /api/me": async (req, res) => {
     const k = clientKey(req);
@@ -1965,7 +2175,7 @@ var routes = {
   },
   "GET /api/admin/keys": async (req, res) => {
     isAdmin(req);
-    json(res, Object.entries(db.keys).map(([key, v]) => ({ key, ...v })).sort((a, b) => b.created - a.created).slice(0, 500));
+    json(res, Object.entries(db.keys).map(([key, { tiktok, ...v }]) => ({ key, ...v, tiktok: !!tiktok })).sort((a, b) => b.created - a.created).slice(0, 500));
   },
   "POST /api/admin/keys": async (req, res) => {
     isAdmin(req);

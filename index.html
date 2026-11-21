@@ -385,6 +385,23 @@ img, video, iframe { max-width: 100% !important; height: auto; }
 .btn.tt { background: #000; color: #fff; border: 1px solid rgba(255,255,255,.18); border-radius: 14px; height: 48px; padding: 0 18px; font-weight: 700; width: 100%; box-shadow: -2px 0 0 #25f4ee inset, 2px 0 0 #fe2c55 inset; }
 .btn.tt svg { width: 18px; height: 18px; flex: none; }
 .btn.tt:active { transform: scale(.98); }
+/* окно публикации в TikTok */
+.ttc { display: flex; align-items: center; gap: 10px; }
+.ttc img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--panel2); }
+.ttc b { display: block; font-size: 15px; } .ttc small { color: var(--muted); font-size: 13px; }
+.ttc .lnk { margin-left: auto; background: none; border: 0; color: var(--muted); font: 600 13px var(--f); text-decoration: underline; cursor: pointer; }
+.ttrow { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: start; }
+.ttrow video { width: 96px; aspect-ratio: 9/16; border-radius: 10px; background: #000; object-fit: cover; }
+#ttTitle { width: 100%; min-height: 120px; resize: vertical; background: var(--panel2); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 10px; font: 14px/1.4 var(--f); }
+#ttPriv { width: 100%; height: 46px; background: var(--panel2); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; font: 600 15px var(--f); }
+.ttsw { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+.ttsw input { width: 20px; height: 20px; accent-color: var(--lime); flex: none; }
+.ttsw.off { opacity: .45; }
+.ttsub { padding-left: 12px; display: grid; }
+.ttnote { display: block; font-size: 13px; color: var(--muted); margin: 2px 0 0; }
+.ttnote.warn { color: #ffb347; }
+.ttdecl { font-size: 12.5px; color: var(--muted); } .ttdecl a { color: var(--ink); }
+#ttStat { text-align: center; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -496,6 +513,10 @@ img, video, iframe { max-width: 100% !important; height: auto; }
   <p class="hint" data-t="code.text">Con este código entrarás desde cualquier móvil u ordenador. Guárdalo, por ejemplo con una captura de pantalla.</p>
   <div class="codeline" id="codeShow"></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="codeCopy" type="button" data-t="code.copy">Copiar código</button><button class="btn ghost" id="logout" type="button" data-t="code.out">Salir</button></div>
+</div></div>
+<div class="sheet" id="ttSheet" hidden><div class="in">
+  <h3><span data-t="ttp.title">Publicar en TikTok</span><button class="x2" data-close data-ta="aria-label:close">✕</button></h3>
+  <div id="ttBody" style="display:grid;gap:12px"></div>
 </div></div>
 <div class="toast" id="toast" hidden></div>
 <script>
@@ -749,6 +770,9 @@ Object.assign(I18N.es, {"keep.left": "⏳ Se guarda {d} días más — descárga
 Object.assign(I18N.es, {"foot.report": "Denunciar contenido"});
 Object.assign(I18N.es, {"ex.user": "tu_perfil"});
 Object.assign(I18N.es, {"faq.h": "Preguntas frecuentes", "foot.privacy": "Privacidad", "foot.terms": "Términos", "price.from": "Paquetes desde {p} · sin suscripción", "notif.title": "✅ ¡Tu vídeo está listo!", "notif.body": "Ábrelo en SnapDance para verlo y descargarlo.", "title.work": "⏳ {p}% · creando tu vídeo", "faq": [["¿Cómo funciona?", "Sube una foto de cuerpo entero, elige un baile o sube el vídeo de una tendencia de TikTok, y la IA crea un vídeo vertical 9:16 en el que bailas tú, como grabado con el móvil."], ["¿Cuánto tarda?", "Normalmente de 3 a 8 minutos. Puedes cerrar la página: el vídeo aparecerá en «Mis vídeos» y te avisaremos cuando esté listo."], ["¿Cuánto cuesta?", "Pagas con rubíes. El precio exacto de cada vídeo aparece en el botón antes de crearlo y depende de la IA y la duración. Sin suscripción: los rubíes no caducan."], ["¿Y si el vídeo sale mal?", "Si la generación falla, los rubíes vuelven automáticamente a tu saldo. Si falla solo un paso, te devolvemos su coste."], ["¿Qué pasa con mis fotos?", "Se usan solo para crear tu vídeo y se borran automáticamente a los 3 días. El vídeo terminado se guarda 7 días para que lo descargues y después se borra para siempre, también de nuestro proveedor de IA."], ["¿Puedo usar la foto de otra persona?", "Solo con su permiso y si es mayor de 18 años. Está prohibido crear vídeos de menores o de personas sin su consentimiento."]]});
+Object.assign(I18N.es, {"ttp.title": "Publicar en TikTok", "ttp.load": "Cargando…", "ttp.intro": "Conecta tu cuenta de TikTok y publica el vídeo directamente desde aquí, sin descargarlo.", "ttp.connect": "Conectar TikTok", "ttp.other": "O compartir con el menú del móvil", "ttp.as": "Publicar como", "ttp.off": "Desconectar", "ttp.cap": "Descripción", "ttp.who": "Quién puede ver este vídeo", "ttp.pick": "Elige…", "tp.PUBLIC_TO_EVERYONE": "Todos", "tp.MUTUAL_FOLLOW_FRIENDS": "Amigos", "tp.FOLLOWER_OF_CREATOR": "Seguidores", "tp.SELF_ONLY": "Solo yo", "ttp.allow": "Permitir a los usuarios", "ttp.cmt": "Comentarios", "ttp.duet": "Dúo", "ttp.stitch": "Pegar", "ttp.offset": "Desactivado en tu cuenta de TikTok", "ttp.comm": "Divulgar contenido comercial", "ttp.commH": "Indica si este vídeo promociona productos o servicios a cambio de algo de valor.", "ttp.own": "Tu marca", "ttp.ownH": "Promocionas tu propio negocio.", "ttp.brand": "Contenido de marca", "ttp.brandH": "Promocionas a otra marca o a un tercero.", "ttp.need": "Indica si el contenido te promociona a ti, a un tercero o a ambos.", "ttp.lblPromo": "El vídeo se etiquetará como «Contenido promocional».", "ttp.lblPaid": "El vídeo se etiquetará como «Colaboración pagada».", "ttp.noSelf": "El contenido de marca no puede ser privado.", "ttp.decl": "Al publicar, aceptas la {m} de TikTok.", "ttp.declB": "Al publicar, aceptas la {b} y la {m} de TikTok.", "ttp.music": "Confirmación de uso de música", "ttp.bcp": "Política de contenido de marca", "ttp.ai": "Se marcará como contenido generado por IA.", "ttp.go": "Publicar", "ttp.sending": "Enviando el vídeo a TikTok…", "ttp.proc": "TikTok está procesando el vídeo…", "ttp.done": "✅ ¡Publicado! Puede tardar unos minutos en aparecer en tu perfil.", "ttp.inbox": "✅ Enviado a TikTok.", "ttp.fail": "TikTok no pudo publicar el vídeo: {r}", "ttp.wait": "Enviado. Puede tardar unos minutos en aparecer en tu perfil.", "ttp.long": "Este vídeo dura más de lo que permite tu cuenta ({s} s).", "tt.ok": "TikTok conectado", "tt.denied": "No diste acceso a TikTok", "tt.fail": "No se pudo conectar TikTok. Inténtalo otra vez.", "tt.expired": "La conexión tardó demasiado. Inténtalo otra vez."});
+Object.assign(I18N.en, {"ttp.title": "Post to TikTok", "ttp.load": "Loading…", "ttp.intro": "Connect your TikTok account and post the video straight from here, no download needed.", "ttp.connect": "Connect TikTok", "ttp.other": "Or share via your phone's menu", "ttp.as": "Posting as", "ttp.off": "Disconnect", "ttp.cap": "Caption", "ttp.who": "Who can view this video", "ttp.pick": "Choose…", "tp.PUBLIC_TO_EVERYONE": "Everyone", "tp.MUTUAL_FOLLOW_FRIENDS": "Friends", "tp.FOLLOWER_OF_CREATOR": "Followers", "tp.SELF_ONLY": "Only me", "ttp.allow": "Allow users to", "ttp.cmt": "Comment", "ttp.duet": "Duet", "ttp.stitch": "Stitch", "ttp.offset": "Turned off in your TikTok settings", "ttp.comm": "Disclose commercial content", "ttp.commH": "Turn on to disclose that this video promotes goods or services in exchange for something of value.", "ttp.own": "Your brand", "ttp.ownH": "You are promoting yourself or your own business.", "ttp.brand": "Branded content", "ttp.brandH": "You are promoting another brand or a third party.", "ttp.need": "You need to indicate if your content promotes yourself, a third party, or both.", "ttp.lblPromo": "Your video will be labeled as “Promotional content”.", "ttp.lblPaid": "Your video will be labeled as “Paid partnership”.", "ttp.noSelf": "Branded content visibility cannot be set to private.", "ttp.decl": "By posting, you agree to TikTok's {m}.", "ttp.declB": "By posting, you agree to TikTok's {b} and {m}.", "ttp.music": "Music Usage Confirmation", "ttp.bcp": "Branded Content Policy", "ttp.ai": "It will be labeled as AI-generated content.", "ttp.go": "Post", "ttp.sending": "Sending the video to TikTok…", "ttp.proc": "TikTok is processing the video…", "ttp.done": "✅ Posted! It may take a few minutes to show up on your profile.", "ttp.inbox": "✅ Sent to TikTok.", "ttp.fail": "TikTok couldn't post the video: {r}", "ttp.wait": "Sent. It may take a few minutes to show up on your profile.", "ttp.long": "This video is longer than your account allows ({s} s).", "tt.ok": "TikTok connected", "tt.denied": "TikTok access wasn't granted", "tt.fail": "Couldn't connect TikTok. Please try again.", "tt.expired": "Connecting took too long. Please try again."});
+Object.assign(I18N.ru, {"ttp.title": "Опубликовать в TikTok", "ttp.load": "Загрузка…", "ttp.intro": "Подключите свой TikTok и публикуйте видео прямо отсюда, без скачивания.", "ttp.connect": "Подключить TikTok", "ttp.other": "Или поделиться через меню телефона", "ttp.as": "Публикация от имени", "ttp.off": "Отключить", "ttp.cap": "Описание", "ttp.who": "Кто может смотреть это видео", "ttp.pick": "Выберите…", "tp.PUBLIC_TO_EVERYONE": "Все", "tp.MUTUAL_FOLLOW_FRIENDS": "Друзья", "tp.FOLLOWER_OF_CREATOR": "Подписчики", "tp.SELF_ONLY": "Только я", "ttp.allow": "Разрешить пользователям", "ttp.cmt": "Комментарии", "ttp.duet": "Дуэт", "ttp.stitch": "Склейка", "ttp.offset": "Отключено в настройках вашего TikTok", "ttp.comm": "Раскрыть коммерческий контент", "ttp.commH": "Включите, если видео рекламирует товары или услуги за вознаграждение.", "ttp.own": "Ваш бренд", "ttp.ownH": "Вы продвигаете себя или свой бизнес.", "ttp.brand": "Брендированный контент", "ttp.brandH": "Вы продвигаете другой бренд или третье лицо.", "ttp.need": "Укажите, продвигает ли видео вас, третье лицо или обоих.", "ttp.lblPromo": "Видео получит пометку «Рекламный контент».", "ttp.lblPaid": "Видео получит пометку «Платное партнёрство».", "ttp.noSelf": "Брендированный контент нельзя сделать приватным.", "ttp.decl": "Публикуя, вы соглашаетесь с {m} TikTok.", "ttp.declB": "Публикуя, вы соглашаетесь с {b} и {m} TikTok.", "ttp.music": "Подтверждением использования музыки", "ttp.bcp": "Политикой брендированного контента", "ttp.ai": "Видео будет помечено как созданное ИИ.", "ttp.go": "Опубликовать", "ttp.sending": "Отправляем видео в TikTok…", "ttp.proc": "TikTok обрабатывает видео…", "ttp.done": "✅ Опубликовано! В профиле появится через несколько минут.", "ttp.inbox": "✅ Отправлено в TikTok.", "ttp.fail": "TikTok не смог опубликовать видео: {r}", "ttp.wait": "Отправлено. В профиле появится через несколько минут.", "ttp.long": "Видео длиннее, чем разрешено вашему аккаунту ({s} сек).", "tt.ok": "TikTok подключён", "tt.denied": "Доступ к TikTok не выдан", "tt.fail": "Не удалось подключить TikTok. Попробуйте ещё раз.", "tt.expired": "Подключение заняло слишком долго. Попробуйте ещё раз."});
 Object.assign(I18N.en, {"keep.left": "⏳ Kept for {d} more days — download it"});
 Object.assign(I18N.en, {"foot.report": "Report content"});
 Object.assign(I18N.en, {"ex.user": "you"});
@@ -1129,7 +1153,8 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
     shareFor = j.id; shareFile = null;
     fetch(j.result).then(r => r.blob()).then(b => { if (shareFor === j.id) shareFile = new File([b], `snapdance-${j.id}.mp4`, { type: "video/mp4" }); }).catch(() => {});
   }
-  $("ttPost").onclick = async () => {
+  $("ttPost").onclick = () => { const j = capJob; if (!j?.result) return; if (cfg?.tiktokDirect && KEY) openTT(j); else shareTT(); };
+  async function shareTT() {
     const j = capJob; if (!j?.result) return;
     if (plat !== "tt") { plat = "tt"; makeCaption(j, true); }
     const text = $("caption").textContent;
@@ -1146,7 +1171,87 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
     const w = window.open("https://www.tiktok.com/tiktokstudio/upload", "_blank"); if (w) w.opener = null;
     $("dl").click();
     toast(t("tt.desk"), 6000);
-  };
+  }
+
+  // ---------- прямая публикация через TikTok Content Posting API (окно по правилам TikTok UX) ----------
+  let ttJob = null, ttInfo = null, ttBusy = false;
+  async function openTT(j) {
+    ttJob = j; $("ttSheet").hidden = false;
+    $("ttBody").innerHTML = `<p class="hint">${esc(t("ttp.load"))}</p>`;
+    try { ttInfo = await api("/api/tiktok/me"); } catch (e) { ttInfo = { connected: false, err: e.message }; }
+    renderTT();
+  }
+  function ttCaption() { if (plat !== "tt") { plat = "tt"; makeCaption(ttJob, true); } return $("caption").textContent; }
+  function renderTT() {
+    const B = $("ttBody"), j = ttJob;
+    if (!ttInfo?.connected) {
+      B.innerHTML = `${ttInfo?.err ? `<div class="msg">${esc(ttInfo.err)}</div>` : ""}<p class="hint">${esc(t("ttp.intro"))}</p>
+        <button class="btn tt" id="ttConnect" type="button">${$("ttPost").querySelector("svg").outerHTML}<span>${esc(t("ttp.connect"))}</span></button>
+        <button class="btn ghost" id="ttShare" type="button">${esc(t("ttp.other"))}</button>`;
+      $("ttConnect").onclick = async () => { try { const d = await api("/api/tiktok/start", { job: j.id }); location.href = d.url; } catch (e) { toast(e.message, 5000); } };
+      $("ttShare").onclick = () => { $("ttSheet").hidden = true; shareTT(); };
+      return;
+    }
+    const I = ttInfo, sw = (id, label, dis) => `<label class="ttsw${dis ? " off" : ""}"><span>${esc(label)}${dis ? `<span class="ttnote">${esc(t("ttp.offset"))}</span>` : ""}</span><input type="checkbox" id="${id}"${dis ? " disabled" : ""}></label>`;
+    const tooLong = I.maxSec && j.seconds > I.maxSec;
+    B.innerHTML = `<div class="ttc">${I.avatar ? `<img src="${esc(I.avatar)}" alt="">` : ""}<div><small>${esc(t("ttp.as"))}</small><b>${esc(I.nickname || I.username)}</b>${I.username ? `<small>@${esc(I.username)}</small>` : ""}</div><button class="lnk" id="ttOff" type="button">${esc(t("ttp.off"))}</button></div>
+      <div class="ttrow"><video src="${esc(j.result)}" ${j.poster ? `poster="${esc(j.poster)}"` : ""} muted playsinline loop autoplay></video>
+        <div><label class="f" for="ttTitle">${esc(t("ttp.cap"))}</label><textarea id="ttTitle" maxlength="2200"></textarea></div></div>
+      <div><label class="f" for="ttPriv">${esc(t("ttp.who"))}</label><select id="ttPriv"><option value="" selected disabled>${esc(t("ttp.pick"))}</option>${I.privacy.map(p => `<option value="${esc(p)}">${esc(t("tp." + p))}</option>`).join("")}</select><p class="ttnote" id="ttSelfNote" hidden>${esc(t("ttp.noSelf"))}</p></div>
+      <div><p class="f" style="margin:0">${esc(t("ttp.allow"))}</p>${sw("ttCmt", t("ttp.cmt"), I.commentDisabled)}${sw("ttDuet", t("ttp.duet"), I.duetDisabled)}${sw("ttStitch", t("ttp.stitch"), I.stitchDisabled)}</div>
+      <div>${sw("ttComm", t("ttp.comm"), false)}<p class="ttnote">${esc(t("ttp.commH"))}</p>
+        <div class="ttsub" id="ttCommBox" hidden>
+          <label class="ttsw"><span>${esc(t("ttp.own"))}<span class="ttnote">${esc(t("ttp.ownH"))}</span></span><input type="checkbox" id="ttOwn"></label>
+          <label class="ttsw"><span>${esc(t("ttp.brand"))}<span class="ttnote">${esc(t("ttp.brandH"))}</span></span><input type="checkbox" id="ttBrand"></label>
+          <p class="ttnote" id="ttLabel"></p></div></div>
+      <p class="ttnote">🤖 ${esc(t("ttp.ai"))}</p>
+      ${tooLong ? `<div class="msg">${esc(t("ttp.long", { s: I.maxSec }))}</div>` : ""}
+      <p class="ttdecl" id="ttDecl"></p>
+      <button class="btn tt" id="ttGo" type="button" disabled>${esc(t("ttp.go"))}</button>
+      <p class="hint" id="ttStat" hidden></p>`;
+    $("ttTitle").value = ttCaption();
+    ["ttPriv", "ttComm", "ttOwn", "ttBrand"].forEach(id => $(id).addEventListener("change", ttCheck));
+    $("ttOff").onclick = async () => { try { await api("/api/tiktok/disconnect", {}); } catch {} ttInfo = { connected: false }; renderTT(); };
+    $("ttGo").onclick = ttSend;
+    ttCheck();
+  }
+  function ttCheck() {
+    const comm = $("ttComm").checked, own = $("ttOwn").checked, brand = comm && $("ttBrand").checked;
+    $("ttCommBox").hidden = !comm;
+    const self = [...$("ttPriv").options].find(o => o.value === "SELF_ONLY");
+    if (self) { self.disabled = brand; if (brand && $("ttPriv").value === "SELF_ONLY") $("ttPriv").value = ""; }
+    $("ttSelfNote").hidden = !brand || !self;
+    $("ttLabel").textContent = !comm ? "" : brand ? t("ttp.lblPaid") : own ? t("ttp.lblPromo") : t("ttp.need");
+    $("ttLabel").classList.toggle("warn", comm && !own && !brand);
+    const music = `<a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" rel="noopener">${esc(t("ttp.music"))}</a>`;
+    const bcp = `<a href="https://www.tiktok.com/legal/page/global/bc-policy/en" target="_blank" rel="noopener">${esc(t("ttp.bcp"))}</a>`;
+    $("ttDecl").innerHTML = brand ? esc(t("ttp.declB", { b: "\u0001", m: "\u0002" })).replace("\u0001", bcp).replace("\u0002", music) : esc(t("ttp.decl", { m: "\u0002" })).replace("\u0002", music);
+    const tooLong = ttInfo.maxSec && ttJob.seconds > ttInfo.maxSec;
+    $("ttGo").disabled = ttBusy || tooLong || !$("ttPriv").value || (comm && !own && !brand);
+  }
+  async function ttSend() {
+    const st = $("ttStat"), say = (m) => { st.hidden = false; st.textContent = m; };
+    ttBusy = true; ttCheck(); say(t("ttp.sending"));
+    try {
+      const comm = $("ttComm").checked;
+      const d = await api("/api/tiktok/post", { id: ttJob.id, title: $("ttTitle").value, privacy: $("ttPriv").value, allowComment: $("ttCmt").checked, allowDuet: $("ttDuet").checked, allowStitch: $("ttStitch").checked, brandOrganic: comm && $("ttOwn").checked, brandContent: comm && $("ttBrand").checked });
+      sdTrack("share", { method: "tiktok_direct", item_id: ttJob.id });
+      say(t("ttp.proc"));
+      for (let i = 0; i < 40; i++) {
+        await new Promise(ok => setTimeout(ok, 4000));
+        let s2; try { s2 = await api(`/api/tiktok/status?id=${encodeURIComponent(d.publishId)}`); } catch { continue; }
+        if (s2.status === "PUBLISH_COMPLETE") { say(t("ttp.done")); toast(t("ttp.done"), 6000); return; }
+        if (s2.status === "SEND_TO_USER_INBOX") { say(t("ttp.inbox")); return; }
+        if (s2.status === "FAILED") throw new Error(t("ttp.fail", { r: s2.fail || "?" }));
+      }
+      say(t("ttp.wait"));
+    } catch (e) {
+      say(""); st.hidden = true; toast(e.message, 6000);
+      if (e.status === 401) { ttInfo = { connected: false }; renderTT(); }
+      ttBusy = false; if (ttInfo.connected) ttCheck(); return;
+    }
+    ttBusy = false;
+  }
   $("copyCap").onclick = () => navigator.clipboard?.writeText($("caption").textContent).then(() => toast(t("toast.capCopied"))).catch(() => {});
 
   // ---------- примеры до и после ----------
@@ -1245,7 +1350,10 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
     } else if (qs.get("canceled")) { history.replaceState(null, "", location.pathname); toast(t("toast.cancel")); }
     await restoreDraft();
     if (KEY) { try { const me = await api("/api/me"); setCredits(me.credits); } catch { KEY = ""; store.del("sd-key"); } }
-    loadJobs();
+    const ttRes = qs.get("tt"), ttBack = qs.get("job");
+    if (ttRes) { history.replaceState(null, "", location.pathname); toast(t("tt." + ttRes) || "", 4000); }
+    await loadJobs();
+    if (ttRes === "ok" && ttBack) { const j = jobs.find(x => x.id === ttBack && x.status === "done"); if (j) { show(j); openTT(j); } }
   })();
 })();
 </script>
