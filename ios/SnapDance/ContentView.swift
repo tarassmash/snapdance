@@ -79,8 +79,8 @@ struct CreateView: View {
         ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text(L("tagline")).font(.system(size: 28, weight: .heavy)).padding(.top, 6)
-                    .lineLimit(2).minimumScaleFactor(0.6).fixedSize(horizontal: false, vertical: true)
+                HeroView { withAnimation { proxy.scrollTo("step1", anchor: .top) } }
+                    .padding(.top, 4)
 
                 if let ex = model.config?.examples, !ex.isEmpty {
                     ExamplesSection(examples: ex)
@@ -91,6 +91,7 @@ struct CreateView: View {
                         ForEach(0..<3, id: \.self) { i in photoSlot(i) }
                     }
                 }
+                .id("step1")
 
                 Card(step: "2", title: L("step2"), subtitle: L("step2s")) {
                     let thumb = model.ref?.thumb, refSecs = model.ref?.seconds

@@ -29,6 +29,51 @@ struct Card<Content: View>: View {
     }
 }
 
+// MARK: - Обложка как на сайте: картинка, заголовок, текст и кнопка
+
+struct HeroView: View {
+    let onStart: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Color.black
+                .aspectRatio(1200.0 / 655.0, contentMode: .fit)
+                .overlay(Image("Hero").resizable().scaledToFill())
+                .clipped()
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 16) {
+                (Text(L("hero.a")).foregroundColor(.white)
+                 + Text(L("hero.b")).foregroundColor(SDConfig.lime)
+                 + Text("\n" + L("hero.c")).foregroundColor(.white))
+                    .font(.system(size: 32, weight: .black))
+                    .lineSpacing(-2)
+                    .minimumScaleFactor(0.6)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(L("hero.p"))
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color.white.opacity(0.85))
+                    .fixedSize(horizontal: false, vertical: true)
+                Button(action: onStart) {
+                    HStack(spacing: 8) {
+                        Text("💃")
+                        Text(L("hero.cta")).lineLimit(1).minimumScaleFactor(0.7)
+                    }
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(.black)
+                    .padding(.horizontal, 22).frame(height: 52)
+                    .background(SDConfig.lime, in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.black)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 22))
+        .overlay(RoundedRectangle(cornerRadius: 22).stroke(SDConfig.line))
+    }
+}
+
 // MARK: - Кнопки (компактные, как в топовых приложениях)
 
 struct PrimaryButton: ButtonStyle {
