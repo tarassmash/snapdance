@@ -66,12 +66,13 @@ struct CreateView: View {
                 }
 
                 Card(step: "2", title: L("step2"), subtitle: L("step2s")) {
+                    let thumb = model.ref?.thumb, refSecs = model.ref?.seconds
                     VStack(alignment: .leading, spacing: 10) {
                         PhotosPicker(selection: $movieItem, matching: .videos, photoLibrary: .shared()) {
                             HStack(spacing: 12) {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 10).fill(SDConfig.panel2)
-                                    if let t = model.ref?.thumb {
+                                    if let t = thumb {
                                         Image(uiImage: t).resizable().scaledToFill()
                                     } else {
                                         Image(systemName: "film").font(.title2).foregroundStyle(SDConfig.muted)
@@ -79,8 +80,8 @@ struct CreateView: View {
                                 }
                                 .frame(width: 64, height: 96).clipShape(RoundedRectangle(cornerRadius: 10))
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(model.ref == nil ? L("ref.pick") : L("ref.change")).font(.headline)
-                                    if let r = model.ref { Text(L("secs", ["s": String(Int(r.seconds.rounded()))])).font(.subheadline).foregroundStyle(SDConfig.muted) }
+                                    Text(refSecs == nil ? L("ref.pick") : L("ref.change")).font(.headline)
+                                    if let secs = refSecs { Text(L("secs", ["s": String(Int(secs.rounded()))])).font(.subheadline).foregroundStyle(SDConfig.muted) }
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.right").foregroundStyle(SDConfig.muted)
@@ -151,19 +152,20 @@ struct CreateView: View {
 
     @ViewBuilder private func photoSlot(_ i: Int) -> some View {
         let binding = Binding<PhotosPickerItem?>(get: { photoItems[i] }, set: { photoItems[i] = $0 })
+        let image = model.photos[i]?.image
         PhotosPicker(selection: binding, matching: .images, photoLibrary: .shared()) {
             VStack(spacing: 6) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12).fill(SDConfig.panel2)
-                    if let p = model.photos[i] {
-                        Image(uiImage: p.image).resizable().scaledToFill()
+                    if let image {
+                        Image(uiImage: image).resizable().scaledToFill()
                     } else {
                         Image(systemName: i == 0 ? "person.fill" : "plus").font(.title2).foregroundStyle(i == 0 ? SDConfig.lime : SDConfig.muted)
                     }
                 }
                 .frame(maxWidth: .infinity).aspectRatio(3 / 4, contentMode: .fit)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(i == 0 && model.photos[0] == nil ? SDConfig.lime.opacity(0.6) : SDConfig.line, lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(i == 0 && image == nil ? SDConfig.lime.opacity(0.6) : SDConfig.line, lineWidth: 1))
                 Text(L("slot.\(i + 1)")).font(.caption.weight(.semibold)).lineLimit(1)
                 Text(i == 0 ? L("slot.1s") : L("opt")).font(.caption2).foregroundStyle(SDConfig.muted)
             }
