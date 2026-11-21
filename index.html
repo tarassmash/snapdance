@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c0b10">
 <title>SnapDance — baile desde una foto para TikTok</title>
-<meta name="description" content="Sube una foto y recibe un vídeo de baile de tendencia, como grabado con el móvil. Repite cualquier baile viral o elige un estilo. Vertical 9:16 para TikTok, Reels y Shorts.">
+<meta name="description" content="Sube una foto y recibe un vídeo de baile de tendencia, como grabado con el móvil. Repite cualquier baile viral. Vertical 9:16 para TikTok, Reels y Shorts.">
 <meta property="og:title" content="SnapDance — baile desde una foto para TikTok">
 <meta property="og:description" content="Una foto — un baile de tendencia, como grabado con el móvil.">
 <!--SEO_HEAD-->
@@ -408,10 +408,9 @@ img, video, iframe { max-width: 100% !important; height: auto; }
 
       <section class="card">
         <h2><span class="n">2</span><span data-t="s2.title">Elige el baile</span></h2>
-        <div class="styles" id="styles"></div>
-        <div id="trendBox" hidden>
+        <div id="trendBox">
           <div class="drop" id="refDrop" tabindex="0" role="button" data-ta="aria-label:ref.aria">
-            <div class="ph" id="refPh"><span class="big">🎬</span><b data-t="ref.title">Vídeo con el baile viral</b><span data-t="ref.sub">Hasta 30 segundos, una persona de cuerpo entero</span></div>
+            <div class="ph" id="refPh"><span class="big">🎬</span><b data-t="ref.title">Vídeo con el baile viral</b><span data-t="ref.sub">Cualquier duración: usamos los primeros 15 s. Una persona de cuerpo entero</span></div>
             <video id="refVid" muted playsinline loop hidden></video>
           </div>
           <input type="file" id="refIn" accept="video/*" hidden>
@@ -489,11 +488,11 @@ img, video, iframe { max-width: 100% !important; height: auto; }
   const I18N = {
     es: {
       "meta.title": "SnapDance — baile desde una foto para TikTok",
-      "meta.desc": "Sube una foto y recibe un vídeo de baile de tendencia, como grabado con el móvil. Repite cualquier baile viral o elige un estilo. Vertical 9:16 para TikTok, Reels y Shorts.",
+      "meta.desc": "Sube una foto y recibe un vídeo de baile de tendencia, como grabado con el móvil. Repite cualquier baile viral. Vertical 9:16 para TikTok, Reels y Shorts.",
       "nav.bal": "Tu código y saldo", "nav.buy": "Comprar",
       "hero.alt": "Chica bailando en casa frente a un móvil en un trípode mientras sus amigos aplauden",
       "hero.h1": "Una foto — <em>un baile de tendencia</em><br>como grabado con el móvil",
-      "hero.p": "Sube una foto de cuerpo entero. Repite cualquier baile viral a partir de un vídeo de muestra o elige un estilo, y recibe un vídeo vertical 9:16 listo para TikTok, Reels y Shorts.",
+      "hero.p": "Sube una foto de cuerpo entero. Repite cualquier baile viral a partir de un vídeo de muestra, y recibe un vídeo vertical 9:16 listo para TikTok, Reels y Shorts.",
       "hero.cta": "💃 Crear mi baile",
       "ex.h2": "Ejemplos: <em>antes</em> y <em>después</em>", "ex.hint": "Era una foto — ahora es un vídeo. Toca el vídeo para activar el sonido.", "ex.before": "ANTES", "ex.after": "DESPUÉS", "ex.beforeAlt": "Foto antes",
       "q.title": "Nivel de calidad", "q.eco": "💰 Económico", "q.ecoS": "para probar una idea rápido", "q.bal": "⚖️ Equilibrado", "q.balS": "perfecto para tu feed", "q.top": "👑 TOP", "q.topS": "mejores modelos, cara 🔒, 1080p · 60 fps",
@@ -511,10 +510,10 @@ img, video, iframe { max-width: 100% !important; height: auto; }
       "f.l1": "🎵 Sonidos en tendencia", "f.l2": "#️⃣ Hashtags en tendencia", "f.l3": "📈 Vídeos top",
       "f.quick": "⚡ Búsqueda rápida de bailes", "f.tqPh": "Nombre del baile o del sonido", "f.tqGo": "Buscar",
       "f.how": "📲 Cómo usar un baile como muestra",
-      "f.howList": "<li>Elige un vídeo donde <b>una sola persona baile de cuerpo entero</b> y la cámara casi no se mueva.</li><li>En TikTok: <b>«Compartir» → «Guardar vídeo»</b>. Si el autor desactivó la descarga, elige otro vídeo o graba cómo tú o un amigo repetís el baile: el modelo solo necesita los movimientos.</li><li>Si el vídeo dura más de 30 segundos, recórtalo en la galería del móvil.</li><li>Súbelo abajo. Pega el enlace del original en el campo y mencionaremos al autor del baile en el texto.</li>",
+      "f.howList": "<li>Elige un vídeo donde <b>una sola persona baile de cuerpo entero</b> y la cámara casi no se mueva.</li><li>En TikTok: <b>«Compartir» → «Guardar vídeo»</b>. Si el autor desactivó la descarga, elige otro vídeo o graba cómo tú o un amigo repetís el baile: el modelo solo necesita los movimientos.</li><li>Si el vídeo dura más de 15 segundos, lo recortamos solos: se usan los primeros 15 s.</li><li>Súbelo abajo. Pega el enlace del original en el campo y mencionaremos al autor del baile en el texto.</li>",
       "f.linkPh": "Enlace al original (opcional): tiktok.com/@autor/video/…",
       "q1": "Bailes en tendencia", "q2": "Tendencia de la semana", "q3": "Baile tendencia 🇪🇸", "q4": "Hand dance", "q5": "Shuffle", "q6": "Reto K-pop", "q7": "Bailes graciosos", "q8": "Fáciles de repetir",
-      "ref.aria": "Subir vídeo de baile", "ref.title": "Vídeo con el baile viral", "ref.sub": "Hasta 30 segundos, una persona de cuerpo entero",
+      "ref.aria": "Subir vídeo de baile", "ref.title": "Vídeo con el baile viral", "ref.sub": "Cualquier duración: usamos los primeros 15 s. Una persona de cuerpo entero",
       "ref.ok": "{name} cargado", "ref.okS": "El navegador no muestra la vista previa de este formato, pero sirve para el baile.",
       "mc.label": "Red neuronal", "snd.label": "Sonido", "snd.orig": "Sonido original de la tendencia", "snd.none": "Sin sonido",
       "trend.hint": "Los movimientos, el ritmo y el sonido salen del vídeo de muestra; el aspecto, de tus fotos.",
@@ -539,7 +538,7 @@ img, video, iframe { max-width: 100% !important; height: auto; }
       "toast.max3": "Máximo 3 fotos: quita una para cambiarla", "toast.horiz": "Foto horizontal: mejor vertical y de cuerpo entero", "toast.draft": "Tus fotos y ajustes siguen aquí. Vuelve a adjuntar el vídeo de muestra y pulsa «Crear baile».",
       "confirm.out": "¿Salir? Para volver necesitarás tu código.",
       "err.code": "Código no encontrado. Revísalo e inténtalo de nuevo.", "err.photo0": "Sube una foto de cuerpo entero de la persona en la primera casilla.", "err.consent": "Confirma con las casillas que tienes el permiso de la persona de la foto y que tiene 18 años o más.",
-      "err.ref": "Sube un vídeo con el baile viral o cambia a «Por estilo».", "err.notPhoto": "Esto no parece una foto. Sirven JPG, PNG o WEBP de la galería.", "err.readPhoto": "No se pudo leer la foto.",
+      "err.ref": "Sube un vídeo con el baile viral.", "ref.cut": "El vídeo es largo: usaremos los primeros {s} s.", "err.notPhoto": "Esto no parece una foto. Sirven JPG, PNG o WEBP de la galería.", "err.readPhoto": "No se pudo leer la foto.",
       "err.notVideo": "Hace falta un archivo de vídeo: MP4, MOV o WEBM.", "err.big": "El vídeo pesa más de 120 MB: recórtalo o comprímelo.", "err.long": "El vídeo dura {s} s y el máximo son 30. Recórtalo en la galería del móvil.",
       "err.net": "Sin conexión con el servidor. Recarga la página.", "err.upload": "No se pudo subir el archivo.", "err.failed": "No ha salido bien. Te hemos devuelto los rubíes.", "err.generic": "Error {s}",
       "busy.photo": "Subiendo foto {n}…", "busy.ref": "Subiendo vídeo de muestra…", "busy.refS": "En datos móviles el vídeo puede tardar hasta un minuto", "busy.start": "Empezando…", "busy.wait": "Suele tardar 3–8 minutos. Puedes cerrar la página: el vídeo aparecerá en «Mis vídeos».", "busy.prep": "Preparando…",
@@ -555,11 +554,11 @@ img, video, iframe { max-width: 100% !important; height: auto; }
     },
     en: {
       "meta.title": "SnapDance — a dance video from one photo for TikTok",
-      "meta.desc": "Upload a photo and get a trending dance video that looks shot on a phone. Repeat any viral dance or pick a style. Vertical 9:16 for TikTok, Reels and Shorts.",
+      "meta.desc": "Upload a photo and get a trending dance video that looks shot on a phone. Repeat any viral dance. Vertical 9:16 for TikTok, Reels and Shorts.",
       "nav.bal": "Your code and balance", "nav.buy": "Buy",
       "hero.alt": "A woman dancing at home in front of a phone on a tripod while friends clap",
       "hero.h1": "One photo — <em>a trending dance</em><br>that looks shot on a phone",
-      "hero.p": "Upload a full-body photo. Repeat any viral dance from a sample clip or pick a style, and get a vertical 9:16 video ready for TikTok, Reels and Shorts.",
+      "hero.p": "Upload a full-body photo. Repeat any viral dance from a sample clip, and get a vertical 9:16 video ready for TikTok, Reels and Shorts.",
       "hero.cta": "💃 Make my dance",
       "ex.h2": "Examples: <em>before</em> and <em>after</em>", "ex.hint": "One photo became a video. Tap a video to turn the sound on.", "ex.before": "BEFORE", "ex.after": "AFTER", "ex.beforeAlt": "Photo before",
       "q.title": "Quality level", "q.eco": "💰 Budget", "q.ecoS": "to test an idea quickly", "q.bal": "⚖️ Balanced", "q.balS": "great for your feed", "q.top": "👑 TOP", "q.topS": "best models, face 🔒, 1080p · 60 fps",
@@ -577,10 +576,10 @@ img, video, iframe { max-width: 100% !important; height: auto; }
       "f.l1": "🎵 Trending sounds", "f.l2": "#️⃣ Trending hashtags", "f.l3": "📈 Top videos",
       "f.quick": "⚡ Quick dance search", "f.tqPh": "Dance or sound name", "f.tqGo": "Search",
       "f.how": "📲 How to use a dance as a sample",
-      "f.howList": "<li>Pick a clip where <b>one person dances full-body</b> and the camera barely moves.</li><li>In TikTok: <b>“Share” → “Save video”</b>. If the author turned saving off, pick another clip or film yourself or a friend repeating the dance — the model only needs the moves.</li><li>If the clip is longer than 30 seconds, trim it in your phone's gallery.</li><li>Upload it below. Paste the link to the original — we'll credit the dance creator in the caption.</li>",
+      "f.howList": "<li>Pick a clip where <b>one person dances full-body</b> and the camera barely moves.</li><li>In TikTok: <b>“Share” → “Save video”</b>. If the author turned saving off, pick another clip or film yourself or a friend repeating the dance — the model only needs the moves.</li><li>If the clip is longer than 15 seconds, we trim it automatically to the first 15 s.</li><li>Upload it below. Paste the link to the original — we'll credit the dance creator in the caption.</li>",
       "f.linkPh": "Link to the original (optional): tiktok.com/@author/video/…",
       "q1": "Trending dances", "q2": "Trend of the week", "q3": "Dance trend 🇪🇸", "q4": "Hand dance", "q5": "Shuffle", "q6": "K-pop challenge", "q7": "Funny dances", "q8": "Easy to repeat",
-      "ref.aria": "Upload a dance clip", "ref.title": "Clip with the viral dance", "ref.sub": "Up to 30 seconds, one dancer in full body",
+      "ref.aria": "Upload a dance clip", "ref.title": "Clip with the viral dance", "ref.sub": "Any length: we use the first 15 s. One dancer in full body",
       "ref.ok": "{name} uploaded", "ref.okS": "Your browser can't preview this format, but it works for the dance.",
       "mc.label": "AI model", "snd.label": "Sound", "snd.orig": "Original trend sound", "snd.none": "No sound",
       "trend.hint": "Moves, rhythm and sound come from the sample clip; looks come from your photos.",
@@ -605,7 +604,7 @@ img, video, iframe { max-width: 100% !important; height: auto; }
       "toast.max3": "Up to 3 photos — remove one to replace it", "toast.horiz": "Landscape photo — a vertical full-body one works better", "toast.draft": "Your photos and settings are still here. Attach the sample clip again and tap “Make the dance”.",
       "confirm.out": "Sign out? You'll need your code to come back.",
       "err.code": "Code not found. Check it and try again.", "err.photo0": "Upload a full-body photo of the person in the first slot.", "err.consent": "Please tick the boxes to confirm you have the person's permission and that they are 18+.",
-      "err.ref": "Upload a clip with the viral dance, or switch to “By style”.", "err.notPhoto": "This doesn't look like a photo. JPG, PNG or WEBP from your gallery work.", "err.readPhoto": "Couldn't read the photo.",
+      "err.ref": "Upload a clip with the viral dance.", "ref.cut": "Long clip: we'll use the first {s} s.", "err.notPhoto": "This doesn't look like a photo. JPG, PNG or WEBP from your gallery work.", "err.readPhoto": "Couldn't read the photo.",
       "err.notVideo": "A video file is needed: MP4, MOV or WEBM.", "err.big": "The clip is over 120 MB — trim or compress it.", "err.long": "The clip is {s} s long; the maximum is 30. Trim it in your phone's gallery.",
       "err.net": "No connection to the server. Reload the page.", "err.upload": "Couldn't upload the file.", "err.failed": "It didn't work out. Your rubies have been refunded.", "err.generic": "Error {s}",
       "busy.photo": "Uploading photo {n}…", "busy.ref": "Uploading the sample clip…", "busy.refS": "On mobile data the clip can take up to a minute", "busy.start": "Starting…", "busy.wait": "Usually 3–8 minutes. You can close the page — the video will appear in “My videos”.", "busy.prep": "Getting ready…",
@@ -621,11 +620,11 @@ img, video, iframe { max-width: 100% !important; height: auto; }
     },
     ru: {
       "meta.title": "SnapDance — танец из фото для TikTok",
-      "meta.desc": "Загрузите фото — получите танцевальное видео под тренд, как снятое на телефон. Повторите любой трендовый танец или выберите стиль. Вертикальное 9:16 для TikTok, Reels и Shorts.",
+      "meta.desc": "Загрузите фото — получите танцевальное видео под тренд, как снятое на телефон. Повторите любой трендовый танец. Вертикальное 9:16 для TikTok, Reels и Shorts.",
       "nav.bal": "Ваш код и баланс", "nav.buy": "Купить",
       "hero.alt": "Девушка танцует дома перед телефоном на штативе, друзья хлопают",
       "hero.h1": "Одно фото — <em>танец под тренд</em><br>как снятый на телефон",
-      "hero.p": "Загрузите фото в полный рост. Повторите любой трендовый танец по образцу или выберите стиль — получите вертикальное видео 9:16, готовое для TikTok, Reels и Shorts.",
+      "hero.p": "Загрузите фото в полный рост. Повторите любой трендовый танец по ролику-образцу — получите вертикальное видео 9:16, готовое для TikTok, Reels и Shorts.",
       "hero.cta": "💃 Сделать свой танец",
       "ex.h2": "Примеры: <em>до</em> и <em>после</em>", "ex.hint": "Было одно фото — стало видео. Нажмите на видео, чтобы включить звук.", "ex.before": "ДО", "ex.after": "ПОСЛЕ", "ex.beforeAlt": "Фото до",
       "q.title": "Уровень качества", "q.eco": "💰 Эконом", "q.ecoS": "быстро проверить идею", "q.bal": "⚖️ Баланс", "q.balS": "хорошо для ленты", "q.top": "👑 ТОП", "q.topS": "лучшие модели, лицо 🔒, 1080p · 60 кадров",
@@ -643,10 +642,10 @@ img, video, iframe { max-width: 100% !important; height: auto; }
       "f.l1": "🎵 Трендовые звуки", "f.l2": "#️⃣ Трендовые хештеги", "f.l3": "📈 Топ-видео",
       "f.quick": "⚡ Быстрый поиск танцев", "f.tqPh": "Название танца или звука", "f.tqGo": "Искать",
       "f.how": "📲 Как взять танец за образец",
-      "f.howList": "<li>Выберите ролик, где <b>один человек танцует в полный рост</b>, камера почти не двигается.</li><li>В TikTok: <b>«Поделиться» → «Сохранить видео»</b>. Если автор отключил сохранение — выберите другой ролик или снимите, как вы или друг повторяете танец: модели нужны только движения.</li><li>Если ролик длиннее 30 секунд, обрежьте его в галерее телефона.</li><li>Загрузите файл ниже. Ссылку на оригинал вставьте в поле — отметим автора танца в подписи.</li>",
+      "f.howList": "<li>Выберите ролик, где <b>один человек танцует в полный рост</b>, камера почти не двигается.</li><li>В TikTok: <b>«Поделиться» → «Сохранить видео»</b>. Если автор отключил сохранение — выберите другой ролик или снимите, как вы или друг повторяете танец: модели нужны только движения.</li><li>Если ролик длиннее 15 секунд, мы сами обрежем его до первых 15 сек.</li><li>Загрузите файл ниже. Ссылку на оригинал вставьте в поле — отметим автора танца в подписи.</li>",
       "f.linkPh": "Ссылка на оригинал (необязательно): tiktok.com/@автор/video/…",
       "q1": "Танцы-тренды", "q2": "Тренд недели", "q3": "Танец тренд 🇷🇺", "q4": "Хенд-дэнс", "q5": "Шаффл", "q6": "K-pop челлендж", "q7": "Смешные танцы", "q8": "Лёгкие для повтора",
-      "ref.aria": "Загрузить ролик с танцем", "ref.title": "Ролик с трендовым танцем", "ref.sub": "До 30 секунд, один танцор в полный рост",
+      "ref.aria": "Загрузить ролик с танцем", "ref.title": "Ролик с трендовым танцем", "ref.sub": "Любая длина: берём первые 15 сек. Один танцор в полный рост",
       "ref.ok": "{name} загружен", "ref.okS": "Превью этого формата браузер не показывает, но для танца он подойдёт.",
       "mc.label": "Нейросеть", "snd.label": "Звук", "snd.orig": "Оригинальный звук тренда", "snd.none": "Без звука",
       "trend.hint": "Движения, ритм и звук берутся из ролика-образца, внешность — с ваших фото.",
@@ -671,7 +670,7 @@ img, video, iframe { max-width: 100% !important; height: auto; }
       "toast.max3": "Можно до 3 фото — уберите одно, чтобы заменить", "toast.horiz": "Горизонтальное фото — лучше вертикальное, в полный рост", "toast.draft": "Фото и настройки на месте. Прикрепите ролик-образец ещё раз и жмите «Сделать танец».",
       "confirm.out": "Выйти? Чтобы вернуться, понадобится ваш код.",
       "err.code": "Код не найден. Проверьте и попробуйте ещё раз.", "err.photo0": "Загрузите фото человека в полный рост — в первую ячейку.", "err.consent": "Подтвердите галочками, что у вас есть согласие человека с фото и что ему есть 18.",
-      "err.ref": "Загрузите ролик с трендовым танцем — или переключитесь на «По стилю».", "err.notPhoto": "Это не похоже на фото. Подойдут JPG, PNG, WEBP из галереи.", "err.readPhoto": "Не удалось прочитать фото.",
+      "err.ref": "Загрузите ролик с трендовым танцем.", "ref.cut": "Ролик длинный — возьмём первые {s} сек.", "err.notPhoto": "Это не похоже на фото. Подойдут JPG, PNG, WEBP из галереи.", "err.readPhoto": "Не удалось прочитать фото.",
       "err.notVideo": "Нужен видеофайл: MP4, MOV или WEBM.", "err.big": "Ролик больше 120 МБ — обрежьте или сожмите его.", "err.long": "Ролик {s} сек — нужно не больше 30. Обрежьте его в галерее телефона.",
       "err.net": "Нет связи с сервером. Обновите страницу.", "err.upload": "Не удалось загрузить файл.", "err.failed": "Не получилось. Рубины возвращены.", "err.generic": "Ошибка {s}",
       "busy.photo": "Загружаем фото {n}…", "busy.ref": "Загружаем ролик-образец…", "busy.refS": "Видео может грузиться до минуты на мобильном интернете", "busy.start": "Запускаем…", "busy.wait": "Обычно 3–8 минут. Можно закрыть страницу — видео появится в «Мои видео».", "busy.prep": "Готовим…",
@@ -903,13 +902,16 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
   $("photoIn").addEventListener("change", () => { const fs = [...$("photoIn").files].slice(0, 3); $("photoIn").value = ""; if (fs.length) addPhotos(fs, slotTarget); });
 
   // ---------- танец: стиль или «повторить тренд» ----------
-  let style = "hands", ref = null;
-  const mode = () => style === "trend" ? "trend" : "style";
-  function renderStyles() {
+  // пресеты танцев убраны — только ролик-образец; длинный ролик сервер сам обрезает до 15 сек
+  const MAX_REF = 15;
+  let style = "trend", ref = null;
+  const mode = () => "trend";
+  function renderStyles() { }
+  function renderStylesOld() {
     $("styles").innerHTML = `<button type="button" class="st trendcard" data-id="trend" aria-pressed="${style === "trend"}"><span>🔥</span><b>${esc(t("tr.card"))}</b><small>${esc(t("tr.cardH"))}</small></button>`
       + cfg.styles.map(s => `<button type="button" class="st" data-id="${s.id}" aria-pressed="${s.id === style}"><span>${s.icon}</span><b>${esc(t(`s.${s.id}`))}</b><small>${esc(t(`s.${s.id}H`))}</small></button>`).join("");
   }
-  $("styles").onclick = e => {
+  if ($("styles")) $("styles").onclick = e => {
     const b = e.target.closest(".st"); if (!b) return;
     style = b.dataset.id; renderStyles(); $("trendBox").hidden = style !== "trend"; price(); hideErr();
     if (style === "trend" && !ref) $("refIn").click();
@@ -923,8 +925,9 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
     if (f.size > 120e6) return showErr(t("err.big"));
     const v = $("refVid"); v.src = URL.createObjectURL(f);
     v.onloadedmetadata = () => {
-      if (v.duration > 30.5) return showErr(t("err.long", { s: Math.round(v.duration) }));
-      ref = { file: f, duration: v.duration, path: "" }; v.hidden = false; $("refPh").hidden = true; v.play().catch(() => {}); hideErr(); price();
+      const cut = v.duration > MAX_REF + 0.3;
+      ref = { file: f, duration: Math.min(v.duration, MAX_REF), path: "" };
+      if (cut) toast(t("ref.cut", { s: MAX_REF }), 5000); v.hidden = false; $("refPh").hidden = true; v.play().catch(() => {}); hideErr(); price();
     };
     v.onerror = () => { ref = { file: f, duration: 0, path: "" }; v.hidden = true; $("refPh").hidden = false; $("refPh").innerHTML = `<span class="big">✅</span><b>${esc(t("ref.ok", { name: f.name || "video" }))}</b>`; hideErr(); price(); };
   }
@@ -1173,7 +1176,7 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
     if (!d) return;
     for (let i = 0; i < 3; i++) if (d.photos?.[i]) { try { const blob = await (await fetch(d.photos[i].dataUrl)).blob(); photos[i] = { ...d.photos[i], blob, path: "" }; } catch {} }
     renderSlots(); $("consent").checked = !!d.consent; if (d.budget) $("budget").value = d.budget;
-    if (d.style) { style = d.style; renderStyles(); $("trendBox").hidden = style !== "trend"; }
+
     if (d.hadRef) toast(t("toast.draft"), 6000);
     price();
   }

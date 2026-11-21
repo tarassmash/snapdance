@@ -810,6 +810,7 @@ function refund(key, n) {
 // src/dance.mjs
 db.jobs ||= [];
 db.uploads ||= {};
+var MAX_REF_SEC = 15;
 var clean = (v, max) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
 var STYLES = [
   { id: "hands", icon: "\u{1F64C}", name: "\u0425\u0435\u043D\u0434-\u0434\u044D\u043D\u0441", hint: "\u0420\u0443\u043A\u0438 \u0438 \u043C\u0438\u043C\u0438\u043A\u0430, \u0432\u0438\u0440\u0443\u0441\u043D\u044B\u0439 \u0444\u043E\u0440\u043C\u0430\u0442", moves: "a viral TikTok hand-dance: quick precise arm and hand choreography in front of the chest, finger points, waves and claps on the beat, expressive face, feet mostly in place" },
@@ -856,9 +857,24 @@ async function upload(req, key, kind) {
       removeMedia(id + ".");
       throw new UserError("\u041D\u0435 \u043F\u043E\u043B\u0443\u0447\u0438\u043B\u043E\u0441\u044C \u043F\u0440\u043E\u0447\u0438\u0442\u0430\u0442\u044C \u0440\u043E\u043B\u0438\u043A. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 MP4 \u0441 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0430.");
     }
-    if (info.duration > 30.5) {
-      removeMedia(id + ".");
-      throw new UserError(`\u0420\u043E\u043B\u0438\u043A ${Math.round(info.duration)} \u0441\u0435\u043A \u2014 \u043D\u0443\u0436\u043D\u043E \u043D\u0435 \u0431\u043E\u043B\u044C\u0448\u0435 30. \u041E\u0431\u0440\u0435\u0436\u044C\u0442\u0435 \u0435\u0433\u043E \u0432 \u0433\u0430\u043B\u0435\u0440\u0435\u0435 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0430.`);
+    // \u0434\u043B\u0438\u043D\u043D\u0435\u0435 MAX_REF_SEC \u2014 \u0441\u0430\u043C\u0438 \u043E\u0431\u0440\u0435\u0437\u0430\u0435\u043C \u0434\u043E \u043F\u0435\u0440\u0432\u044B\u0445 MAX_REF_SEC \u0441\u0435\u043A\u0443\u043D\u0434
+    if (info.duration > MAX_REF_SEC + 0.3) {
+      const src = fileOf(r.path), tmp = src.replace(/(\.[^.]+)$/, ".cut$1");
+      try {
+        try {
+          await exec(FFMPEG, ["-y", "-hide_banner", "-loglevel", "error", "-i", src, "-t", String(MAX_REF_SEC), "-map", "0:v:0", "-map", "0:a?", "-c", "copy", "-avoid_negative_ts", "make_zero", "-movflags", "+faststart", tmp], 12e4);
+          const c = await probe2(tmp);
+          if (!c.duration || c.duration > MAX_REF_SEC + 0.5) throw new Error("copy cut inexact");
+        } catch {
+          await exec(FFMPEG, ["-y", "-hide_banner", "-loglevel", "error", "-i", src, "-t", String(MAX_REF_SEC), "-map", "0:v:0", "-map", "0:a?", "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp]);
+        }
+        fs4.renameSync(tmp, src);
+        info.duration = Math.min(MAX_REF_SEC, (await probe2(src)).duration || MAX_REF_SEC);
+      } catch (e) {
+        try { fs4.unlinkSync(tmp); } catch {}
+        removeMedia(id + ".");
+        throw new UserError("\u041D\u0435 \u043F\u043E\u043B\u0443\u0447\u0438\u043B\u043E\u0441\u044C \u043E\u0431\u0440\u0435\u0437\u0430\u0442\u044C \u0440\u043E\u043B\u0438\u043A. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 MP4 \u0441 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0430.");
+      }
     }
     if (info.duration < 2) {
       removeMedia(id + ".");
@@ -877,7 +893,8 @@ function ownUpload(key, p, kind) {
   return u;
 }
 function options(b) {
-  const mode = b.mode === "style" ? "style" : "trend";
+  // пресеты танцев убраны: только «повторить тренд» по ролику-образцу
+  const mode = "trend";
   const o = {
     mode,
     cam: CAM[b.cam] ? b.cam : "tripod",
