@@ -1,0 +1,109 @@
+name: iOS release (App Store)
+on:
+  push:
+    branches: [main]
+    paths: ["ios/release/run.json"]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "setup | build | screenshots | submit | all"
+        required: true
+        default: all
+      send:
+        description: "Отправить на проверку App Review (true/false)"
+        required: true
+        default: "true"
+concurrency: ios-release
+jobs:
+  release:
+    runs-on: macos-15
+    timeout-minutes: 120
+    env:
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      IOS_BUNDLE_ID: us.snapdance.app
+      APPLE_REVIEW_CODE: ${{ secrets.APPLE_REVIEW_CODE }}
+      REVIEW_CONTACT: ${{ secrets.REVIEW_CONTACT }}
+      BUILD_NUMBER: ${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: What to do
+        id: what
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then A="${{ inputs.action }}"; S="${{ inputs.send }}"
+          else A=$(python3 -c "import json;print(json.load(open('ios/release/run.json'))['action'])"); S=$(python3 -c "import json;print(str(json.load(open('ios/release/run.json')).get('send',False)).lower())"); fi
+          echo "action=$A" >> $GITHUB_OUTPUT; echo "send=$S" >> $GITHUB_OUTPUT; echo "action=$A send=$S"
+      - name: Check secrets
+        run: |
+          for v in ASC_ISSUER_ID ASC_KEY_ID ASC_KEY_P8 APPLE_TEAM_ID APPLE_REVIEW_CODE REVIEW_CONTACT; do
+            if [ -z "${!v}" ]; then echo "::error::Нет секрета $v (GitHub → Settings → Secrets and variables → Actions)"; exit 1; fi
+          done
+          xcodebuild -version
+      - name: Python
+        run: python3 -m pip install --quiet --break-system-packages pyjwt cryptography requests || python3 -m pip install --quiet pyjwt cryptography requests
+      - name: App Store Connect setup (Bundle ID, категории, рейтинг, цена, покупки)
+        if: steps.what.outputs.action == 'setup' || steps.what.outputs.action == 'all'
+        run: python3 ios/release/asc.py setup
+
+      - name: Archive & upload to App Store Connect
+        if: steps.what.outputs.action == 'build' || steps.what.outputs.action == 'all'
+        run: |
+          set -o pipefail
+          mkdir -p build && printf '%s\n' "$ASC_KEY_P8" > build/AuthKey.p8
+          AUTH="-allowProvisioningUpdates -authenticationKeyPath $PWD/build/AuthKey.p8 -authenticationKeyID $ASC_KEY_ID -authenticationKeyIssuerID $ASC_ISSUER_ID"
+          xcodebuild -project ios/SnapDance.xcodeproj -scheme SnapDance -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath build/SnapDance.xcarchive archive \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Automatic PRODUCT_BUNDLE_IDENTIFIER="$IOS_BUNDLE_ID" CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            $AUTH 2>&1 | tee build/archive.log | grep -E "error:|warning: .*(sign|provision)|ARCHIVE (SUCCEEDED|FAILED)" || true
+          grep -q "ARCHIVE SUCCEEDED" build/archive.log
+          cat > build/ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>uploadSymbols</key><true/>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath build/SnapDance.xcarchive -exportOptionsPlist build/ExportOptions.plist -exportPath build/export \
+            $AUTH 2>&1 | tee build/export.log | grep -E "error:|Upload|EXPORT (SUCCEEDED|FAILED)" || true
+          grep -q "EXPORT SUCCEEDED" build/export.log
+          echo "Загружена сборка $BUILD_NUMBER"
+
+      - name: Screenshots in simulator
+        if: steps.what.outputs.action == 'screenshots' || steps.what.outputs.action == 'all'
+        run: |
+          set -o pipefail
+          xcodebuild -project ios/SnapDance.xcodeproj -scheme SnapDance -configuration Debug -sdk iphonesimulator -derivedDataPath build/dd \
+            CODE_SIGNING_ALLOWED=NO build 2>&1 | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
+          APP=build/dd/Build/Products/Debug-iphonesimulator/SnapDance.app
+          DEV=$(xcrun simctl list devices available | grep -E "iPhone 16 Plus \(|iPhone 15 Pro Max \(|iPhone 15 Plus \(" | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
+          echo "device $DEV"
+          xcrun simctl boot "$DEV"; xcrun simctl bootstatus "$DEV" -b
+          xcrun simctl status_bar "$DEV" override --time 9:41 --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3 || true
+          xcrun simctl install "$DEV" "$APP"
+          for L in es-ES:es en-US:en ru:ru; do
+            LOC=${L%%:*}; LANG=${L##*:}
+            mkdir -p shots/$LOC
+            xcrun simctl terminate "$DEV" us.snapdance.app || true
+            xcrun simctl launch "$DEV" us.snapdance.app -AppleLanguages "($LANG)"
+            sleep 12
+            xcrun simctl io "$DEV" screenshot shots/$LOC/1.png
+          done
+          cp shots/en-US/1.png shots/iap-review.png
+          sips -g pixelWidth -g pixelHeight shots/en-US/1.png
+          python3 ios/release/asc.py screenshots shots
+
+      - name: Submit for App Review
+        if: steps.what.outputs.action == 'submit' || steps.what.outputs.action == 'all'
+        run: |
+          B=""; [ "${{ steps.what.outputs.action }}" = "all" ] && B="$BUILD_NUMBER"
+          python3 ios/release/asc.py submit --build "$B" $([ "${{ steps.what.outputs.send }}" = "true" ] && echo --send)
+      - name: Status
+        if: always()
+        run: python3 ios/release/asc.py status || true

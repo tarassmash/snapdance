@@ -2010,6 +2010,15 @@ function iapFulfill(b) {
   return { key, added: credits, credits: db.keys[key].credits, pack: pack.id };
 }
 
+// Код для проверяющего Apple (App Review): Railway → Variables → APPLE_REVIEW_CODE. Пополняется до 500 рубинов при запуске.
+(function reviewCode() {
+  const k = normKey(process.env.APPLE_REVIEW_CODE);
+  if (!/^SD-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(k)) return;
+  db.keys[k] ||= { credits: 0, spent: 0, email: "", created: Date.now(), source: "review", note: "Apple App Review" };
+  if (db.keys[k].credits < 500) db.keys[k].credits = 500;
+  save();
+})();
+
 var routes = {
   "GET /api/iap/products": async (req, res) => json(res, { products: packs().map((p) => ({ productId: iapProduct(p.id), pack: p.id, credits: p.credits, name: p.name, popular: !!p.popular })) }),
   "POST /api/iap/verify": async (req, res) => json(res, iapFulfill(await body(req, 2e5))),
