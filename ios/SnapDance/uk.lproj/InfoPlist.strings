@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "SnapDance";
+"NSCameraUsageDescription" = "Щоб зробити фото або зняти ролик-зразок для танцю.";
+"NSPhotoLibraryUsageDescription" = "Щоб вибрати фото й ролик із танцем для відео.";
+"NSPhotoLibraryAddUsageDescription" = "Щоб зберегти готове відео з танцем у Фото.";

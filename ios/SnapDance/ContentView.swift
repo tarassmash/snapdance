@@ -52,6 +52,7 @@ struct ContentView: View {
         .task {
             #if DEBUG
             if ProcessInfo.processInfo.arguments.contains("-sdSettings") { showSettings = true }
+            if ProcessInfo.processInfo.arguments.contains("-sdWallet") { model.showWallet = true }
             if ProcessInfo.processInfo.arguments.contains("-sdGlasses") { model.place = "beach"; model.glasses = "aviator" }
             if ProcessInfo.processInfo.arguments.contains("-sdPhoto") {
                 // широкое фото 4000×3000 — проверка, что ячейка не раздвигает экран
@@ -83,7 +84,7 @@ struct CreateView: View {
                     .padding(.top, 4)
 
                 if let ex = model.config?.examples, !ex.isEmpty {
-                    ExamplesSection(examples: ex)
+                    ExamplesSection(examples: ex).id("examples")
                 }
 
                 Card(step: "1", title: L("step1"), subtitle: L("step1s")) {
@@ -219,6 +220,12 @@ struct CreateView: View {
             #if DEBUG
             if ProcessInfo.processInfo.arguments.contains("-sdBottom") {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 4) { proxy.scrollTo("bottom", anchor: .bottom) }
+            }
+            if ProcessInfo.processInfo.arguments.contains("-sdExamples") {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { proxy.scrollTo("examples", anchor: .top) }
+            }
+            if ProcessInfo.processInfo.arguments.contains("-sdSteps") {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4) { proxy.scrollTo("step1", anchor: .top) }
             }
             #endif
         }

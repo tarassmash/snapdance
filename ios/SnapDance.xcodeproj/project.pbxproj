@@ -17,6 +17,7 @@
 		A10000000000000000000023 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* Store.swift */; };
 		A10000000000000000000024 /* Media.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* Media.swift */; };
 		A10000000000000000000025 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* Components.swift */; };
+		A10000000000000000000029 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000029 /* InfoPlist.strings */; };
 		A10000000000000000000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -25,6 +26,10 @@
 		A20000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A20000000000000000000028 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		A20000000000000000000026 /* Examples.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Examples.swift; sourceTree = "<group>"; };
+		A2000000000000000000002A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A2000000000000000000002B /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A2000000000000000000002C /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A2000000000000000000002D /* uk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = uk; path = uk.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A20000000000000000000027 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
 		A20000000000000000000020 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		A20000000000000000000021 /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
@@ -63,6 +68,7 @@
 				A20000000000000000000028 /* Settings.swift */,
 				A20000000000000000000026 /* Examples.swift */,
 				A20000000000000000000027 /* Products.storekit */,
+				A20000000000000000000029 /* InfoPlist.strings */,
 				A20000000000000000000020 /* Config.swift */,
 				A20000000000000000000021 /* API.swift */,
 				A20000000000000000000022 /* AppModel.swift */,
@@ -125,13 +131,14 @@
 			};
 			buildConfigurationList = A80000000000000000000001 /* Build configuration list for PBXProject "SnapDance" */;
 			compatibilityVersion = "Xcode 14.0";
-			developmentRegion = ru;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 				ru,
 				es,
+				uk,
 			);
 			mainGroup = A40000000000000000000001;
 			productRefGroup = A40000000000000000000003 /* Products */;
@@ -149,10 +156,25 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000004 /* Assets.xcassets in Resources */,
+				A10000000000000000000029 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		A20000000000000000000029 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A2000000000000000000002A /* en */,
+				A2000000000000000000002B /* es */,
+				A2000000000000000000002C /* ru */,
+				A2000000000000000000002D /* uk */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A30000000000000000000002 /* Sources */ = {
@@ -236,9 +258,9 @@
 				INFOPLIST_KEY_CFBundleDisplayName = SnapDance;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Чтобы сделать фото или снять ролик-образец для танца.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Чтобы сохранить готовое видео с танцем в Фото.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Чтобы выбрать фото и ролики для создания танца.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "To take a photo or record a dance clip to copy.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "To save your finished dance video to Photos.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "To choose the photos and the dance clip for your video.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -270,9 +292,9 @@
 				INFOPLIST_KEY_CFBundleDisplayName = SnapDance;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Чтобы сделать фото или снять ролик-образец для танца.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Чтобы сохранить готовое видео с танцем в Фото.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Чтобы выбрать фото и ролики для создания танца.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "To take a photo or record a dance clip to copy.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "To save your finished dance video to Photos.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "To choose the photos and the dance clip for your video.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

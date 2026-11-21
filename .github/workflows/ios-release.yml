@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "setup | build | screenshots | submit | all"
+        description: "setup | build | screenshots | prepare (без отправки) | submit | all"
         required: true
         default: all
       send:
@@ -48,11 +48,11 @@ jobs:
       - name: Python
         run: python3 -m pip install --quiet --break-system-packages pyjwt cryptography requests || python3 -m pip install --quiet pyjwt cryptography requests
       - name: App Store Connect setup (Bundle ID, категории, рейтинг, цена, покупки)
-        if: steps.what.outputs.action == 'setup' || steps.what.outputs.action == 'all'
+        if: steps.what.outputs.action == 'setup' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare'
         run: python3 ios/release/asc.py setup
 
       - name: Archive & upload to App Store Connect
-        if: steps.what.outputs.action == 'build' || steps.what.outputs.action == 'all'
+        if: steps.what.outputs.action == 'build' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare'
         run: |
           set -o pipefail
           python3 ios/release/asc.py certs || true
@@ -82,7 +82,7 @@ jobs:
           echo "Загружена сборка $BUILD_NUMBER"
 
       - name: Screenshots in simulator
-        if: steps.what.outputs.action == 'screenshots' || steps.what.outputs.action == 'all'
+        if: steps.what.outputs.action == 'screenshots' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare'
         run: |
           set -o pipefail
           xcodebuild -project ios/SnapDance.xcodeproj -scheme SnapDance -configuration Debug -sdk iphonesimulator -derivedDataPath build/dd \
@@ -93,15 +93,25 @@ jobs:
           xcrun simctl boot "$DEV"; xcrun simctl bootstatus "$DEV" -b
           xcrun simctl status_bar "$DEV" override --time 9:41 --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3 || true
           xcrun simctl install "$DEV" "$APP"
-          for L in es-ES:es en-US:en ru:ru; do
-            LOC=${L%%:*}; LANG=${L##*:}
+          shot() { # shot <locale> <lang> <n> <wait> [args…]
+            local LOC=$1 LANG=$2 N=$3 W=$4; shift 4
             mkdir -p shots/$LOC
             xcrun simctl terminate "$DEV" us.snapdance.app || true
-            xcrun simctl launch "$DEV" us.snapdance.app -AppleLanguages "($LANG)"
-            sleep 12
-            xcrun simctl io "$DEV" screenshot shots/$LOC/1.png
+            xcrun simctl launch "$DEV" us.snapdance.app -AppleLanguages "($LANG)" "$@"
+            sleep $W
+            xcrun simctl io "$DEV" screenshot shots/$LOC/$N.png
+          }
+          for L in en-US:en es-ES:es ru:ru uk:uk; do
+            LOC=${L%%:*}; LANG=${L##*:}
+            shot $LOC $LANG 1 14
+            shot $LOC $LANG 2 16 -sdExamples
+            shot $LOC $LANG 3 12 -sdSteps -sdGlasses
+            shot $LOC $LANG 4 12 -sdWallet
           done
-          cp shots/en-US/1.png shots/iap-review.png
+          cp shots/en-US/4.png shots/iap-review.png
+          ( rm -rf /tmp/st && mkdir -p /tmp/st/store && cp -r shots/* /tmp/st/store/ && cd /tmp/st && git init -q -b store-screens && git add . \
+            && git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "store screenshots" \
+            && git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" store-screens ) || true
           sips -g pixelWidth -g pixelHeight shots/en-US/1.png
           python3 ios/release/asc.py screenshots shots
 

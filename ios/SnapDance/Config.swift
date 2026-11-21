@@ -9,9 +9,11 @@ enum SDConfig {
     /// Префикс покупок в App Store Connect: <bundle id>.rubies.<пакет> (start / pop / pro).
     static var productPrefix: String { (Bundle.main.bundleIdentifier ?? "us.snapdance.app") + ".rubies." }
 
-    static let privacyURL = URL(string: "https://snapdance.us/privacy")!
-    static let termsURL = URL(string: "https://snapdance.us/terms")!
-    static let reportURL = URL(string: "https://snapdance.us/report")!
+    /// Страницы сайта на языке приложения: /privacy (es), /en/privacy, /ru/privacy.
+    static var langPrefix: String { appLang == .es ? "" : "/" + serverLang }
+    static var privacyURL: URL { URL(string: "https://snapdance.us\(langPrefix)/privacy")! }
+    static var termsURL: URL { URL(string: "https://snapdance.us\(langPrefix)/terms")! }
+    static var reportURL: URL { URL(string: "https://snapdance.us\(langPrefix)/report")! }
     static let trendsURL = URL(string: "https://www.tiktok.com/tag/dancechallenge")!
 
     /// Максимальная длина ролика-образца, секунды (длиннее — обрезаем сами).
@@ -30,19 +32,24 @@ enum SDConfig {
 
 // MARK: - Тексты на трёх языках (как на сайте: es / en / ru)
 
-enum Lang: String { case es, en, ru }
+enum Lang: String { case es, en, ru, uk }
 
 let appLang: Lang = {
-    let code = Locale.preferredLanguages.first?.prefix(2).lowercased() ?? "es"
-    if code == "ru" || code == "uk" || code == "be" { return .ru }
+    let code = Locale.preferredLanguages.first?.prefix(2).lowercased() ?? "en"
+    if code == "uk" { return .uk }
+    if code == "ru" || code == "be" { return .ru }
     if code == "es" || code == "ca" || code == "gl" || code == "eu" { return .es }
     return .en
 }()
+
+/// Язык для сервера и сайта: там есть es / en / ru, украинцам — английский.
+var serverLang: String { appLang == .uk ? "en" : appLang.rawValue }
 
 /// Сколько видео: «1 видео», «2 vídeos», «1 video».
 func videosText(_ n: Int) -> String {
     switch appLang {
     case .ru: return "\(n) видео"
+    case .uk: return "\(n) відео"
     case .es: return n == 1 ? "1 vídeo" : "\(n) vídeos"
     case .en: return n == 1 ? "1 video" : "\(n) videos"
     }
@@ -92,6 +99,38 @@ private let STR: [Lang: [String: String]] = [
         "set.title": "Настройки", "set.share": "Поделиться приложением", "set.shareMsg": "Оживи фото — пусть станцует тренд из TikTok", "set.rate": "Оценить приложение", "set.write": "Написать разработчикам", "set.terms": "Условия использования", "set.eula": "Лицензионное соглашение (EULA)", "set.privacy": "Политика конфиденциальности",
         "ex.h2a": "Примеры: ", "ex.before.w": "до", "ex.and": " и ", "ex.after.w": "после", "ex.hint": "Было одно фото — стало видео. Нажмите на видео, чтобы включить звук.", "ex.before": "ДО", "ex.after": "ПОСЛЕ", "ex.user": "вы",
         "buy.xcode": "Тестовая покупка в Xcode прошла. Настоящие рубины начисляются только при покупке через TestFlight или App Store.", "secs": "{s} сек", "photo.lib": "Выбрать фото", "rubies": "рубинов",
+    ],
+    .uk: [
+        "tagline": "Фото → танець із TikTok",
+        "step1": "Фото людини", "step1s": "На повний зріст, добре видно обличчя",
+        "slot.1": "На повний зріст", "slot.1s": "обов'язково", "slot.2": "Обличчя крупно", "slot.3": "Інший ракурс", "opt": "за бажанням",
+        "step2": "Ролик із трендом", "step2s": "Будь-яка довжина: беремо перші 15 сек. Один танцюрист на повний зріст.",
+        "ref.pick": "Вибрати відео", "ref.change": "Замінити", "ref.trends": "Знайти тренди в TikTok", "ref.cut": "Ролик довгий — візьмемо перші {s} сек.",
+        "consent": "Я маю згоду людини на фото, їй 18+. Я не порушую чужих прав.",
+        "go": "Зробити відео", "inc": "Kling 2.6 · звук із ролика · позначка ШІ",
+        "err.photo": "Додайте фото на повний зріст.", "err.ref": "Додайте ролик із трендовим танцем.", "err.consent": "Позначте згоду та 18+.",
+        "err.net": "Немає з'єднання із сервером. Перевірте інтернет.", "err.video": "Не вдалося прочитати відео. Спробуйте інше.",
+        "busy.photo": "Завантажуємо фото {n}…", "busy.ref": "Завантажуємо ролик…", "busy.start": "Запускаємо…",
+        "work.title": "Створюємо відео", "work.sub": "Зазвичай 3–6 хвилин. Можна згорнути застосунок — відео збережеться в «Мої відео».",
+        "done": "Готово!", "save": "Зберегти у Фото", "saved": "Збережено у Фото ✅", "share": "Поділитися", "tiktok": "Опублікувати в TikTok",
+        "tt.hint": "Підпис скопійовано — виберіть TikTok і вставте його в опис.", "again": "Зробити ще",
+        "mine": "Мої відео", "mine.empty": "Тут з'являться ваші відео. Вони зберігаються 7 днів.", "del": "Видалити", "del.q": "Видалити це відео?",
+        "st.working": "Створюється…", "st.failed": "Не вийшло — рубіни повернулися", "st.done": "Готово",
+        "wallet": "Рубіни", "balance": "Баланс", "buy": "Купити рубіни", "buy.need": "Потрібно {n} 💎, у вас {m} 💎.",
+        "buy.ok": "Нараховано {n} 💎", "buy.pending": "Покупка очікує підтвердження.", "buy.fail": "Покупка не пройшла: {e}",
+        "buy.load": "Завантажуємо ціни App Store…", "buy.none": "Покупки поки недоступні. Спробуйте пізніше.",
+        "code": "Ваш код", "code.hint": "За цим кодом вхід із будь-якого пристрою та на сайті snapdance.us. Збережіть його.",
+        "code.copy": "Скопіювати", "code.copied": "Код скопійовано", "code.enter": "У мене вже є код", "code.ph": "SD-XXXX-XXXX-XXXX", "code.login": "Увійти",
+        "code.bad": "Код не знайдено.", "logout": "Вийти", "logout.q": "Вийти? Без коду ви втратите доступ до рубінів.",
+        "privacy": "Конфіденційність", "terms": "Умови", "report": "Поскаржитися на відео", "close": "Закрити", "cancel": "Скасувати", "ok": "OK",
+        "videos7": "Відео зберігається 7 днів",
+        "pack.videos": "{v} до 15 сек", "hero.a": "Одне фото — ", "hero.b": "танець під тренд", "hero.c": "наче знятий на телефон", "hero.p": "Завантажте фото, виберіть танець і натисніть одну кнопку. За кілька хвилин — вертикальне відео для TikTok.", "hero.cta": "Зробити свій танець",
+        "step3": "Місце й окуляри", "step3s": "Де танцювати і, якщо соромитеся, — в окулярах", "place": "Де танцює", "gl.on": "Надіти окуляри", "gl.hint": "Окуляри будуть на обличчі все відео", "gl.pick": "Які окуляри",
+        "pl.photo": "Як на фото", "pl.street": "Вулиця", "pl.room": "Кімната", "pl.gym": "Танцювальна студія", "pl.party": "Домашня вечірка", "pl.beach": "Пляж", "pl.park": "Парк", "pl.kitchen": "Кухня", "pl.office": "Офіс", "pl.club": "Нічний клуб", "pl.rooftop": "Дах на заході сонця",
+        "gl.black": "Чорні сонцезахисні", "gl.aviator": "Авіатори", "gl.round": "Круглі ретро", "gl.mirror": "Спортивні дзеркальні", "gl.cateye": "«Котяче око»", "gl.heart": "Сердечка", "gl.clear": "Прозорі в чорній оправі", "pack.start": "Старт", "pack.pop": "Тренд", "pack.pro": "Студія", "pack.hit": "ХІТ", "bal.videos": "Вистачить на {v} по {s} сек", "bal.none": "Відео {s} сек = {p} 💎",
+        "set.title": "Налаштування", "set.share": "Поділитися застосунком", "set.shareMsg": "Оживи фото — нехай станцює тренд із TikTok", "set.rate": "Оцінити застосунок", "set.write": "Написати розробникам", "set.terms": "Умови використання", "set.eula": "Ліцензійна угода (EULA)", "set.privacy": "Політика конфіденційності",
+        "ex.h2a": "Приклади: ", "ex.before.w": "до", "ex.and": " і ", "ex.after.w": "після", "ex.hint": "Було одне фото — стало відео. Натисніть на відео, щоб увімкнути звук.", "ex.before": "ДО", "ex.after": "ПІСЛЯ", "ex.user": "ви",
+        "buy.xcode": "Тестова покупка в Xcode пройшла. Справжні рубіни нараховуються лише при покупці через TestFlight або App Store.", "secs": "{s} сек", "photo.lib": "Вибрати фото", "rubies": "рубінів",
     ],
     .es: [
         "tagline": "Foto → baile de TikTok",

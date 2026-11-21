@@ -84,7 +84,7 @@ final class API {
         var r = URLRequest(url: URL(string: path, relativeTo: SDConfig.api)!.absoluteURL)
         r.httpMethod = method
         r.setValue(key, forHTTPHeaderField: "x-key")
-        r.setValue(appLang.rawValue, forHTTPHeaderField: "x-lang")
+        r.setValue(serverLang, forHTTPHeaderField: "x-lang")
         r.setValue("SnapDanceApp/2.0 iOS", forHTTPHeaderField: "x-client")
         if let body { r.httpBody = body; r.setValue(contentType, forHTTPHeaderField: "content-type") }
         return r
@@ -124,7 +124,7 @@ final class API {
             "mode": "trend", "photos": ps, "faceIdx": faceIdx, "consent": true, "adult": true, "ref": refPath, "keepSound": true,
             "model": SDConfig.model, "style": "hands", "dur": min(seconds, SDConfig.maxRefSeconds), "extra": "",
             "frame": SDConfig.frame, "faceLock": false, "enhance": false, "phone": "oldiphone", "cam": "tripod", "place": place, "glasses": glasses,
-            "author": "", "lang": appLang.rawValue,
+            "author": "", "lang": serverLang,
         ], as: CreateResponse.self)
     }
 

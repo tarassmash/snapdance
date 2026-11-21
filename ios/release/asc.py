@@ -127,7 +127,7 @@ def setup_app_info(app):
         warn(e)
     have = {l["attributes"]["locale"]: l for l in call("GET", f"/v1/appInfos/{info['id']}/appInfoLocalizations")["data"]}
     for loc, m in META["locales"].items():
-        attrs = {"name": META["appName"], "subtitle": m["subtitle"], "privacyPolicyUrl": META["privacyUrl"]}
+        attrs = {"name": META["appName"], "subtitle": m["subtitle"], "privacyPolicyUrl": loc_url(loc, "/privacy")}
         try:
             if loc in have:
                 call("PATCH", f"/v1/appInfoLocalizations/{have[loc]['id']}", {"data": {"type": "appInfoLocalizations", "id": have[loc]["id"], "attributes": attrs}})
@@ -319,11 +319,17 @@ def version(app):
     return v
 
 
+def loc_url(loc, path):
+    """Страница сайта на языке витрины: /privacy (es), /en/privacy, /ru/privacy."""
+    pre = META.get("urls", {}).get(loc, "/en")
+    return "https://snapdance.us" + ((pre + path) if path != "/" else (pre or "/"))
+
+
 def version_locs(v):
     have = {l["attributes"]["locale"]: l for l in call("GET", f"/v1/appStoreVersions/{v['id']}/appStoreVersionLocalizations")["data"]}
     for loc, m in META["locales"].items():
         attrs = {"description": m["description"], "keywords": m["keywords"], "promotionalText": m["promotionalText"],
-                 "supportUrl": META["supportUrl"], "marketingUrl": META["marketingUrl"]}
+                 "supportUrl": loc_url(loc, "/"), "marketingUrl": loc_url(loc, "/")}
         try:
             if loc in have:
                 call("PATCH", f"/v1/appStoreVersionLocalizations/{have[loc]['id']}", {"data": {"type": "appStoreVersionLocalizations", "id": have[loc]["id"], "attributes": attrs}})
