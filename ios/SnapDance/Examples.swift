@@ -78,7 +78,7 @@ struct ExampleCard: View {
 
                     // стрелка от фото к видео
                     TimelineView(.animation) { tl in
-                        let t = started.map { tl.date.timeIntervalSince($0) } ?? 0
+                        let t = max(0, started.map { tl.date.timeIntervalSince($0) } ?? 0)
                         ArrowShape(head: false).trim(from: 0, to: min(1, max(0, (t - 0.3) / 1.1)))
                             .stroke(.white, style: StrokeStyle(lineWidth: 7 * w * 0.34 / 100, lineCap: .round, lineJoin: .round))
                             .overlay(ArrowShape(head: true).stroke(.white, style: StrokeStyle(lineWidth: 7 * w * 0.34 / 100, lineCap: .round, lineJoin: .round))
@@ -127,7 +127,7 @@ private struct FeedOverlay: View {
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1 / 30)) { tl in
-            let t = started.map { tl.date.timeIntervalSince($0) } ?? 0
+            let t = max(0, started.map { tl.date.timeIntervalSince($0) } ?? 0)
             let k = min(1, t / 6.5), e = k < 1 ? pow(k, 2.6) : 1   // медленный старт и быстрый рост — как у ролика, который «залетел»
             ZStack(alignment: .bottomLeading) {
                 // летящие сердечки
@@ -187,7 +187,8 @@ private struct FeedOverlay: View {
     }
 
     private func compact(_ v: Double) -> String {
-        Int(v.rounded()).formatted(.number.notation(.compactName).precision(.fractionLength(0...1)).locale(Locale(identifier: appLang == .ru ? "ru_RU" : appLang == .es ? "es_ES" : "en_US")))
+        let v = v.isFinite ? max(0, v) : 0
+        return Int(v.rounded()).formatted(.number.notation(.compactName).precision(.fractionLength(0...1)).locale(Locale(identifier: appLang == .ru ? "ru_RU" : appLang == .es ? "es_ES" : "en_US")))
     }
 }
 
