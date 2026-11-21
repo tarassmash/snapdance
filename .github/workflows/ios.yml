@@ -17,3 +17,18 @@ jobs:
           xcodebuild -project ios/SnapDance.xcodeproj -target SnapDance -sdk iphonesimulator -configuration Debug \
             CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=NO build 2>&1 | tee build.log | grep -E "error:|warning:|BUILD (SUCCEEDED|FAILED)" || true
           grep -q "BUILD SUCCEEDED" build.log
+      - name: Run in simulator and take screenshots
+        run: |
+          APP=$(find ios/build -name "SnapDance.app" -path "*iphonesimulator*" | head -1)
+          DEV=$(xcrun simctl list devices available | grep -E "iPhone 1[5-7]( Pro)? \(" | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
+          xcrun simctl boot "$DEV"
+          xcrun simctl bootstatus "$DEV" -b
+          xcrun simctl install "$DEV" "$APP"
+          xcrun simctl launch "$DEV" us.snapdance.app
+          sleep 12
+          mkdir -p shots
+          xcrun simctl io "$DEV" screenshot shots/main.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: shots/
