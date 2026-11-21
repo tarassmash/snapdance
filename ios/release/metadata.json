@@ -12,17 +12,17 @@
   "iap": [
     {
       "pack": "start",
-      "rubies": 200,
+      "rubies": 480,
       "price": "8.00"
     },
     {
       "pack": "pop",
-      "rubies": 400,
+      "rubies": 960,
       "price": "16.00"
     },
     {
       "pack": "pro",
-      "rubies": 800,
+      "rubies": 1440,
       "price": "24.00"
     }
   ],
@@ -33,7 +33,7 @@
       "promotionalText": "Sube una foto y un vídeo con el baile de moda: la IA hace que la persona de la foto lo baile.",
       "description": "SnapDance convierte una foto en un vídeo de baile.\n\n1. Sube una foto de la persona de cuerpo entero (y, si quieres, una de la cara).\n2. Elige un vídeo con el baile que está de moda. Puede durar lo que sea: usamos los primeros 15 segundos.\n3. Pulsa «Crear vídeo». En unos minutos la persona de la foto baila exactamente ese trend, con el sonido del vídeo original.\n\nLuego guárdalo en Fotos o compártelo en tus redes con un toque.\n\n• Un solo precio claro en rubíes, sin suscripciones.\n• El vídeo se guarda 7 días en «Mis vídeos».\n• Con tu código SD-… entras también en snapdance.us.\n• Los vídeos llevan la etiqueta de contenido generado por IA.\n\nUsa solo fotos de personas mayores de 18 años que te hayan dado su permiso.",
       "iapName": "{n} rubíes",
-      "iapDesc": "{n} rubíes: alcanza para unos {v} vídeos de 15 s"
+      "iapDesc": "{n} rubíes: {v} vídeos de hasta 15 s"
     },
     "en-US": {
       "subtitle": "Your photo dances the trend",
@@ -41,7 +41,7 @@
       "promotionalText": "Upload a photo and a clip with the trending dance — AI makes the person in the photo dance it.",
       "description": "SnapDance turns one photo into a dance video.\n\n1. Upload a full-body photo of the person (and a face close-up if you like).\n2. Pick a clip with the dance that's trending. Any length works: we use the first 15 seconds.\n3. Tap “Make video”. In a few minutes the person from the photo dances that exact trend, with the original sound.\n\nThen save it to Photos or share it anywhere in one tap.\n\n• One clear price in rubies, no subscriptions.\n• Your video is kept for 7 days in “My videos”.\n• Your SD-… code also works on snapdance.us.\n• Videos are labeled as AI-generated content.\n\nOnly use photos of adults (18+) who have given you their permission.",
       "iapName": "{n} rubies",
-      "iapDesc": "{n} rubies — enough for about {v} videos of 15 s"
+      "iapDesc": "{n} rubies — {v} videos up to 15 s"
     },
     "ru": {
       "subtitle": "Фото танцует модный тренд",
@@ -49,10 +49,10 @@
       "promotionalText": "Загрузите фото и ролик с модным танцем — ИИ заставит человека с фото станцевать его.",
       "description": "SnapDance превращает одно фото в видео с танцем.\n\n1. Загрузите фото человека в полный рост (и, по желанию, лицо крупно).\n2. Выберите ролик с трендовым танцем. Длина любая: берём первые 15 секунд.\n3. Нажмите «Сделать видео». Через несколько минут человек с фото станцует именно этот тренд, со звуком из ролика.\n\nПотом сохраните видео в Фото или поделитесь им в одно касание.\n\n• Одна понятная цена в рубинах, без подписок.\n• Видео хранится 7 дней в «Моих видео».\n• По коду SD-… можно войти и на сайте snapdance.us.\n• Видео помечаются как созданные ИИ.\n\nИспользуйте только фото совершеннолетних (18+), которые дали на это согласие.",
       "iapName": "{n} рубинов",
-      "iapDesc": "{n} рубинов — хватит примерно на {v} видео по 15 сек"
+      "iapDesc": "{n} рубинов — {v} видео до 15 сек"
     }
   },
-  "reviewNotes": "SnapDance turns a photo into a dance video (AI, via our server snapdance.us).\n\nTo test without purchasing: tap the rubies balance (top right) → \"I already have a code\" → enter {code} → Sign in. This code has 500 rubies.\n\nThen: 1) pick a full-body photo of an adult, 2) pick any short video of a person dancing, 3) tick the consent box, 4) tap \"Make video\". Generation takes about 3–6 minutes; the result appears on the same screen and in \"My videos\" (stack icon, top left).\n\nIn-App Purchases: three consumable packs of rubies (200 / 600 / 1500). Rubies are only used to generate videos. Purchases are verified on our server with the signed StoreKit 2 transaction.\n\nContent safety: users must confirm consent and 18+ for the person in the photo; every video is labeled as AI-generated; anyone can report a video at https://snapdance.us/report and we remove it.",
+  "reviewNotes": "SnapDance turns a photo into a dance video (AI, via our server snapdance.us).\n\nTo test without purchasing: tap the rubies balance (top right) → \"I already have a code\" → enter {code} → Sign in. This code has 500 rubies.\n\nThen: 1) pick a full-body photo of an adult, 2) pick any short video of a person dancing, 3) tick the consent box, 4) tap \"Make video\". Generation takes about 3–6 minutes; the result appears on the same screen and in \"My videos\" (stack icon, top left).\n\nIn-App Purchases: three consumable packs of rubies (480 / 960 / 1440). Rubies are only used to generate videos. Purchases are verified on our server with the signed StoreKit 2 transaction.\n\nContent safety: users must confirm consent and 18+ for the person in the photo; every video is labeled as AI-generated; anyone can report a video at https://snapdance.us/report and we remove it.",
   "iapBaseTerritory": "USA",
   "videoCost15": 158
 }

@@ -3,78 +3,78 @@
   "nonRenewingSubscriptions": [],
   "products": [
     {
-      "displayPrice": "14.99",
+      "displayPrice": "8.00",
       "familyShareable": false,
       "internalID": "6740000001",
       "localizations": [
         {
-          "description": "200 rubies to make dance videos",
-          "displayName": "200 rubies",
+          "description": "480 rubies — 3 videos up to 15 s",
+          "displayName": "480 rubies",
           "locale": "en_US"
         },
         {
-          "description": "200 rubíes para crear vídeos de baile",
-          "displayName": "200 rubíes",
+          "description": "480 rubíes: 3 vídeos de hasta 15 s",
+          "displayName": "480 rubíes",
           "locale": "es_ES"
         },
         {
-          "description": "200 рубинов для создания видео с танцем",
-          "displayName": "200 рубинов",
+          "description": "480 рубинов — 3 видео до 15 сек",
+          "displayName": "480 рубинов",
           "locale": "ru"
         }
       ],
       "productID": "us.snapdance.app.rubies.start",
-      "referenceName": "200 rubies",
+      "referenceName": "480 rubies",
       "type": "Consumable"
     },
     {
-      "displayPrice": "39.99",
+      "displayPrice": "16.00",
       "familyShareable": false,
       "internalID": "6740000002",
       "localizations": [
         {
-          "description": "600 rubies to make dance videos",
-          "displayName": "600 rubies",
+          "description": "960 rubies — 6 videos up to 15 s",
+          "displayName": "960 rubies",
           "locale": "en_US"
         },
         {
-          "description": "600 rubíes para crear vídeos de baile",
-          "displayName": "600 rubíes",
+          "description": "960 rubíes: 6 vídeos de hasta 15 s",
+          "displayName": "960 rubíes",
           "locale": "es_ES"
         },
         {
-          "description": "600 рубинов для создания видео с танцем",
-          "displayName": "600 рубинов",
+          "description": "960 рубинов — 6 видео до 15 сек",
+          "displayName": "960 рубинов",
           "locale": "ru"
         }
       ],
       "productID": "us.snapdance.app.rubies.pop",
-      "referenceName": "600 rubies",
+      "referenceName": "960 rubies",
       "type": "Consumable"
     },
     {
-      "displayPrice": "89.99",
+      "displayPrice": "24.00",
       "familyShareable": false,
       "internalID": "6740000003",
       "localizations": [
         {
-          "description": "1500 rubies to make dance videos",
-          "displayName": "1500 rubies",
+          "description": "1440 rubies — 9 videos up to 15 s",
+          "displayName": "1440 rubies",
           "locale": "en_US"
         },
         {
-          "description": "1500 rubíes para crear vídeos de baile",
-          "displayName": "1500 rubíes",
+          "description": "1440 rubíes: 9 vídeos de hasta 15 s",
+          "displayName": "1440 rubíes",
           "locale": "es_ES"
         },
         {
-          "description": "1500 рубинов для создания видео с танцем",
-          "displayName": "1500 рубинов",
+          "description": "1440 рубинов — 9 видео до 15 сек",
+          "displayName": "1440 рубинов",
           "locale": "ru"
         }
       ],
       "productID": "us.snapdance.app.rubies.pro",
-      "referenceName": "1500 rubies",
+      "referenceName": "1440 rubies",
       "type": "Consumable"
     }
   ],

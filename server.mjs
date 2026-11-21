@@ -1970,8 +1970,8 @@ async function ttStatus(key, id) {
 // Railway → Variables (необязательно): IOS_BUNDLE_ID (по умолчанию us.snapdance.app)
 var IOS_BUNDLE = () => (process.env.IOS_BUNDLE_ID || "us.snapdance.app").trim();
 var iapProduct = (packId) => `${IOS_BUNDLE()}.rubies.${packId}`;
-// Пакеты iOS-приложения (свои, не как на сайте): Railway → Variables → IOS_PACKS="start:200,pop:400,pro:800"
-var iosPacks = () => String(process.env.IOS_PACKS || "start:200,pop:400,pro:800").split(",").map((x) => x.trim().split(":")).filter(([id, n]) => id && +n > 0).map(([id, n]) => ({ id, credits: +n, popular: id === "pop" }));
+// Пакеты iOS-приложения (свои, не как на сайте): Railway → Variables → IOS_PACKS="start:480,pop:960,pro:1440" (по 158 💎 за видео 15 сек ≈ $2,67)
+var iosPacks = () => String(process.env.IOS_PACKS || "start:480,pop:960,pro:1440").split(",").map((x) => x.trim().split(":")).filter(([id, n]) => id && +n > 0).map(([id, n]) => ({ id, credits: +n, popular: id === "pop" }));
 // SHA-256 отпечаток корневого сертификата Apple Root CA - G3
 var APPLE_ROOT_G3 = "63343ABFB89A6A03EBB57E9B3F5FA7BE7C4F5C756F3017B3A8C488C3653E9179";
 var b64u = (s2) => Buffer.from(String(s2).replace(/-/g, "+").replace(/_/g, "/"), "base64");
