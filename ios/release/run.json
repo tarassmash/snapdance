@@ -1,1 +1,1 @@
-{"action": "screenshots", "send": false, "note": "re-upload store screenshots and save copies for review"}
+{"action": "prepare", "send": false, "note": "hide russian example caption for other languages, clean first screenshot; TestFlight only"}

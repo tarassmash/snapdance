@@ -114,7 +114,8 @@ struct ExampleCard: View {
             .onAppear { if started == nil { started = Date() } }
             .onDisappear { started = nil; if soundOn == example.id { soundOn = nil } }
 
-            if let c = example.caption, !c.isEmpty {
+            // Подпись примера пишется в админке на одном языке: кириллицу показываем только русскоязычным.
+            if let c = example.caption, !c.isEmpty, appLang == .ru || c.range(of: "\\p{Cyrillic}", options: .regularExpression) == nil {
                 Text(c).font(.system(size: 13.5)).foregroundStyle(SDConfig.muted).lineLimit(3)
             }
         }

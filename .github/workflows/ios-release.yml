@@ -110,6 +110,8 @@ jobs:
             shot $LOC $LANG 3 12 -sdSteps -sdGlasses
             shot $LOC $LANG 4 12 -sdWallet
           done
+          # второй проход первого экрана: системные баннеры (Apple Intelligence и т.п.) к этому времени уже ушли
+          for L in en-US:en es-ES:es ru:ru uk:uk; do shot ${L%%:*} ${L##*:} 1 12; done
           cp shots/en-US/4.png shots/iap-review.png
           ( rm -rf /tmp/st && mkdir -p /tmp/st/store && cp -r shots/* /tmp/st/store/ && cd /tmp/st && git init -q -b store-screens && git add . \
             && git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "store screenshots" \
