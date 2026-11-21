@@ -1,1 +1,1 @@
-{"action": "build", "send": false, "note": "unsigned archive, cloud distribution signing on export"}
+{"action": "all", "send": true, "note": "user said otpravlyay: fresh build + screenshots + submit to App Review"}
