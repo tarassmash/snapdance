@@ -8,6 +8,7 @@ struct ContentView: View {
     @EnvironmentObject var model: AppModel
     @EnvironmentObject var store: Store
     @State private var showMine = false
+    @State private var showSettings = false
 
     var body: some View {
         NavigationStack {
@@ -23,8 +24,12 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button { showMine = true } label: { Image(systemName: "square.stack") }
-                        .accessibilityLabel(L("mine"))
+                    HStack(spacing: 14) {
+                        Button { showSettings = true } label: { Image(systemName: "gearshape") }
+                            .accessibilityLabel(L("set.title"))
+                        Button { showMine = true } label: { Image(systemName: "square.stack") }
+                            .accessibilityLabel(L("mine"))
+                    }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button { model.walletReason = nil; model.showWallet = true } label: {
@@ -37,13 +42,19 @@ struct ContentView: View {
             }
             .toolbarBackground(SDConfig.bg, for: .navigationBar)
             .sheet(isPresented: $showMine) { MyVideosView(close: { showMine = false }) }
+            .sheet(isPresented: $showSettings) { SettingsView() }
             .sheet(isPresented: $model.showWallet) { WalletView() }
             .overlay(alignment: .bottom) { ToastView() }
         }
         .tint(SDConfig.lime)
         .preferredColorScheme(.dark)
         .dynamicTypeSize(.xSmall ... .xxLarge)
-        .task { await model.start() }
+        .task {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-sdSettings") { showSettings = true }
+            #endif
+            await model.start()
+        }
     }
 }
 
@@ -452,6 +463,7 @@ struct WalletView: View {
                     HStack(spacing: 16) {
                         Link(L("privacy"), destination: SDConfig.privacyURL)
                         Link(L("terms"), destination: SDConfig.termsURL)
+                        Link("EULA", destination: Links.eula)
                     }
                     .font(.caption).foregroundStyle(SDConfig.muted).frame(maxWidth: .infinity)
                 }
