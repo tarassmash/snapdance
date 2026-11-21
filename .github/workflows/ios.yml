@@ -22,17 +22,20 @@ jobs:
       - name: Run in simulator and take screenshots
         run: |
           APP=$(find ios/build -name "SnapDance.app" -path "*iphonesimulator*" | head -1)
-          DEV=$(xcrun simctl list devices available | grep -E "iPhone 1[5-7]( Pro)? \(" | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
+          xcrun simctl list devices available | grep -E "iPhone" | head -30
+          DEV=$(xcrun simctl list devices available | grep -E "iPhone 16e \(|iPhone 15 \(|iPhone 14 \(" | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
+          echo "device $DEV"
           xcrun simctl boot "$DEV"
           xcrun simctl bootstatus "$DEV" -b
           xcrun simctl install "$DEV" "$APP"
-          xcrun simctl launch "$DEV" us.snapdance.app
-          sleep 12
           mkdir -p shots
-          xcrun simctl io "$DEV" screenshot shots/main.png
-          echo "---- crash reports"; ls ~/Library/Logs/DiagnosticReports/ | grep -i snap || true
-          for f in ~/Library/Logs/DiagnosticReports/SnapDance*; do [ -f "$f" ] && head -c 6000 "$f" && cp "$f" shots/ ; done
-          echo "---- log"; xcrun simctl spawn "$DEV" log show --last 2m --style compact --predicate 'process == "SnapDance"' 2>/dev/null | grep -iE "fault|error|fatal|crash|terminat" | tail -40 || true
+          for LANG in ru es en; do
+            xcrun simctl terminate "$DEV" us.snapdance.app || true
+            xcrun simctl launch "$DEV" us.snapdance.app -AppleLanguages "($LANG)"
+            sleep 12
+            xcrun simctl io "$DEV" screenshot shots/$LANG.png
+          done
+          echo "---- log"; xcrun simctl spawn "$DEV" log show --last 3m --style compact --predicate 'process == "SnapDance"' 2>/dev/null | grep -iE "Fatal error|Unable to simultaneously|constraint" | tail -20 || true
       - name: Save screenshots to branch ci-screens
         run: |
           cd shots
