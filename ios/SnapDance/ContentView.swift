@@ -3,6 +3,7 @@ import PhotosUI
 
 // MARK: - Главный экран
 
+@MainActor
 struct ContentView: View {
     @EnvironmentObject var model: AppModel
     @EnvironmentObject var store: Store
@@ -47,6 +48,7 @@ struct ContentView: View {
 
 // MARK: - Создание
 
+@MainActor
 struct CreateView: View {
     @EnvironmentObject var model: AppModel
     @State private var photoItems: [PhotosPickerItem?] = [nil, nil, nil]
@@ -182,6 +184,7 @@ struct CreateView: View {
 
 // MARK: - Ход создания и результат
 
+@MainActor
 struct JobView: View {
     @EnvironmentObject var model: AppModel
     let job: Job
@@ -215,6 +218,7 @@ struct JobView: View {
     }
 }
 
+@MainActor
 struct ResultView: View {
     @EnvironmentObject var model: AppModel
     let job: Job
@@ -277,6 +281,7 @@ struct ResultView: View {
 
 // MARK: - Мои видео
 
+@MainActor
 struct MyVideosView: View {
     @EnvironmentObject var model: AppModel
     let close: () -> Void
@@ -329,6 +334,7 @@ struct MyVideosView: View {
 
 // MARK: - Рубины: покупка в App Store и код
 
+@MainActor
 struct WalletView: View {
     @EnvironmentObject var model: AppModel
     @EnvironmentObject var store: Store

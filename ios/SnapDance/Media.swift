@@ -48,9 +48,8 @@ enum Media {
         let asset = AVURLAsset(url: url)
         let total = (try? await asset.load(.duration).seconds) ?? 0
         let length = total > 0 ? min(total, maxSeconds) : maxSeconds
-        let presets = AVAssetExportSession.exportPresets(compatibleWith: asset)
-        let preset = presets.contains(AVAssetExportPreset1920x1080) ? AVAssetExportPreset1920x1080 : AVAssetExportPresetHighestQuality
-        guard let export = AVAssetExportSession(asset: asset, presetName: preset) else { return (url, total) }
+        guard let export = AVAssetExportSession(asset: asset, presetName: AVAssetExportPreset1920x1080)
+                ?? AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else { return (url, total) }
         let out = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
         export.outputURL = out
         export.outputFileType = .mp4
