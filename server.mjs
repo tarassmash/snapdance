@@ -1966,7 +1966,53 @@ async function ttStatus(key, id) {
   return { status: d.status || "", fail: d.fail_reason || "" };
 }
 
+// src/iap.mjs — покупки рубинов в iOS-приложении (StoreKit 2). Проверяем подпись Apple у транзакции и начисляем рубины.
+// Railway → Variables (необязательно): IOS_BUNDLE_ID (по умолчанию us.snapdance.app)
+var IOS_BUNDLE = () => (process.env.IOS_BUNDLE_ID || "us.snapdance.app").trim();
+var iapProduct = (packId) => `${IOS_BUNDLE()}.rubies.${packId}`;
+// SHA-256 отпечаток корневого сертификата Apple Root CA - G3
+var APPLE_ROOT_G3 = "63343ABFB89A6A03EBB57E9B3F5FA7BE7C4F5C756F3017B3A8C488C3653E9179";
+var b64u = (s2) => Buffer.from(String(s2).replace(/-/g, "+").replace(/_/g, "/"), "base64");
+function verifyAppleJWS(jws) {
+  const parts = String(jws || "").split(".");
+  if (parts.length !== 3) throw new UserError2("Некорректная покупка.");
+  const head = JSON.parse(b64u(parts[0]).toString("utf8"));
+  if (head.alg !== "ES256" || !Array.isArray(head.x5c) || head.x5c.length < 3) throw new UserError2("Некорректная покупка.");
+  const certs = head.x5c.map((c) => new crypto3.X509Certificate(Buffer.from(c, "base64")));
+  const root = certs[certs.length - 1];
+  if (root.fingerprint256.replace(/:/g, "").toUpperCase() !== APPLE_ROOT_G3) throw new UserError2("Покупка не от Apple.", 403);
+  for (let i = 0; i < certs.length - 1; i++) {
+    if (!certs[i].verify(certs[i + 1].publicKey) || !certs[i].checkIssued(certs[i + 1])) throw new UserError2("Покупка не от Apple.", 403);
+  }
+  const ok = crypto3.verify("sha256", Buffer.from(parts[0] + "." + parts[1]), { key: certs[0].publicKey, dsaEncoding: "ieee-p1363" }, b64u(parts[2]));
+  if (!ok) throw new UserError2("Подпись покупки не сходится.", 403);
+  return JSON.parse(b64u(parts[1]).toString("utf8"));
+}
+function iapFulfill(b) {
+  const tx = verifyAppleJWS(b.jws);
+  if (tx.bundleId !== IOS_BUNDLE()) throw new UserError2("Покупка из другого приложения.", 403);
+  if (tx.revocationDate) throw new UserError2("Покупка отменена.", 403);
+  const pack = packs().find((p) => iapProduct(p.id) === tx.productId);
+  if (!pack) throw new UserError2("Пакет не найден.");
+  const orderId = "iap:" + tx.transactionId;
+  const existing = db.orders.find((o) => o.id === orderId);
+  if (existing) return { key: existing.key, added: 0, credits: db.keys[existing.key]?.credits ?? 0 };
+  let key = normKey(b.key);
+  if (!db.keys[key]) {
+    key = newKey();
+    db.keys[key] = { credits: 0, spent: 0, email: "", created: Date.now(), source: "ios", note: "" };
+  }
+  const qty = Math.max(1, parseInt(tx.quantity, 10) || 1);
+  const credits = pack.credits * qty;
+  db.keys[key].credits += credits;
+  db.orders.unshift({ id: orderId, key, email: "", pack: pack.id, credits, amount: (tx.price || 0) / 1e3, currency: String(tx.currency || "").toLowerCase(), created: Date.now(), source: "ios", env: tx.environment || "" });
+  save();
+  return { key, added: credits, credits: db.keys[key].credits, pack: pack.id };
+}
+
 var routes = {
+  "GET /api/iap/products": async (req, res) => json(res, { products: packs().map((p) => ({ productId: iapProduct(p.id), pack: p.id, credits: p.credits, name: p.name, popular: !!p.popular })) }),
+  "POST /api/iap/verify": async (req, res) => json(res, iapFulfill(await body(req, 2e5))),
   "GET /api/tiktok/me": async (req, res) => {
     const k = clientKey(req);
     if (!ttEnabled()) return json(res, { enabled: false, connected: false });
