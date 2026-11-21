@@ -419,7 +419,7 @@ img, video, iframe { max-width: 100% !important; height: auto; }
       </section>
 
       <section class="card gobox">
-        <div class="budget">
+        <div class="budget" hidden style="display:none">
           <label class="f" for="budget" data-t="bud.label">Tu presupuesto máximo</label>
           <div class="budrow"><span class="budin"><i class="rb"></i><input type="number" id="budget" inputmode="numeric" min="1" step="1" value="100"></span>
             <span class="chips" id="budChips"><button type="button" data-b="60">60</button><button type="button" data-b="100">100</button><button type="button" data-b="200">200</button></span></div>
@@ -943,6 +943,8 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
   function options(m) {
     const C = cfg.catalog, out = [];
     const trendSecs = ref?.duration || 10;
+    // один вариант: только Kling 2.6, первый кадр Nano Banana Pro, без апскейла
+    return [{ mode: "trend", model: "mc26", name: C.trendModels.find(x => x.id === "mc26")?.name || "Kling 2.6", seconds: trendSecs, enhance: false, frame: "nbpro", score: 0 }].map(o => (o.price = cost(o), o));
     const models = m === "trend" ? C.trendModels.map(x => ({ id: x.id, name: x.name, durs: [trendSecs] })) : C.styleModels.map(x => ({ id: x.id, name: x.name, durs: x.durs.filter(d => d >= 5) }));
     for (const md of models) for (const d of md.durs) for (const enhance of [true, false]) for (const frame of ["nbpro", "nb"]) {
       const o = { mode: m, model: md.id, name: md.name, seconds: d, enhance, frame };
@@ -951,7 +953,7 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
     }
     return out.sort((a, b) => b.score - a.score || a.price - b.price);
   }
-  const budget = () => Math.max(0, parseInt($("budget").value, 10) || 0);
+  const budget = () => Infinity;
   function pick() {
     if (!cfg) return null;
     const all = options(mode()), fit = all.filter(o => o.price <= budget());

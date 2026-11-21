@@ -900,14 +900,15 @@ function options(b) {
     cam: CAM[b.cam] ? b.cam : "tripod",
     place: PLACE[b.place] ? b.place : "photo",
     phone: PHONE[b.phone] !== void 0 ? b.phone : "oldiphone",
-    frame: FRAME_MODELS.some((m) => m.id === b.frame) ? b.frame : "nbpro",
+    // один вариант оплаты: Kling 2.6 + первый кадр Nano Banana Pro, без Topaz
+    frame: "nbpro",
     faceLock: false,
-    enhance: !!b.enhance,
+    enhance: false,
     keepSound: b.keepSound !== false,
     extra: clean(b.extra, 200),
     author: /^[\w.]{2,24}$/.test(b.author || "") ? b.author : ""
   };
-  if (mode === "trend") o.model = TREND_MODELS.some((m) => m.id === b.model) ? b.model : "mc3p";
+  if (mode === "trend") o.model = "mc26";
   else {
     const m = STYLE_MODELS.find((x) => x.id === b.model) || STYLE_MODELS[2];
     o.model = m.id;
