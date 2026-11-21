@@ -1,1 +1,1 @@
-{"action": "submit", "send": true, "note": "retry submit with detailed errors"}
+{"action": "submit", "send": true, "note": "set free price, version item first, then first consumable IAPs, then submit"}
