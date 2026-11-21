@@ -131,11 +131,19 @@ struct CreateView: View {
                     Text(L("inc")).font(.caption).foregroundStyle(SDConfig.muted)
                 }
 
-                HStack(spacing: 16) {
-                    Link(L("privacy"), destination: SDConfig.privacyURL)
-                    Link(L("terms"), destination: SDConfig.termsURL)
-                    Link(L("report"), destination: SDConfig.reportURL)
+                ViewThatFits {
+                    HStack(spacing: 16) {
+                        Link(L("privacy"), destination: SDConfig.privacyURL)
+                        Link(L("terms"), destination: SDConfig.termsURL)
+                        Link(L("report"), destination: SDConfig.reportURL)
+                    }
+                    VStack(spacing: 8) {
+                        Link(L("privacy"), destination: SDConfig.privacyURL)
+                        Link(L("terms"), destination: SDConfig.termsURL)
+                        Link(L("report"), destination: SDConfig.reportURL)
+                    }
                 }
+                .lineLimit(1)
                 .font(.caption).foregroundStyle(SDConfig.muted).frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
                 .id("bottom")
