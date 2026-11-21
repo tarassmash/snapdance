@@ -407,6 +407,14 @@ def cmd_submit(build_no, send=True):
 
     step("Данные для проверяющего")
     code = os.environ.get("APPLE_REVIEW_CODE", "")
+    if not code:
+        print("  пропущено: контакт и заметки заполняются в App Store Connect вручную (без секрета APPLE_REVIEW_CODE)")
+    else:
+        review_details(v, code)
+    _after_review(app, v, send)
+
+
+def review_details(v, code):
     # REVIEW_CONTACT = "Имя;Фамилия;+34 600 000 000;email@example.com"
     c = [x.strip() for x in os.environ.get("REVIEW_CONTACT", "").split(";")] + ["", "", "", ""]
     attrs = {"contactFirstName": c[0], "contactLastName": c[1], "contactPhone": c[2], "contactEmail": c[3] or "support@snapdance.us",
@@ -419,6 +427,8 @@ def cmd_submit(build_no, send=True):
                                                             "relationships": {"appStoreVersion": rel("appStoreVersions", v["id"])}}})
     print("  ок")
 
+
+def _after_review(app, v, send):
     step("Покупки — вместе с версией")
     for pid, iap in iaps(app).items():
         st = iap["attributes"].get("state")

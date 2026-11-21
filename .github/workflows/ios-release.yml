@@ -19,10 +19,11 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 120
     env:
-      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      # не секреты: без файла ключа .p8 они бесполезны
+      ASC_ISSUER_ID: 5a60d341-3b3d-4348-a67e-8191041ed77c
+      ASC_KEY_ID: CU6G6Z29KV
+      APPLE_TEAM_ID: F29T8NHFA6
       ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       IOS_BUNDLE_ID: us.snapdance.app
       APPLE_REVIEW_CODE: ${{ secrets.APPLE_REVIEW_CODE }}
       REVIEW_CONTACT: ${{ secrets.REVIEW_CONTACT }}
@@ -37,8 +38,8 @@ jobs:
           echo "action=$A" >> $GITHUB_OUTPUT; echo "send=$S" >> $GITHUB_OUTPUT; echo "action=$A send=$S"
       - name: Check secrets
         run: |
-          for v in ASC_ISSUER_ID ASC_KEY_ID ASC_KEY_P8 APPLE_TEAM_ID APPLE_REVIEW_CODE REVIEW_CONTACT; do
-            if [ -z "${!v}" ]; then echo "::error::Нет секрета $v (GitHub → Settings → Secrets and variables → Actions)"; exit 1; fi
+          for v in ASC_KEY_P8; do
+            if [ -z "${!v}" ]; then echo "::error::Нет секрета $v: GitHub → Settings → Secrets and variables → Actions → New repository secret, имя ASC_KEY_P8, значение — содержимое AuthKey_CU6G6Z29KV.p8"; exit 1; fi
           done
           xcodebuild -version
       - name: Python
