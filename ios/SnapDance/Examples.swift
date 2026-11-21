@@ -63,14 +63,16 @@ struct ExampleCard: View {
                         .frame(height: h * 0.38).frame(maxHeight: .infinity, alignment: .bottom)
 
                     // ДО — фото в углу
-                    ZStack(alignment: .bottomLeading) {
-                        AsyncImage(url: example.beforeURL) { img in img.resizable().scaledToFill() } placeholder: { Color(white: 0.13) }
-                        Text(L("ex.before")).font(.system(size: 10.5, weight: .heavy)).kerning(0.6)
-                            .padding(.horizontal, 7).padding(.vertical, 3)
-                            .background(Color.black.opacity(0.65), in: RoundedRectangle(cornerRadius: 6))
-                            .foregroundStyle(.white).padding(4)
-                    }
-                    .frame(width: w * 0.34, height: w * 0.34 * 4 / 3)
+                    Color(white: 0.13)
+                        .overlay(AsyncImage(url: example.beforeURL) { img in img.resizable().scaledToFill() } placeholder: { Color.clear })
+                        .frame(width: w * 0.34, height: w * 0.34 * 4 / 3)
+                        .clipped()
+                        .overlay(alignment: .bottomLeading) {
+                            Text(L("ex.before")).font(.system(size: 10.5, weight: .heavy)).kerning(0.6)
+                                .padding(.horizontal, 7).padding(.vertical, 3)
+                                .background(Color.black.opacity(0.65), in: RoundedRectangle(cornerRadius: 6))
+                                .foregroundStyle(.white).padding(4)
+                        }
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(.white, lineWidth: 2))
                     .shadow(color: .black.opacity(0.45), radius: 9, y: 6)
