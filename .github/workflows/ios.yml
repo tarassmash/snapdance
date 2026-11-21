@@ -30,6 +30,9 @@ jobs:
           sleep 12
           mkdir -p shots
           xcrun simctl io "$DEV" screenshot shots/main.png
+          echo "---- crash reports"; ls ~/Library/Logs/DiagnosticReports/ | grep -i snap || true
+          for f in ~/Library/Logs/DiagnosticReports/SnapDance*; do [ -f "$f" ] && head -c 6000 "$f" && cp "$f" shots/ ; done
+          echo "---- log"; xcrun simctl spawn "$DEV" log show --last 2m --style compact --predicate 'process == "SnapDance"' 2>/dev/null | grep -iE "fault|error|fatal|crash|terminat" | tail -40 || true
       - name: Save screenshots to branch ci-screens
         run: |
           cd shots
