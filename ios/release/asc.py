@@ -469,6 +469,14 @@ def _after_review(app, v, send):
     print("  ✅ Отправлено на проверку App Review")
 
 
+def cmd_certs():
+    """Только показывает сертификаты команды (ничего не удаляет)."""
+    step("Сертификаты")
+    for c in get_all("/v1/certificates", {"fields[certificates]": "name,certificateType,displayName,expirationDate"}):
+        a = c["attributes"]
+        print(f"  {a.get('certificateType')}: {a.get('displayName') or a.get('name')} до {str(a.get('expirationDate'))[:10]}")
+
+
 def cmd_status():
     app = the_app()
     for v in call("GET", f"/v1/apps/{app['id']}/appStoreVersions", params={"limit": 5})["data"]:
@@ -482,7 +490,7 @@ def cmd_status():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["setup", "screenshots", "submit", "status"])
+    ap.add_argument("cmd", choices=["setup", "screenshots", "submit", "status", "certs"])
     ap.add_argument("dir", nargs="?")
     ap.add_argument("--build")
     ap.add_argument("--send", action="store_true")
@@ -498,6 +506,8 @@ def main():
             setup_iaps(app, terr)
         elif a.cmd == "screenshots":
             cmd_screenshots(Path(a.dir or "shots"))
+        elif a.cmd == "certs":
+            cmd_certs()
         elif a.cmd == "submit":
             cmd_submit(a.build, send=a.send)
         else:
