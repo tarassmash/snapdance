@@ -52,6 +52,7 @@ struct ContentView: View {
         .task {
             #if DEBUG
             if ProcessInfo.processInfo.arguments.contains("-sdSettings") { showSettings = true }
+            if ProcessInfo.processInfo.arguments.contains("-sdGlasses") { model.place = "beach"; model.glasses = "aviator" }
             if ProcessInfo.processInfo.arguments.contains("-sdPhoto") {
                 // широкое фото 4000×3000 — проверка, что ячейка не раздвигает экран
                 let img = UIGraphicsImageRenderer(size: CGSize(width: 4000, height: 3000)).image { c in
@@ -119,6 +120,57 @@ struct CreateView: View {
                         .buttonStyle(.plain)
                         Link(destination: SDConfig.trendsURL) {
                             Label(L("ref.trends"), systemImage: "arrow.up.right.square").font(.subheadline.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.7)
+                        }
+                    }
+                }
+
+                Card(step: "3", title: L("step3"), subtitle: L("step3s")) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        // выпадающий список мест
+                        Menu {
+                            Picker(L("place"), selection: $model.place) {
+                                ForEach(PLACES, id: \.self) { p in
+                                    Label(L("pl." + p), systemImage: PLACE_ICONS[p] ?? "mappin").tag(p)
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: PLACE_ICONS[model.place] ?? "mappin").foregroundStyle(SDConfig.lime).frame(width: 22)
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(L("place")).font(.caption).foregroundStyle(SDConfig.muted)
+                                    Text(L("pl." + model.place)).font(.headline).foregroundStyle(.white)
+                                }
+                                .lineLimit(1).minimumScaleFactor(0.8)
+                                Spacer(minLength: 4)
+                                Image(systemName: "chevron.up.chevron.down").foregroundStyle(SDConfig.muted)
+                            }
+                            .padding(12)
+                            .background(SDConfig.panel2.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
+                        }
+
+                        // очки — например, если человек стесняется
+                        Toggle(isOn: Binding(get: { model.glasses != "none" }, set: { model.glasses = $0 ? (GLASSES.first ?? "black") : "none" })) {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Label(L("gl.on"), systemImage: "eyeglasses").font(.headline)
+                                Text(L("gl.hint")).font(.caption).foregroundStyle(SDConfig.muted)
+                            }
+                        }
+                        .tint(SDConfig.lime)
+
+                        if model.glasses != "none" {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(GLASSES, id: \.self) { g in
+                                        Button { model.glasses = g } label: {
+                                            Text(L("gl." + g)).font(.subheadline.weight(.semibold)).lineLimit(1)
+                                                .padding(.horizontal, 12).padding(.vertical, 8)
+                                                .foregroundStyle(model.glasses == g ? .black : .white)
+                                                .background(model.glasses == g ? SDConfig.lime : SDConfig.panel2, in: Capsule())
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                            }
                         }
                     }
                 }

@@ -16,6 +16,13 @@ final class AppModel: ObservableObject {
 
     @Published var photos: [Photo?] = [nil, nil, nil]
     @Published var ref: Ref?
+    /// Где танцует (как на фото, улица, комната…) и очки — запоминаются между запусками.
+    @Published var place = UserDefaults.standard.string(forKey: "sd-place") ?? "photo" {
+        didSet { UserDefaults.standard.set(place, forKey: "sd-place") }
+    }
+    @Published var glasses = UserDefaults.standard.string(forKey: "sd-glasses") ?? "none" {
+        didSet { UserDefaults.standard.set(glasses, forKey: "sd-glasses") }
+    }
     @Published var consent = UserDefaults.standard.bool(forKey: "sd-consent") {
         didSet { UserDefaults.standard.set(consent, forKey: "sd-consent") }
     }
@@ -147,7 +154,7 @@ final class AppModel: ObservableObject {
                 if let d = up.duration { ref = Ref(url: r.url, seconds: d, thumb: r.thumb, path: up.path) }
             }
             busyText = L("busy.start")
-            let res = try await API.shared.create(photos: photos.map { $0?.path }, refPath: ref?.path ?? "", seconds: ref?.seconds ?? 10)
+            let res = try await API.shared.create(photos: photos.map { $0?.path }, refPath: ref?.path ?? "", seconds: ref?.seconds ?? 10, place: place, glasses: glasses)
             credits = res.credits
             jobs.insert(res.job, at: 0)
             activeJobID = res.job.id

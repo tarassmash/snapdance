@@ -844,7 +844,31 @@ var PHONE = {
   oldiphone: "Looks like a casual clip recorded on an older iPhone: natural phone sharpening, light grain in low light, warm indoor white balance, slight highlight roll-off, ordinary lighting. Not cinematic, no color grading.",
   none: ""
 };
-var PLACE = { photo: "Keep the same location, background and outfit as in the photo.", room: "In a cozy bedroom with fairy lights; keep the same outfit.", street: "Outdoors on a city sidewalk in daylight; keep the same outfit.", gym: "In a bright dance studio with a mirror wall; keep the same outfit.", party: "At a house party with colorful LED lights and blurred friends in the background; keep the same outfit." };
+var PLACE = {
+  photo: "Keep the same location, background and outfit as in the photo.",
+  street: "Outdoors on a busy city street in daylight; keep the same outfit.",
+  room: "In a cozy bedroom with fairy lights; keep the same outfit.",
+  gym: "In a bright dance studio with a mirror wall; keep the same outfit.",
+  party: "At a house party with colorful LED lights and blurred friends in the background; keep the same outfit.",
+  beach: "On a sunny sandy beach with the sea behind; keep the same outfit.",
+  park: "In a green city park on a sunny day; keep the same outfit.",
+  kitchen: "In a bright modern home kitchen; keep the same outfit.",
+  office: "In a modern open-plan office; keep the same outfit.",
+  club: "In a nightclub with a crowded dance floor and colorful stage lights; keep the same outfit.",
+  rooftop: "On a city rooftop at golden-hour sunset with the skyline behind; keep the same outfit."
+};
+// очки: человек надевает их на первом кадре и остаётся в них всё видео (например, если стесняется)
+var GLASSES = {
+  none: "",
+  black: "classic black sunglasses with dark lenses",
+  aviator: "gold aviator sunglasses with dark gradient lenses",
+  round: "round retro sunglasses with thin metal frames",
+  mirror: "sporty wraparound sunglasses with mirrored lenses",
+  cateye: "stylish cat-eye sunglasses",
+  heart: "fun pink heart-shaped party sunglasses",
+  clear: "fashionable glasses with clear lenses and thick black frames"
+};
+var glassesLine = (j) => GLASSES[j.glasses] ? `The person wears ${GLASSES[j.glasses]} on the face during the whole video; the glasses stay on and do not change.` : "";
 var FACE = "During fast moves, spins and head turns the face may blur briefly, but whenever it is visible it is exactly the same person as in the reference photos. The face must stay identical to the reference photo in every single frame: same eyes, nose, mouth, jawline, skin tone, hairline and expression style. No morphing, no face drift, no changing identity, no beauty filter. Keep the face mostly toward the camera and in focus; avoid long spins or turns that hide the face.";
 var NEG = "Keep it tasteful and family-friendly: no suggestive or sexual moves. Keep the person's face, body, hairstyle and outfit exactly as in the photo. No text, captions, logos or watermarks.";
 async function upload(req, key, kind) {
@@ -911,6 +935,7 @@ function options(b) {
     mode,
     cam: CAM[b.cam] ? b.cam : "tripod",
     place: PLACE[b.place] ? b.place : "photo",
+    glasses: GLASSES[b.glasses] ? b.glasses : "none",
     phone: PHONE[b.phone] !== void 0 ? b.phone : "oldiphone",
     // один вариант оплаты: Kling 2.6 + первый кадр Nano Banana Pro, без Topaz
     frame: "nbpro",
@@ -998,6 +1023,7 @@ async function startFrame(j) {
     "Create one still frame taken from a vertical 9:16 smartphone video.",
     j.photos.filter(Boolean).length > 1 ? "All reference photos show the same person (full body and face close-ups). The first photo shows the outfit and body." : "",
     "Show this same person: keep the exact face, facial features, skin tone, age, hairstyle, body type and outfit. The face is clearly visible and sharp, turned toward the camera.",
+    GLASSES[j.glasses] ? `Add ${GLASSES[j.glasses]} on the person's face, worn naturally.` : "",
     PLACE[j.place],
     `Full body visible, caught naturally ${action}, candid and mid-motion, not posing for a photo. Use a different camera angle and framing than the original photo.`,
     CAM[j.cam],
@@ -1022,7 +1048,7 @@ async function startVideo(j) {
   let r;
   if (j.mode === "trend") {
     const m = TREND_MODELS.find((x) => x.id === j.model);
-    const prompt = [`${m.elements ? "@Element1" : "The person from the image"} dances, repeating the exact choreography and timing of the reference video, moving from the very first frame.`, FACE, CAM[j.cam], PHONE[j.phone], PLACE[j.place], NEG].filter(Boolean).join(" ");
+    const prompt = [`${m.elements ? "@Element1" : "The person from the image"} dances, repeating the exact choreography and timing of the reference video, moving from the very first frame.`, FACE, glassesLine(j), CAM[j.cam], PHONE[j.phone], PLACE[j.place], NEG].filter(Boolean).join(" ");
     const input = {
       image_url: j.frameUrl,
       video_url: ref(j.ref),
@@ -1041,6 +1067,7 @@ async function startVideo(j) {
       "Full body visible, energetic and natural motion with real-world physics, dancing on the beat of an upbeat trending pop track.",
       m.audio ? "" : "Vertical 9:16 framing.",
       FACE,
+      glassesLine(j),
       CAM[j.cam],
       PHONE[j.phone],
       PLACE[j.place],

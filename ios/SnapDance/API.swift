@@ -117,13 +117,13 @@ final class API {
         return try await send(r, as: Upload.self)
     }
 
-    func create(photos: [String?], refPath: String, seconds: Double) async throws -> CreateResponse {
+    func create(photos: [String?], refPath: String, seconds: Double, place: String, glasses: String) async throws -> CreateResponse {
         let ps: [Any] = photos.map { p -> Any in p.map { $0 as Any } ?? NSNull() }
         let faceIdx = photos.count > 1 && photos[1] != nil ? 1 : (photos.count > 2 && photos[2] != nil ? 2 : 0)
         return try await json("/api/jobs", [
             "mode": "trend", "photos": ps, "faceIdx": faceIdx, "consent": true, "adult": true, "ref": refPath, "keepSound": true,
             "model": SDConfig.model, "style": "hands", "dur": min(seconds, SDConfig.maxRefSeconds), "extra": "",
-            "frame": SDConfig.frame, "faceLock": false, "enhance": false, "phone": "oldiphone", "cam": "tripod", "place": "photo",
+            "frame": SDConfig.frame, "faceLock": false, "enhance": false, "phone": "oldiphone", "cam": "tripod", "place": place, "glasses": glasses,
             "author": "", "lang": appLang.rawValue,
         ], as: CreateResponse.self)
     }

@@ -48,6 +48,11 @@ func videosText(_ n: Int) -> String {
     }
 }
 
+/// Места для танца (id совпадают с сервером) и очки.
+let PLACES = ["photo", "street", "room", "gym", "party", "beach", "park", "kitchen", "office", "club", "rooftop"]
+let PLACE_ICONS = ["photo": "photo", "street": "building.2", "room": "bed.double", "gym": "figure.dance", "party": "party.popper", "beach": "beach.umbrella", "park": "tree", "kitchen": "fork.knife", "office": "desktopcomputer", "club": "music.note.house", "rooftop": "sunset"]
+let GLASSES = ["black", "aviator", "round", "mirror", "cateye", "heart", "clear"]
+
 /// Короткий доступ к тексту: L("go") → «Сделать видео».
 func L(_ key: String, _ args: [String: String] = [:]) -> String {
     var s = (STR[appLang]?[key]) ?? (STR[.en]?[key]) ?? key
@@ -80,7 +85,10 @@ private let STR: [Lang: [String: String]] = [
         "code.bad": "Код не найден.", "logout": "Выйти", "logout.q": "Выйти? Без кода вы потеряете доступ к рубинам.",
         "privacy": "Конфиденциальность", "terms": "Условия", "report": "Пожаловаться на видео", "close": "Закрыть", "cancel": "Отмена", "ok": "OK",
         "videos7": "Видео хранится 7 дней",
-        "pack.videos": "{v} до 15 сек", "pack.start": "Старт", "pack.pop": "Тренд", "pack.pro": "Студия", "pack.hit": "ХИТ", "bal.videos": "Хватит на {v} по {s} сек", "bal.none": "Видео {s} сек = {p} 💎",
+        "pack.videos": "{v} до 15 сек",
+        "step3": "Место и очки", "step3s": "Где танцевать и, если стесняетесь, — в очках", "place": "Где танцует", "gl.on": "Надеть очки", "gl.hint": "Очки будут на лице всё видео", "gl.pick": "Какие очки",
+        "pl.photo": "Как на фото", "pl.street": "Улица", "pl.room": "Комната", "pl.gym": "Танцевальная студия", "pl.party": "Домашняя вечеринка", "pl.beach": "Пляж", "pl.park": "Парк", "pl.kitchen": "Кухня", "pl.office": "Офис", "pl.club": "Ночной клуб", "pl.rooftop": "Крыша на закате",
+        "gl.black": "Чёрные солнцезащитные", "gl.aviator": "Авиаторы", "gl.round": "Круглые ретро", "gl.mirror": "Спортивные зеркальные", "gl.cateye": "«Кошачий глаз»", "gl.heart": "Сердечки", "gl.clear": "Прозрачные в чёрной оправе", "pack.start": "Старт", "pack.pop": "Тренд", "pack.pro": "Студия", "pack.hit": "ХИТ", "bal.videos": "Хватит на {v} по {s} сек", "bal.none": "Видео {s} сек = {p} 💎",
         "set.title": "Настройки", "set.share": "Поделиться приложением", "set.shareMsg": "Оживи фото — пусть станцует тренд из TikTok", "set.rate": "Оценить приложение", "set.write": "Написать разработчикам", "set.terms": "Условия использования", "set.eula": "Лицензионное соглашение (EULA)", "set.privacy": "Политика конфиденциальности",
         "ex.h2a": "Примеры: ", "ex.before.w": "до", "ex.and": " и ", "ex.after.w": "после", "ex.hint": "Было одно фото — стало видео. Нажмите на видео, чтобы включить звук.", "ex.before": "ДО", "ex.after": "ПОСЛЕ", "ex.user": "вы",
         "buy.xcode": "Тестовая покупка в Xcode прошла. Настоящие рубины начисляются только при покупке через TestFlight или App Store.", "secs": "{s} сек", "photo.lib": "Выбрать фото", "rubies": "рубинов",
@@ -109,7 +117,10 @@ private let STR: [Lang: [String: String]] = [
         "code.bad": "Código no encontrado.", "logout": "Salir", "logout.q": "¿Salir? Sin el código perderás el acceso a tus rubíes.",
         "privacy": "Privacidad", "terms": "Términos", "report": "Denunciar un vídeo", "close": "Cerrar", "cancel": "Cancelar", "ok": "OK",
         "videos7": "El vídeo se guarda 7 días",
-        "pack.videos": "{v} de hasta 15 s", "pack.start": "Inicio", "pack.pop": "Tendencia", "pack.pro": "Estudio", "pack.hit": "TOP", "bal.videos": "Te alcanza para {v} de {s} s", "bal.none": "Vídeo de {s} s = {p} 💎",
+        "pack.videos": "{v} de hasta 15 s",
+        "step3": "Lugar y gafas", "step3s": "Dónde bailar y, si te da vergüenza, con gafas", "place": "Dónde baila", "gl.on": "Ponerse gafas", "gl.hint": "Las gafas estarán puestas todo el vídeo", "gl.pick": "Qué gafas",
+        "pl.photo": "Como en la foto", "pl.street": "Calle", "pl.room": "Habitación", "pl.gym": "Estudio de baile", "pl.party": "Fiesta en casa", "pl.beach": "Playa", "pl.park": "Parque", "pl.kitchen": "Cocina", "pl.office": "Oficina", "pl.club": "Discoteca", "pl.rooftop": "Azotea al atardecer",
+        "gl.black": "Gafas de sol negras", "gl.aviator": "Aviador", "gl.round": "Redondas retro", "gl.mirror": "Deportivas espejadas", "gl.cateye": "Ojo de gato", "gl.heart": "Corazones", "gl.clear": "Transparentes montura negra", "pack.start": "Inicio", "pack.pop": "Tendencia", "pack.pro": "Estudio", "pack.hit": "TOP", "bal.videos": "Te alcanza para {v} de {s} s", "bal.none": "Vídeo de {s} s = {p} 💎",
         "set.title": "Ajustes", "set.share": "Compartir la app", "set.shareMsg": "Haz que tu foto baile el trend de TikTok", "set.rate": "Valorar la app", "set.write": "Escribir a los desarrolladores", "set.terms": "Términos de uso", "set.eula": "Acuerdo de licencia (EULA)", "set.privacy": "Política de privacidad",
         "ex.h2a": "Ejemplos: ", "ex.before.w": "antes", "ex.and": " y ", "ex.after.w": "después", "ex.hint": "Era una foto — ahora es un vídeo. Toca el vídeo para activar el sonido.", "ex.before": "ANTES", "ex.after": "DESPUÉS", "ex.user": "tu_perfil",
         "buy.xcode": "Compra de prueba en Xcode completada. Los rubíes reales solo se añaden al comprar desde TestFlight o App Store.", "secs": "{s} s", "photo.lib": "Elegir foto", "rubies": "rubíes",
@@ -138,7 +149,10 @@ private let STR: [Lang: [String: String]] = [
         "code.bad": "Code not found.", "logout": "Sign out", "logout.q": "Sign out? Without the code you'll lose access to your rubies.",
         "privacy": "Privacy", "terms": "Terms", "report": "Report a video", "close": "Close", "cancel": "Cancel", "ok": "OK",
         "videos7": "The video is kept for 7 days",
-        "pack.videos": "{v} up to 15 s", "pack.start": "Starter", "pack.pop": "Trend", "pack.pro": "Studio", "pack.hit": "BEST", "bal.videos": "Enough for {v} of {s} s", "bal.none": "A {s}-second video = {p} 💎",
+        "pack.videos": "{v} up to 15 s",
+        "step3": "Place and glasses", "step3s": "Where to dance and, if you're shy, wear glasses", "place": "Where they dance", "gl.on": "Wear glasses", "gl.hint": "The glasses stay on for the whole video", "gl.pick": "Which glasses",
+        "pl.photo": "Like in the photo", "pl.street": "Street", "pl.room": "Bedroom", "pl.gym": "Dance studio", "pl.party": "House party", "pl.beach": "Beach", "pl.park": "Park", "pl.kitchen": "Kitchen", "pl.office": "Office", "pl.club": "Nightclub", "pl.rooftop": "Rooftop at sunset",
+        "gl.black": "Black sunglasses", "gl.aviator": "Aviators", "gl.round": "Round retro", "gl.mirror": "Sport mirrored", "gl.cateye": "Cat-eye", "gl.heart": "Hearts", "gl.clear": "Clear, black frame", "pack.start": "Starter", "pack.pop": "Trend", "pack.pro": "Studio", "pack.hit": "BEST", "bal.videos": "Enough for {v} of {s} s", "bal.none": "A {s}-second video = {p} 💎",
         "set.title": "Settings", "set.share": "Share the app", "set.shareMsg": "Make your photo dance the TikTok trend", "set.rate": "Rate the app", "set.write": "Write to the developers", "set.terms": "Terms of Use", "set.eula": "License Agreement (EULA)", "set.privacy": "Privacy Policy",
         "ex.h2a": "Examples: ", "ex.before.w": "before", "ex.and": " and ", "ex.after.w": "after", "ex.hint": "One photo became a video. Tap a video to turn the sound on.", "ex.before": "BEFORE", "ex.after": "AFTER", "ex.user": "you",
         "buy.xcode": "Xcode test purchase completed. Real rubies are only added for purchases made via TestFlight or the App Store.", "secs": "{s} s", "photo.lib": "Choose photo", "rubies": "rubies",
