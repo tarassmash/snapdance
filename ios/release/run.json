@@ -1,1 +1,1 @@
-{"action": "all", "send": true, "try": 2}
+{"action": "none", "send": false, "note": "build = новая сборка в TestFlight; all + send:true = отправка на App Review"}

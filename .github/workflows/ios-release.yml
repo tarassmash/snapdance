@@ -12,7 +12,7 @@ on:
       send:
         description: "Отправить на проверку App Review (true/false)"
         required: true
-        default: "true"
+        default: "false"
 concurrency: ios-release
 jobs:
   release:
