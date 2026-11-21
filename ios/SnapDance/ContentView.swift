@@ -59,6 +59,10 @@ struct CreateView: View {
             VStack(alignment: .leading, spacing: 18) {
                 Text(L("tagline")).font(.system(size: 28, weight: .heavy)).padding(.top, 6)
 
+                if let ex = model.config?.examples, !ex.isEmpty {
+                    ExamplesSection(examples: ex)
+                }
+
                 Card(step: "1", title: L("step1"), subtitle: L("step1s")) {
                     HStack(spacing: 10) {
                         ForEach(0..<3, id: \.self) { i in photoSlot(i) }

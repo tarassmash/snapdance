@@ -78,6 +78,13 @@ final class Store: ObservableObject {
     private func handle(_ result: VerificationResult<Transaction>) async -> String? {
         guard case .verified(let tx) = result else { return L("buy.fail", ["e": "verification"]) }
         guard tx.productType == .consumable, tx.revocationDate == nil else { await tx.finish(); return nil }
+        #if DEBUG
+        // Локальный тест StoreKit в Xcode (Products.storekit): Apple не подписывает такие покупки, сервер их не примет
+        if tx.environment == .xcode {
+            await tx.finish()
+            return L("buy.xcode")
+        }
+        #endif
         do {
             let r = try await API.shared.verifyPurchase(jws: result.jwsRepresentation)
             await tx.finish()

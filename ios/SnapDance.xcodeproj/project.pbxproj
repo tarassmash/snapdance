@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		A10000000000000000000001 /* SnapDanceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* SnapDanceApp.swift */; };
 		A10000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* ContentView.swift */; };
+		A10000000000000000000026 /* Examples.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000026 /* Examples.swift */; };
 		A10000000000000000000020 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* Config.swift */; };
 		A10000000000000000000021 /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* API.swift */; };
 		A10000000000000000000022 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* AppModel.swift */; };
@@ -21,6 +22,8 @@
 /* Begin PBXFileReference section */
 		A20000000000000000000001 /* SnapDanceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapDanceApp.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A20000000000000000000026 /* Examples.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Examples.swift; sourceTree = "<group>"; };
+		A20000000000000000000027 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
 		A20000000000000000000020 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		A20000000000000000000021 /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
 		A20000000000000000000022 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
@@ -55,6 +58,8 @@
 			children = (
 				A20000000000000000000001 /* SnapDanceApp.swift */,
 				A20000000000000000000002 /* ContentView.swift */,
+				A20000000000000000000026 /* Examples.swift */,
+				A20000000000000000000027 /* Products.storekit */,
 				A20000000000000000000020 /* Config.swift */,
 				A20000000000000000000021 /* API.swift */,
 				A20000000000000000000022 /* AppModel.swift */,
@@ -106,6 +111,12 @@
 				TargetAttributes = {
 					A50000000000000000000001 = {
 						CreatedOnToolsVersion = 15.0;
+						DevelopmentTeam = F29T8NHFA6;
+						SystemCapabilities = {
+							com.apple.InAppPurchase = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -147,6 +158,7 @@
 			files = (
 				A10000000000000000000001 /* SnapDanceApp.swift in Sources */,
 				A10000000000000000000002 /* ContentView.swift in Sources */,
+				A10000000000000000000026 /* Examples.swift in Sources */,
 				A10000000000000000000020 /* Config.swift in Sources */,
 				A10000000000000000000021 /* API.swift in Sources */,
 				A10000000000000000000022 /* AppModel.swift in Sources */,
@@ -215,7 +227,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = F29T8NHFA6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = SnapDance;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -249,7 +261,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = F29T8NHFA6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = SnapDance;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;

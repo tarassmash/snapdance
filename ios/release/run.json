@@ -1,1 +1,1 @@
-{"action": "none", "send": false, "note": "build = новая сборка в TestFlight; all + send:true = отправка на App Review"}
+{"action": "all", "send": false, "note": "TestFlight build with examples + StoreKit config"}

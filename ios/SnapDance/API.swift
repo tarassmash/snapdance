@@ -13,6 +13,7 @@ struct AppConfig: Decodable {
     let brand: String
     let contact: String?
     let catalog: Catalog
+    let examples: [Example]?
 
     /// Цена в рубинах — та же формула, что на сайте.
     func price(seconds: Double) -> Int? {

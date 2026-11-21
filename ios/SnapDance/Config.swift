@@ -70,7 +70,9 @@ private let STR: [Lang: [String: String]] = [
         "code.copy": "Скопировать", "code.copied": "Код скопирован", "code.enter": "У меня уже есть код", "code.ph": "SD-XXXX-XXXX-XXXX", "code.login": "Войти",
         "code.bad": "Код не найден.", "logout": "Выйти", "logout.q": "Выйти? Без кода вы потеряете доступ к рубинам.",
         "privacy": "Конфиденциальность", "terms": "Условия", "report": "Пожаловаться на видео", "close": "Закрыть", "cancel": "Отмена", "ok": "OK",
-        "videos7": "Видео хранится 7 дней", "secs": "{s} сек", "photo.lib": "Выбрать фото", "rubies": "рубинов",
+        "videos7": "Видео хранится 7 дней",
+        "ex.h2a": "Примеры: ", "ex.before.w": "до", "ex.and": " и ", "ex.after.w": "после", "ex.hint": "Было одно фото — стало видео. Нажмите на видео, чтобы включить звук.", "ex.before": "ДО", "ex.after": "ПОСЛЕ", "ex.user": "вы",
+        "buy.xcode": "Тестовая покупка в Xcode прошла. Настоящие рубины начисляются только при покупке через TestFlight или App Store.", "secs": "{s} сек", "photo.lib": "Выбрать фото", "rubies": "рубинов",
     ],
     .es: [
         "tagline": "Foto → baile de TikTok",
@@ -95,7 +97,9 @@ private let STR: [Lang: [String: String]] = [
         "code.copy": "Copiar", "code.copied": "Código copiado", "code.enter": "Ya tengo un código", "code.ph": "SD-XXXX-XXXX-XXXX", "code.login": "Entrar",
         "code.bad": "Código no encontrado.", "logout": "Salir", "logout.q": "¿Salir? Sin el código perderás el acceso a tus rubíes.",
         "privacy": "Privacidad", "terms": "Términos", "report": "Denunciar un vídeo", "close": "Cerrar", "cancel": "Cancelar", "ok": "OK",
-        "videos7": "El vídeo se guarda 7 días", "secs": "{s} s", "photo.lib": "Elegir foto", "rubies": "rubíes",
+        "videos7": "El vídeo se guarda 7 días",
+        "ex.h2a": "Ejemplos: ", "ex.before.w": "antes", "ex.and": " y ", "ex.after.w": "después", "ex.hint": "Era una foto — ahora es un vídeo. Toca el vídeo para activar el sonido.", "ex.before": "ANTES", "ex.after": "DESPUÉS", "ex.user": "tu_perfil",
+        "buy.xcode": "Compra de prueba en Xcode completada. Los rubíes reales solo se añaden al comprar desde TestFlight o App Store.", "secs": "{s} s", "photo.lib": "Elegir foto", "rubies": "rubíes",
     ],
     .en: [
         "tagline": "Photo → TikTok dance",
@@ -120,6 +124,8 @@ private let STR: [Lang: [String: String]] = [
         "code.copy": "Copy", "code.copied": "Code copied", "code.enter": "I already have a code", "code.ph": "SD-XXXX-XXXX-XXXX", "code.login": "Sign in",
         "code.bad": "Code not found.", "logout": "Sign out", "logout.q": "Sign out? Without the code you'll lose access to your rubies.",
         "privacy": "Privacy", "terms": "Terms", "report": "Report a video", "close": "Close", "cancel": "Cancel", "ok": "OK",
-        "videos7": "The video is kept for 7 days", "secs": "{s} s", "photo.lib": "Choose photo", "rubies": "rubies",
+        "videos7": "The video is kept for 7 days",
+        "ex.h2a": "Examples: ", "ex.before.w": "before", "ex.and": " and ", "ex.after.w": "after", "ex.hint": "One photo became a video. Tap a video to turn the sound on.", "ex.before": "BEFORE", "ex.after": "AFTER", "ex.user": "you",
+        "buy.xcode": "Xcode test purchase completed. Real rubies are only added for purchases made via TestFlight or the App Store.", "secs": "{s} s", "photo.lib": "Choose photo", "rubies": "rubies",
     ],
 ]

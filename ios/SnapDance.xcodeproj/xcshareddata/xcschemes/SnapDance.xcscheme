@@ -15,6 +15,9 @@
          <BuildableReference BuildableIdentifier = "primary" BlueprintIdentifier = "A50000000000000000000001" BuildableName = "SnapDance.app" BlueprintName = "SnapDance" ReferencedContainer = "container:SnapDance.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <StoreKitConfigurationFileReference
+         identifier = "../../SnapDance/Products.storekit">
+      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction buildConfiguration = "Release" shouldUseLaunchSchemeArgsEnv = "YES" savedToolIdentifier = "" useCustomWorkingDirectory = "NO" debugDocumentVersioning = "YES">
    </ProfileAction>

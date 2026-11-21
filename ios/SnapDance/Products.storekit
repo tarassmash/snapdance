@@ -1,0 +1,94 @@
+{
+  "identifier": "E9B1364C-68EA-472D-ACEB-CBD58E84DA3F",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "14.99",
+      "familyShareable": false,
+      "internalID": "6740000001",
+      "localizations": [
+        {
+          "description": "200 rubies to make dance videos",
+          "displayName": "200 rubies",
+          "locale": "en_US"
+        },
+        {
+          "description": "200 rubíes para crear vídeos de baile",
+          "displayName": "200 rubíes",
+          "locale": "es_ES"
+        },
+        {
+          "description": "200 рубинов для создания видео с танцем",
+          "displayName": "200 рубинов",
+          "locale": "ru"
+        }
+      ],
+      "productID": "us.snapdance.app.rubies.start",
+      "referenceName": "200 rubies",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "39.99",
+      "familyShareable": false,
+      "internalID": "6740000002",
+      "localizations": [
+        {
+          "description": "600 rubies to make dance videos",
+          "displayName": "600 rubies",
+          "locale": "en_US"
+        },
+        {
+          "description": "600 rubíes para crear vídeos de baile",
+          "displayName": "600 rubíes",
+          "locale": "es_ES"
+        },
+        {
+          "description": "600 рубинов для создания видео с танцем",
+          "displayName": "600 рубинов",
+          "locale": "ru"
+        }
+      ],
+      "productID": "us.snapdance.app.rubies.pop",
+      "referenceName": "600 rubies",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "89.99",
+      "familyShareable": false,
+      "internalID": "6740000003",
+      "localizations": [
+        {
+          "description": "1500 rubies to make dance videos",
+          "displayName": "1500 rubies",
+          "locale": "en_US"
+        },
+        {
+          "description": "1500 rubíes para crear vídeos de baile",
+          "displayName": "1500 rubíes",
+          "locale": "es_ES"
+        },
+        {
+          "description": "1500 рубинов для создания видео с танцем",
+          "displayName": "1500 рубинов",
+          "locale": "ru"
+        }
+      ],
+      "productID": "us.snapdance.app.rubies.pro",
+      "referenceName": "1500 rubies",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_applicationInternalID": "6837738468",
+    "_developerTeamID": "F29T8NHFA6",
+    "_failTransactionsEnabled": false,
+    "_locale": "es_ES",
+    "_storefront": "ESP",
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}
