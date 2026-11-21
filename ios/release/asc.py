@@ -142,7 +142,8 @@ def setup_app_info(app):
     try:
         ard = call("GET", f"/v1/appInfos/{info['id']}/ageRatingDeclaration")["data"]
         bools = {"gambling", "unrestrictedWebAccess", "lootBox", "messagingAndChat", "userGeneratedContent", "advertising",
-                 "ageAssurance", "healthOrWellnessTopics", "parentalControls", "seventeenPlus"}
+                 "ageAssurance", "healthOrWellnessTopics", "parentalControls", "seventeenPlus",
+                 "datingAndRelationships", "sharedLocation", "socialMedia", "socialMediaAgeRestricted"}
         skip = {"kidsAgeBand", "developerAgeRatingInfoUrl", "ageRatingOverride", "ageRatingOverrideV2", "koreaAgeRatingOverride"}
         attrs = {}
         for k in ard["attributes"]:
@@ -154,11 +155,6 @@ def setup_app_info(app):
             print("  всё «нет» (4+)")
         except ASCError as e:
             warn(e)
-            for k, v in attrs.items():  # по одному, чтобы не потерять остальные
-                try:
-                    call("PATCH", f"/v1/ageRatingDeclarations/{ard['id']}", {"data": {"type": "ageRatingDeclarations", "id": ard["id"], "attributes": {k: v}}})
-                except ASCError as e2:
-                    warn(f"{k}: {e2}")
     except ASCError as e:
         warn(e)
 
