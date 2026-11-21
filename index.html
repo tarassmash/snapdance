@@ -323,6 +323,10 @@ img, video { max-width: 100%; }
 .chips button { min-height: 40px; min-width: 48px; }
 .btn.huge { white-space: nowrap; font-size: clamp(16px, 4.8vw, 19px); padding-inline: 14px; }
 .btn.huge .go-cost { flex: none; }
+/* кнопка не вылезает за карточку: переносим цену на вторую строку, если не влезает */
+.gobox > * { min-width: 0; }
+.btn.huge { box-sizing: border-box; max-width: 100%; flex-wrap: wrap; white-space: normal; row-gap: 6px; text-align: center; }
+.btn.huge .go-cost { white-space: nowrap; }
 .go-cost .eur { font-size: .72em; font-weight: 700; opacity: .75; margin-left: 4px; }
 .codebox { display: flex; gap: 8px; } .codebox input { min-width: 0; flex: 1; font-size: 16px; }
 .card { padding: clamp(14px, 4vw, 18px); }
@@ -428,7 +432,7 @@ img, video, iframe { max-width: 100% !important; height: auto; }
         <div class="checks"><label><input type="checkbox" id="consent"> <span data-t="ok.consent">Tengo el permiso de la persona de la foto y es mayor de 18 años.</span></label></div>
         <button class="btn wide huge" id="go"></button>
         <p class="from" id="fromPrice" hidden></p>
-        <p class="inc" data-t="inc">Ya incluido: la mejor IA para tu presupuesto · formato para TikTok, Reels y Shorts · sonido original</p>
+        <p class="inc" data-t="inc">Ya incluido: IA Kling 2.6 · formato para TikTok, Reels y Shorts · sonido original</p>
         <div class="msg" id="err" hidden></div>
       </section>
     </div>
@@ -719,14 +723,14 @@ Object.assign(I18N.ru, {
 });
 
 // ---- бюджет и автоподбор ----
-Object.assign(I18N.es, {"bud.label": "Tu presupuesto máximo", "bud.hint": "Elegimos solos la mejor IA y la mejor calidad que caben en tu presupuesto.", "bud.pick": "Elegido: {m} · {q} · {s}", "bud.hd": "Full HD 60 fps", "bud.std": "HD", "bud.low": "Para este baile hace falta como mínimo 💎 {n}.", "bud.up": "Con 💎 {n} tendrías: {m}", "inc": "Ya incluido: la mejor IA para tu presupuesto · aspecto de vídeo real de móvil · sonido original"});
-Object.assign(I18N.en, {"bud.label": "Your max budget", "bud.hint": "We automatically pick the best AI and the best quality that fit your budget.", "bud.pick": "Chosen: {m} · {q} · {s}", "bud.hd": "Full HD 60 fps", "bud.std": "HD", "bud.low": "This dance needs at least 💎 {n}.", "bud.up": "With 💎 {n} you'd get: {m}", "inc": "Included: the best AI for your budget · real phone-video look · original sound"});
-Object.assign(I18N.ru, {"bud.label": "Ваш максимальный бюджет", "bud.hint": "Мы сами подберём лучшую нейросеть и качество, которые помещаются в бюджет.", "bud.pick": "Выбрано: {m} · {q} · {s}", "bud.hd": "Full HD 60 fps", "bud.std": "HD", "bud.low": "Для этого танца нужно минимум 💎 {n}.", "bud.up": "За 💎 {n} будет: {m}", "inc": "Уже включено: лучшая нейросеть под ваш бюджет · вид настоящего видео с телефона · оригинальный звук"});
+Object.assign(I18N.es, {"bud.label": "Tu presupuesto máximo", "bud.hint": "Elegimos solos la mejor IA y la mejor calidad que caben en tu presupuesto.", "bud.pick": "Elegido: {m} · {q} · {s}", "bud.hd": "Full HD 60 fps", "bud.std": "HD", "bud.low": "Para este baile hace falta como mínimo 💎 {n}.", "bud.up": "Con 💎 {n} tendrías: {m}", "inc": "Ya incluido: IA Kling 2.6 · aspecto de vídeo real de móvil · sonido original"});
+Object.assign(I18N.en, {"bud.label": "Your max budget", "bud.hint": "We automatically pick the best AI and the best quality that fit your budget.", "bud.pick": "Chosen: {m} · {q} · {s}", "bud.hd": "Full HD 60 fps", "bud.std": "HD", "bud.low": "This dance needs at least 💎 {n}.", "bud.up": "With 💎 {n} you'd get: {m}", "inc": "Included: Kling 2.6 AI · real phone-video look · original sound"});
+Object.assign(I18N.ru, {"bud.label": "Ваш максимальный бюджет", "bud.hint": "Мы сами подберём лучшую нейросеть и качество, которые помещаются в бюджет.", "bud.pick": "Выбрано: {m} · {q} · {s}", "bud.hd": "Full HD 60 fps", "bud.std": "HD", "bud.low": "Для этого танца нужно минимум 💎 {n}.", "bud.up": "За 💎 {n} будет: {m}", "inc": "Уже включено: нейросеть Kling 2.6 · вид настоящего видео с телефона · оригинальный звук"});
 
 // ---- Reels / Shorts ----
-Object.assign(I18N.es, {"fmt.ready": "✅ Listo para TikTok, Reels y Shorts · 1080×1920", "plat.hint": "Texto para:", "plat.ig": ["#reels", "#reelsinstagram", "#explorar", "#baile", "#viral"], "plat.yt": ["#shorts", "#baile", "#bailes"], "inc": "Ya incluido: la mejor IA para tu presupuesto · formato para TikTok, Reels y Shorts · sonido original"});
-Object.assign(I18N.en, {"fmt.ready": "✅ Ready for TikTok, Reels and Shorts · 1080×1920", "plat.hint": "Caption for:", "plat.ig": ["#reels", "#reelsinstagram", "#explore", "#dance", "#viral"], "plat.yt": ["#shorts", "#dance", "#dancechallenge"], "inc": "Included: the best AI for your budget · TikTok, Reels and Shorts format · original sound"});
-Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и Shorts · 1080×1920", "plat.hint": "Подпись для:", "plat.ig": ["#reels", "#reelsinstagram", "#рилс", "#танцы", "#viral"], "plat.yt": ["#shorts", "#танцы", "#танец"], "inc": "Уже включено: лучшая нейросеть под ваш бюджет · формат для TikTok, Reels и Shorts · оригинальный звук"});
+Object.assign(I18N.es, {"fmt.ready": "✅ Listo para TikTok, Reels y Shorts · 1080×1920", "plat.hint": "Texto para:", "plat.ig": ["#reels", "#reelsinstagram", "#explorar", "#baile", "#viral"], "plat.yt": ["#shorts", "#baile", "#bailes"], "inc": "Ya incluido: IA Kling 2.6 · formato para TikTok, Reels y Shorts · sonido original"});
+Object.assign(I18N.en, {"fmt.ready": "✅ Ready for TikTok, Reels and Shorts · 1080×1920", "plat.hint": "Caption for:", "plat.ig": ["#reels", "#reelsinstagram", "#explore", "#dance", "#viral"], "plat.yt": ["#shorts", "#dance", "#dancechallenge"], "inc": "Included: Kling 2.6 AI · TikTok, Reels and Shorts format · original sound"});
+Object.assign(I18N.ru, {"fmt.ready": "✅ Готово для TikTok, Reels и Shorts · 1080×1920", "plat.hint": "Подпись для:", "plat.ig": ["#reels", "#reelsinstagram", "#рилс", "#танцы", "#viral"], "plat.yt": ["#shorts", "#танцы", "#танец"], "inc": "Уже включено: нейросеть Kling 2.6 · формат для TikTok, Reels и Shorts · оригинальный звук"});
 
 // ---- вопросы, подвал, уведомления ----
 Object.assign(I18N.es, {"keep.left": "⏳ Se guarda {d} días más — descárgalo"});
