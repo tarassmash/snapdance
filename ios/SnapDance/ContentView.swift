@@ -209,22 +209,7 @@ struct CreateView: View {
                     Text(L("inc")).font(.caption).foregroundStyle(SDConfig.muted)
                 }
 
-                ViewThatFits {
-                    HStack(spacing: 16) {
-                        Link(L("privacy"), destination: SDConfig.privacyURL)
-                        Link(L("terms"), destination: SDConfig.termsURL)
-                        Link(L("report"), destination: SDConfig.reportURL)
-                    }
-                    VStack(spacing: 8) {
-                        Link(L("privacy"), destination: SDConfig.privacyURL)
-                        Link(L("terms"), destination: SDConfig.termsURL)
-                        Link(L("report"), destination: SDConfig.reportURL)
-                    }
-                }
-                .lineLimit(1)
-                .font(.caption).foregroundStyle(SDConfig.muted).frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .id("bottom")
+                Color.clear.frame(height: 8).id("bottom")
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -414,12 +399,22 @@ struct MyVideosView: View {
                                     .font(.caption).foregroundStyle(job.status == "failed" ? .orange : SDConfig.muted)
                             }
                             Spacer()
-                            if job.isWorking { ProgressView() }
+                            if job.isWorking { ProgressView() } else {
+                                Button { toDelete = job } label: {
+                                    Image(systemName: "trash").font(.system(size: 17, weight: .semibold)).foregroundStyle(.red)
+                                        .frame(width: 40, height: 40).contentShape(Rectangle())
+                                }
+                                .buttonStyle(.borderless)
+                                .accessibilityLabel(L("del"))
+                            }
                         }
                     }
                     .listRowBackground(SDConfig.panel)
                     .swipeActions {
                         if !job.isWorking { Button(L("del"), role: .destructive) { toDelete = job } }
+                    }
+                    .contextMenu {
+                        if !job.isWorking { Button(role: .destructive) { toDelete = job } label: { Label(L("del"), systemImage: "trash") } }
                     }
                 }
             }
