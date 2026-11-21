@@ -147,7 +147,7 @@ def setup_app_info(app):
         skip = {"kidsAgeBand", "developerAgeRatingInfoUrl", "ageRatingOverride", "ageRatingOverrideV2", "koreaAgeRatingOverride"}
         attrs = {}
         for k in ard["attributes"]:
-            if k in skip:
+            if k in skip or "Override" in k or k.endswith("Number") or k.endswith("Url"):
                 continue
             attrs[k] = False if k in bools else "NONE"
         try:

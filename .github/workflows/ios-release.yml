@@ -16,7 +16,7 @@ on:
 concurrency: ios-release
 jobs:
   release:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 120
     env:
       # не секреты: без файла ключа .p8 они бесполезны
@@ -41,6 +41,9 @@ jobs:
           for v in ASC_KEY_P8; do
             if [ -z "${!v}" ]; then echo "::error::Нет секрета $v: GitHub → Settings → Secrets and variables → Actions → New repository secret, имя ASC_KEY_P8, значение — содержимое AuthKey_CU6G6Z29KV.p8"; exit 1; fi
           done
+          ls -d /Applications/Xcode*.app
+          X=$(ls -d /Applications/Xcode_26*.app /Applications/Xcode_27*.app 2>/dev/null | sort -V | tail -1)
+          [ -n "$X" ] && sudo xcode-select -s "$X/Contents/Developer"
           xcodebuild -version
       - name: Python
         run: python3 -m pip install --quiet --break-system-packages pyjwt cryptography requests || python3 -m pip install --quiet pyjwt cryptography requests
@@ -83,7 +86,7 @@ jobs:
           xcodebuild -project ios/SnapDance.xcodeproj -scheme SnapDance -configuration Debug -sdk iphonesimulator -derivedDataPath build/dd \
             CODE_SIGNING_ALLOWED=NO build 2>&1 | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
           APP=build/dd/Build/Products/Debug-iphonesimulator/SnapDance.app
-          DEV=$(xcrun simctl list devices available | grep -E "iPhone 16 Plus \(|iPhone 15 Pro Max \(|iPhone 15 Plus \(" | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
+          DEV=$(xcrun simctl list devices available | grep -E "iPhone 1[5-9] Plus \(|iPhone 1[5-9] Pro Max \(|iPhone 17 Air \(" | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
           echo "device $DEV"
           xcrun simctl boot "$DEV"; xcrun simctl bootstatus "$DEV" -b
           xcrun simctl status_bar "$DEV" override --time 9:41 --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3 || true
