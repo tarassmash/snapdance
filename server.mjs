@@ -1970,6 +1970,8 @@ async function ttStatus(key, id) {
 // Railway → Variables (необязательно): IOS_BUNDLE_ID (по умолчанию us.snapdance.app)
 var IOS_BUNDLE = () => (process.env.IOS_BUNDLE_ID || "us.snapdance.app").trim();
 var iapProduct = (packId) => `${IOS_BUNDLE()}.rubies.${packId}`;
+// Пакеты iOS-приложения (свои, не как на сайте): Railway → Variables → IOS_PACKS="start:200,pop:400,pro:800"
+var iosPacks = () => String(process.env.IOS_PACKS || "start:200,pop:400,pro:800").split(",").map((x) => x.trim().split(":")).filter(([id, n]) => id && +n > 0).map(([id, n]) => ({ id, credits: +n, popular: id === "pop" }));
 // SHA-256 отпечаток корневого сертификата Apple Root CA - G3
 var APPLE_ROOT_G3 = "63343ABFB89A6A03EBB57E9B3F5FA7BE7C4F5C756F3017B3A8C488C3653E9179";
 var b64u = (s2) => Buffer.from(String(s2).replace(/-/g, "+").replace(/_/g, "/"), "base64");
@@ -1992,7 +1994,7 @@ function iapFulfill(b) {
   const tx = verifyAppleJWS(b.jws);
   if (tx.bundleId !== IOS_BUNDLE()) throw new UserError2("Покупка из другого приложения.", 403);
   if (tx.revocationDate) throw new UserError2("Покупка отменена.", 403);
-  const pack = packs().find((p) => iapProduct(p.id) === tx.productId);
+  const pack = iosPacks().find((p) => iapProduct(p.id) === tx.productId);
   if (!pack) throw new UserError2("Пакет не найден.");
   const orderId = "iap:" + tx.transactionId;
   const existing = db.orders.find((o) => o.id === orderId);
@@ -2020,7 +2022,7 @@ function iapFulfill(b) {
 })();
 
 var routes = {
-  "GET /api/iap/products": async (req, res) => json(res, { products: packs().map((p) => ({ productId: iapProduct(p.id), pack: p.id, credits: p.credits, name: p.name, popular: !!p.popular })) }),
+  "GET /api/iap/products": async (req, res) => json(res, { products: iosPacks().map((p) => ({ productId: iapProduct(p.id), pack: p.id, credits: p.credits, popular: !!p.popular })) }),
   "POST /api/iap/verify": async (req, res) => json(res, iapFulfill(await body(req, 2e5))),
   "GET /api/tiktok/me": async (req, res) => {
     const k = clientKey(req);

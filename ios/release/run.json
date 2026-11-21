@@ -1,1 +1,1 @@
-{"action": "build", "send": false, "note": "TestFlight build: settings screen"}
+{"action": "all", "send": false, "note": "iOS packs 200/$8, 400/$16, 800/$24 + videos count"}

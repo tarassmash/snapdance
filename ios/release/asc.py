@@ -209,11 +209,17 @@ def setup_iaps(app, terr):
     have = iaps(app)
     for p in META["iap"]:
         pid = f"{bid}.rubies.{p['pack']}"
-        step(f"Покупка {pid}: {p['rubies']} рубинов за {p['eur']} €")
+        price = p.get("price") or p.get("eur")
+        videos = max(1, p["rubies"] // META.get("videoCost15", 158))
+        step(f"Покупка {pid}: {p['rubies']} рубинов за {price} (≈{videos} видео)")
         try:
             if pid in have:
                 iap = have[pid]
                 print(f"  есть (состояние {iap['attributes'].get('state')})")
+                if iap["attributes"].get("name") != f"{p['rubies']} rubies":
+                    call("PATCH", f"/v2/inAppPurchases/{iap['id']}", {"data": {"type": "inAppPurchases", "id": iap["id"], "attributes": {
+                        "name": f"{p['rubies']} rubies", "reviewNote": f"Adds {p['rubies']} rubies to the user's balance. Rubies are spent to generate dance videos."}}})
+                    print(f"  название обновлено: {p['rubies']} rubies")
             else:
                 iap = call("POST", "/v2/inAppPurchases", {"data": {"type": "inAppPurchases", "attributes": {
                     "name": f"{p['rubies']} rubies", "productId": pid, "inAppPurchaseType": "CONSUMABLE",
@@ -226,7 +232,7 @@ def setup_iaps(app, terr):
 
         locs = {l["attributes"]["locale"]: l for l in call("GET", f"/v2/inAppPurchases/{iid}/inAppPurchaseLocalizations")["data"]}
         for loc, m in META["locales"].items():
-            attrs = {"name": m["iapName"].format(n=p["rubies"]), "description": m["iapDesc"].format(n=p["rubies"])}
+            attrs = {"name": m["iapName"].format(n=p["rubies"]), "description": m["iapDesc"].format(n=p["rubies"], v=videos)[:55]}
             try:
                 if loc in locs:
                     call("PATCH", f"/v1/inAppPurchaseLocalizations/{locs[loc]['id']}", {"data": {"type": "inAppPurchaseLocalizations", "id": locs[loc]["id"], "attributes": attrs}})
@@ -238,14 +244,24 @@ def setup_iaps(app, terr):
         print("  названия и описания: ок")
 
         try:
-            if call("GET", f"/v2/inAppPurchases/{iid}/iapPriceSchedule", ok404=True):
-                print("  цена уже задана")
+            base = META.get("iapBaseTerritory") or META["baseTerritory"]
+            want = float(price)
+            cur = None
+            try:
+                sched = call("GET", f"/v2/inAppPurchases/{iid}/iapPriceSchedule", ok404=True)
+                if sched and sched.get("data"):
+                    mp = call("GET", f"/v1/inAppPurchasePriceSchedules/{sched['data']['id']}/manualPrices", params={"include": "inAppPurchasePricePoint,territory", "limit": 50})
+                    for inc in mp.get("included", []):
+                        if inc["type"] == "inAppPurchasePricePoints":
+                            terr = ((inc.get("relationships") or {}).get("territory") or {}).get("data", {}).get("id")
+                            cur = (terr, float(inc["attributes"]["customerPrice"]))
+            except ASCError:
+                pass
+            if cur and cur[0] == base and abs(cur[1] - want) < 0.001:
+                print(f"  цена уже {price} ({base})")
             else:
-                base = META["baseTerritory"]
                 pts = get_all(f"/v2/inAppPurchases/{iid}/pricePoints", {"filter[territory]": base})
-                pp = next((x for x in pts if abs(float(x["attributes"]["customerPrice"]) - float(p["eur"])) < 0.001), None)
-                if not pp:
-                    raise ASCError(f"нет цены {p['eur']} в {base}")
+                pp = min(pts, key=lambda x: abs(float(x["attributes"]["customerPrice"]) - want))
                 call("POST", "/v1/inAppPurchasePriceSchedules", {
                     "data": {"type": "inAppPurchasePriceSchedules", "relationships": {
                         "inAppPurchase": rel("inAppPurchases", iid), "baseTerritory": rel("territories", base),
@@ -253,7 +269,7 @@ def setup_iaps(app, terr):
                     "included": [{"type": "inAppPurchasePrices", "id": "${p0}", "attributes": {"startDate": None},
                                   "relationships": {"inAppPurchaseV2": rel("inAppPurchases", iid),
                                                     "inAppPurchasePricePoint": rel("inAppPurchasePricePoints", pp["id"])}}]})
-                print(f"  цена {p['eur']} € (остальные страны — по курсу Apple)")
+                print(f"  цена {pp['attributes']['customerPrice']} в {base} (было: {cur}); другие страны — по курсу Apple")
         except ASCError as e:
             warn(e)
 

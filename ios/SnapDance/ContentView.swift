@@ -139,6 +139,11 @@ struct CreateView: View {
                     }
                     .buttonStyle(PrimaryButton())
                     .disabled(model.busyText != nil)
+                    if let p = model.price, p > 0 {
+                        let secs = String(Int(min(SDConfig.maxRefSeconds, (model.ref?.seconds ?? 10).rounded(.up))))
+                        Text(model.credits >= p ? L("bal.videos", ["v": videosText(model.credits / p), "s": secs]) : L("bal.none", ["s": secs, "p": String(p)]))
+                            .font(.footnote.weight(.semibold)).foregroundStyle(model.credits >= p ? SDConfig.lime : SDConfig.muted)
+                    }
                     Text(L("inc")).font(.caption).foregroundStyle(SDConfig.muted)
                 }
 
@@ -410,7 +415,9 @@ struct WalletView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text("💎 \(pack.credits) \(L("rubies"))").font(.headline).lineLimit(1).minimumScaleFactor(0.7)
-                                    Text(pack.product.displayName).font(.caption).foregroundStyle(SDConfig.muted)
+                                    if let per = model.config?.price(seconds: SDConfig.maxRefSeconds), per > 0 {
+                                        Text(L("pack.videos", ["v": videosText(max(1, pack.credits / per))])).font(.caption).foregroundStyle(SDConfig.muted)
+                                    }
                                 }
                                 Spacer()
                                 if store.buying == pack.id { ProgressView() } else {
