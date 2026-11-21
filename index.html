@@ -381,6 +381,10 @@ img, video, iframe { max-width: 100% !important; height: auto; }
 .btn.huge .go-cost .eur { font-size: 12px; font-weight: 600; opacity: .6; margin-left: 3px; }
 .btn.huge .go-cost .rb, .btn.huge .go-cost img { width: 14px; height: 14px; }
 @media (max-width: 360px) { .btn.huge .go-cost .eur { display: none; } }
+/* кнопка «Опубликовать в TikTok» */
+.btn.tt { background: #000; color: #fff; border: 1px solid rgba(255,255,255,.18); border-radius: 14px; height: 48px; padding: 0 18px; font-weight: 700; width: 100%; box-shadow: -2px 0 0 #25f4ee inset, 2px 0 0 #fe2c55 inset; }
+.btn.tt svg { width: 18px; height: 18px; flex: none; }
+.btn.tt:active { transform: scale(.98); }
 </style>
 </head>
 <body>
@@ -451,6 +455,7 @@ img, video, iframe { max-width: 100% !important; height: auto; }
         <div class="busy" id="busy" hidden><div><div class="eq"><i></i><i></i><i></i><i></i><i></i></div><b id="busyT" data-t="busy.prep">Preparando…</b><p class="hint" id="busyS" style="margin-top:6px"></p><div class="stagebar"><i id="busyBar" style="width:5%"></i></div></div></div>
       </div>
       <div class="acts" id="outActs" hidden>
+        <button class="btn tt" id="ttPost" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M16.6 5.8a4.3 4.3 0 0 1-1-2.8h-3.1v12.4a2.6 2.6 0 1 1-1.8-2.5V9.7a5.7 5.7 0 1 0 4.9 5.7V9a7.3 7.3 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.3-1.5z"/></svg><span data-t="tt.post">Publicar en TikTok</span></button>
         <a class="btn" id="dl" href="#" download data-t="dl">⬇ Descargar vídeo</a>
         <button class="btn ghost" id="copyCap" data-t="kit.copy">Copiar texto</button>
       </div>
@@ -536,7 +541,7 @@ img, video, iframe { max-width: 100% !important; height: auto; }
       "lock.t": "🔒 La cara no se deforma (face-lock)", "lock.s": "Después del baile cada fotograma se compara con tu foto y la cara se restaura.",
       "fr.label": "Primer fotograma temático", "fr.none": "No crear — animar la propia foto", "fr.pro": "más fiel a la cara", "fr.basic": "más sencillo",
       "cost.label": "Precio", "cost.trend": "Precio · vídeo de {s} s", "cost.trend10": "Precio · por vídeo de 10 s", "cost.style": "Precio · {s} s", "go": "💃 Crear baile",
-      "idle": "Aquí aparecerá tu vídeo<br>9:16, como en TikTok", "dl": "⬇ Descargar vídeo", "again": "🔁 Otra versión", "my": "Mis vídeos",
+      "idle": "Aquí aparecerá tu vídeo<br>9:16, como en TikTok", "dl": "⬇ Descargar vídeo", "tt.post": "Publicar en TikTok", "tt.share": "Elige TikTok en la lista. El texto ya está copiado: pégalo en la descripción.", "tt.desk": "Vídeo descargado y texto copiado. Súbelo en TikTok y pega el texto.", "again": "🔁 Otra versión", "my": "Mis vídeos",
       "kit.title": "🚀 Para entrar en tendencias", "kit.copy": "Copiar texto", "kit.new": "✨ Otro texto",
       "kit.list": "<li>Publícalo con el <b>sonido original de la tendencia</b> de la biblioteca de TikTok: por el sonido el vídeo entra en el feed de la tendencia.</li><li>Los 2 primeros segundos lo deciden todo: pon un texto gancho sobre el vídeo en el editor de TikTok.</li><li>Mejor hora: por la tarde, 18:00–22:00 hora de tu público. Responde a los primeros comentarios.</li><li>Activa la etiqueta «Contenido generado por IA» al publicar: las normas de TikTok la exigen para vídeos de IA realistas.</li>",
       "foot.rule": "Solo con el permiso de la persona de la foto, 18+",
@@ -602,7 +607,7 @@ img, video, iframe { max-width: 100% !important; height: auto; }
       "lock.t": "🔒 The face stays true (face-lock)", "lock.s": "After the dance every frame is checked against your photo and the face is restored.",
       "fr.label": "Themed first frame", "fr.none": "Skip — animate the photo itself", "fr.pro": "more faithful face", "fr.basic": "simpler",
       "cost.label": "Price", "cost.trend": "Price · {s} s clip", "cost.trend10": "Price · per 10 s clip", "cost.style": "Price · {s} s", "go": "💃 Make the dance",
-      "idle": "Your video will appear here<br>9:16, like on TikTok", "dl": "⬇ Download video", "again": "🔁 Another version", "my": "My videos",
+      "idle": "Your video will appear here<br>9:16, like on TikTok", "dl": "⬇ Download video", "tt.post": "Post to TikTok", "tt.share": "Pick TikTok in the list. The caption is copied: paste it into the description.", "tt.desk": "Video downloaded and caption copied. Upload it on TikTok and paste the caption.", "again": "🔁 Another version", "my": "My videos",
       "kit.title": "🚀 To hit the trends", "kit.copy": "Copy caption", "kit.new": "✨ Another caption",
       "kit.list": "<li>Post it with the <b>original trend sound</b> from TikTok's library — the sound is what puts your video into the trend's feed.</li><li>The first 2 seconds decide everything: add a hook caption on top of the video in TikTok's editor.</li><li>Best time: evenings, 6–10 pm in your audience's time zone. Reply to the first comments.</li><li>Turn on the “AI-generated” label when posting — TikTok's rules require it for realistic AI videos.</li>",
       "foot.rule": "Only with the consent of the person in the photo, 18+",
@@ -668,7 +673,7 @@ img, video, iframe { max-width: 100% !important; height: auto; }
       "lock.t": "🔒 Лицо не плывёт (face-lock)", "lock.s": "После танца каждый кадр сверяется с вашим фото и лицо восстанавливается.",
       "fr.label": "Первый кадр по теме", "fr.none": "Не делать — анимировать само фото", "fr.pro": "точнее лицо", "fr.basic": "проще",
       "cost.label": "Стоимость", "cost.trend": "Стоимость · ролик {s} сек", "cost.trend10": "Стоимость · за ролик 10 сек", "cost.style": "Стоимость · {s} сек", "go": "💃 Сделать танец",
-      "idle": "Здесь появится ваше видео<br>9:16, как в TikTok", "dl": "⬇ Скачать видео", "again": "🔁 Ещё вариант", "my": "Мои видео",
+      "idle": "Здесь появится ваше видео<br>9:16, как в TikTok", "dl": "⬇ Скачать видео", "tt.post": "Опубликовать в TikTok", "tt.share": "Выберите TikTok в списке. Подпись уже скопирована — вставьте её в описание.", "tt.desk": "Видео скачано, подпись скопирована. Загрузите его в TikTok и вставьте подпись.", "again": "🔁 Ещё вариант", "my": "Мои видео",
       "kit.title": "🚀 Чтобы зашло в тренды", "kit.copy": "Скопировать подпись", "kit.new": "✨ Другая подпись",
       "kit.list": "<li>Публикуйте с <b>оригинальным трендовым звуком</b> из библиотеки TikTok — по звуку ролик попадает в ленту тренда.</li><li>Первые 2 секунды решают всё: подпись-крючок поверх видео прямо в редакторе TikTok.</li><li>Лучшее время — вечер 18:00–22:00 по времени вашей аудитории. Отвечайте на первые комментарии.</li><li>Включите метку «Создано ИИ» при публикации — правила TikTok требуют её для реалистичных ИИ-видео.</li>",
       "foot.rule": "Только с согласия человека на фото, 18+",
@@ -1091,7 +1096,7 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
     // видео хранится ограниченное время — напоминаем скачать
     const left = j.expires ? Math.max(0, Math.ceil((j.expires - Date.now()) / 864e5)) : 0;
     $("keepNote").hidden = !left; if (left) $("keepNote").textContent = t("keep.left", { d: left });
-    shown = j.id; renderMine(); makeCaption(j);
+    shown = j.id; renderMine(); makeCaption(j); prepShare(j);
   }
   function renderMine() {
     const list = jobs.filter(j => !["failed", "removed", "expired"].includes(j.status)).slice(0, 30);
@@ -1116,6 +1121,32 @@ Object.assign(I18N.ru, {"faq.h": "Частые вопросы", "foot.privacy": 
     $("capBox").hidden = false;
   }
   $("plat").onclick = e => { const b = e.target.closest("[data-p]"); if (!b || !capJob) return; plat = b.dataset.p; makeCaption(capJob, true); };
+  // ---------- «Опубликовать в TikTok»: на телефоне — меню «Поделиться» с готовым файлом, на компьютере — скачать + открыть TikTok Studio ----------
+  const canShareFiles = (() => { try { return !!navigator.canShare && navigator.canShare({ files: [new File([""], "a.mp4", { type: "video/mp4" })] }); } catch { return false; } })();
+  let shareFile = null, shareFor = "";
+  function prepShare(j) {
+    if (!canShareFiles || shareFor === j.id) return;
+    shareFor = j.id; shareFile = null;
+    fetch(j.result).then(r => r.blob()).then(b => { if (shareFor === j.id) shareFile = new File([b], `snapdance-${j.id}.mp4`, { type: "video/mp4" }); }).catch(() => {});
+  }
+  $("ttPost").onclick = async () => {
+    const j = capJob; if (!j?.result) return;
+    if (plat !== "tt") { plat = "tt"; makeCaption(j, true); }
+    const text = $("caption").textContent;
+    navigator.clipboard?.writeText(text).catch(() => {});
+    sdTrack("share", { method: "tiktok", item_id: j.id });
+    if (canShareFiles) {
+      try {
+        const f = shareFile || new File([await (await fetch(j.result)).blob()], `snapdance-${j.id}.mp4`, { type: "video/mp4" });
+        toast(t("tt.share"), 5000);
+        await navigator.share({ files: [f], text });
+        return;
+      } catch (e) { if (e?.name === "AbortError") return; }
+    }
+    const w = window.open("https://www.tiktok.com/tiktokstudio/upload", "_blank"); if (w) w.opener = null;
+    $("dl").click();
+    toast(t("tt.desk"), 6000);
+  };
   $("copyCap").onclick = () => navigator.clipboard?.writeText($("caption").textContent).then(() => toast(t("toast.capCopied"))).catch(() => {});
 
   // ---------- примеры до и после ----------
