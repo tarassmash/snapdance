@@ -412,23 +412,40 @@ struct WalletView: View {
                                 }
                             }
                         } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text("💎 \(pack.credits) \(L("rubies"))").font(.headline).lineLimit(1).minimumScaleFactor(0.7)
+                            // как на сайте: 💎 число · название (ХИТ) · «N видео до 15 сек» · цена
+                            HStack(spacing: 12) {
+                                HStack(spacing: 6) {
+                                    Text("💎").font(.system(size: 18))
+                                    Text(String(pack.credits)).font(.system(size: 24, weight: .heavy, design: .rounded)).monospacedDigit()
+                                }
+                                .lineLimit(1).fixedSize()
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack(spacing: 6) {
+                                        Text(L("pack." + (pack.id.components(separatedBy: ".").last ?? ""))).font(.system(size: 16, weight: .bold))
+                                        if pack.popular {
+                                            Text(L("pack.hit")).font(.system(size: 10.5, weight: .heavy))
+                                                .padding(.horizontal, 6).padding(.vertical, 2)
+                                                .background(Color(red: 1, green: 0.18, blue: 0.36), in: RoundedRectangle(cornerRadius: 6))
+                                                .foregroundStyle(.white)
+                                        }
+                                    }
                                     if let per = model.config?.price(seconds: SDConfig.maxRefSeconds), per > 0 {
-                                        Text(L("pack.videos", ["v": videosText(max(1, pack.credits / per))])).font(.caption).foregroundStyle(SDConfig.muted)
+                                        Text(L("pack.videos", ["v": videosText(max(1, pack.credits / per))]))
+                                            .font(.system(size: 12.5)).foregroundStyle(SDConfig.muted)
                                     }
                                 }
-                                Spacer()
+                                .lineLimit(1).minimumScaleFactor(0.7)
+                                Spacer(minLength: 4)
                                 if store.buying == pack.id { ProgressView() } else {
-                                    Text(pack.product.displayPrice).font(.headline).foregroundStyle(.black)
-                                        .padding(.horizontal, 14).padding(.vertical, 8)
-                                        .background(SDConfig.lime, in: Capsule())
+                                    Text(pack.product.displayPrice).font(.system(size: 16, weight: .heavy)).foregroundStyle(SDConfig.bg)
+                                        .lineLimit(1).fixedSize()
+                                        .padding(.horizontal, 12).padding(.vertical, 8)
+                                        .background(Color.white, in: Capsule())
                                 }
                             }
                             .padding(14)
-                            .background(SDConfig.panel, in: RoundedRectangle(cornerRadius: 16))
-                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(pack.popular ? SDConfig.lime : SDConfig.line, lineWidth: pack.popular ? 1.5 : 1))
+                            .background(SDConfig.panel2, in: RoundedRectangle(cornerRadius: 16))
+                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(pack.popular ? Color(red: 1, green: 0.18, blue: 0.36) : SDConfig.line, lineWidth: 2))
                         }
                         .buttonStyle(.plain)
                         .disabled(store.buying != nil)
