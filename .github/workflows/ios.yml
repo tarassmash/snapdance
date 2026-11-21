@@ -29,11 +29,16 @@ jobs:
           xcrun simctl bootstatus "$DEV" -b
           xcrun simctl install "$DEV" "$APP"
           mkdir -p shots
-          for LANG in ru es en; do
+          xcrun simctl ui "$DEV" content_size extra-extra-large || true
+          for LANG in ru es; do
             xcrun simctl terminate "$DEV" us.snapdance.app || true
             xcrun simctl launch "$DEV" us.snapdance.app -AppleLanguages "($LANG)"
             sleep 12
             xcrun simctl io "$DEV" screenshot shots/$LANG.png
+            xcrun simctl terminate "$DEV" us.snapdance.app || true
+            xcrun simctl launch "$DEV" us.snapdance.app -AppleLanguages "($LANG)" -sdBottom
+            sleep 14
+            xcrun simctl io "$DEV" screenshot shots/$LANG-bottom.png
           done
           echo "---- log"; xcrun simctl spawn "$DEV" log show --last 3m --style compact --predicate 'process == "SnapDance"' 2>/dev/null | grep -iE "Fatal error|Unable to simultaneously|constraint" | tail -20 || true
       - name: Save screenshots to branch ci-screens

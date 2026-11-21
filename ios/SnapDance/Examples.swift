@@ -21,8 +21,8 @@ struct ExamplesSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             (Text(L("ex.h2a")) + Text(L("ex.before.w")).italic().foregroundColor(SDConfig.lime) + Text(L("ex.and")) + Text(L("ex.after.w")).italic().foregroundColor(SDConfig.lime))
-                .font(.system(size: 20, weight: .heavy))
-            Text(L("ex.hint")).font(.footnote).foregroundStyle(SDConfig.muted)
+                .font(.system(size: 20, weight: .heavy)).lineLimit(2).minimumScaleFactor(0.7)
+            Text(L("ex.hint")).font(.footnote).foregroundStyle(SDConfig.muted).fixedSize(horizontal: false, vertical: true)
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(alignment: .top, spacing: 12) {
                     ForEach(Array(examples.enumerated()), id: \.element.id) { i, ex in
@@ -184,7 +184,7 @@ private struct FeedOverlay: View {
     private func item<V: View>(_ icon: V, n: Double) -> some View {
         VStack(spacing: 2) {
             icon.frame(width: 28, height: 28)
-            Text(compact(n)).font(.system(size: 11, weight: .bold)).monospacedDigit()
+            Text(compact(n)).font(.system(size: 11, weight: .bold)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.6).frame(width: 46)
         }
     }
 

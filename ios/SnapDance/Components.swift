@@ -15,13 +15,15 @@ struct Card<Content: View>: View {
                 Text(step).font(.system(size: 13, weight: .heavy)).foregroundStyle(.black)
                     .frame(width: 24, height: 24).background(SDConfig.lime, in: Circle())
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.headline)
-                    Text(subtitle).font(.caption).foregroundStyle(SDConfig.muted)
+                    Text(title).font(.headline).fixedSize(horizontal: false, vertical: true)
+                    Text(subtitle).font(.caption).foregroundStyle(SDConfig.muted).fixedSize(horizontal: false, vertical: true)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             content
         }
         .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(SDConfig.panel, in: RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(SDConfig.line))
     }

@@ -42,6 +42,7 @@ struct ContentView: View {
         }
         .tint(SDConfig.lime)
         .preferredColorScheme(.dark)
+        .dynamicTypeSize(.xSmall ... .xxLarge)
         .task { await model.start() }
     }
 }
@@ -55,9 +56,11 @@ struct CreateView: View {
     @State private var movieItem: PhotosPickerItem?
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 Text(L("tagline")).font(.system(size: 28, weight: .heavy)).padding(.top, 6)
+                    .lineLimit(2).minimumScaleFactor(0.6).fixedSize(horizontal: false, vertical: true)
 
                 if let ex = model.config?.examples, !ex.isEmpty {
                     ExamplesSection(examples: ex)
@@ -84,7 +87,7 @@ struct CreateView: View {
                                 }
                                 .frame(width: 64, height: 96).clipShape(RoundedRectangle(cornerRadius: 10))
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(refSecs == nil ? L("ref.pick") : L("ref.change")).font(.headline)
+                                    Text(refSecs == nil ? L("ref.pick") : L("ref.change")).font(.headline).lineLimit(2).minimumScaleFactor(0.8)
                                     if let secs = refSecs { Text(L("secs", ["s": String(Int(secs.rounded()))])).font(.subheadline).foregroundStyle(SDConfig.muted) }
                                 }
                                 Spacer()
@@ -95,13 +98,13 @@ struct CreateView: View {
                         }
                         .buttonStyle(.plain)
                         Link(destination: SDConfig.trendsURL) {
-                            Label(L("ref.trends"), systemImage: "arrow.up.right.square").font(.subheadline.weight(.semibold))
+                            Label(L("ref.trends"), systemImage: "arrow.up.right.square").font(.subheadline.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.7)
                         }
                     }
                 }
 
                 Toggle(isOn: $model.consent) {
-                    Text(L("consent")).font(.footnote).foregroundStyle(SDConfig.muted)
+                    Text(L("consent")).font(.footnote).foregroundStyle(SDConfig.muted).fixedSize(horizontal: false, vertical: true)
                 }
                 .toggleStyle(CheckToggle())
 
@@ -114,7 +117,7 @@ struct CreateView: View {
                     Button { Task { await model.generate() } } label: {
                         HStack(spacing: 10) {
                             if model.busyText != nil { ProgressView().tint(.black) }
-                            Text(model.busyText ?? L("go"))
+                            Text(model.busyText ?? L("go")).minimumScaleFactor(0.7)
                             if model.busyText == nil, let p = model.price {
                                 Text("💎 \(p)").font(.system(size: 14, weight: .bold))
                                     .padding(.horizontal, 9).padding(.vertical, 4)
@@ -135,10 +138,20 @@ struct CreateView: View {
                 }
                 .font(.caption).foregroundStyle(SDConfig.muted).frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
+                .id("bottom")
             }
             .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .scrollDismissesKeyboard(.interactively)
+        .onAppear {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-sdBottom") {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4) { proxy.scrollTo("bottom", anchor: .bottom) }
+            }
+            #endif
+        }
+        }
         .onChange(of: movieItem) { item in
             guard let item else { return }
             Task {
@@ -170,8 +183,8 @@ struct CreateView: View {
                 .frame(maxWidth: .infinity).aspectRatio(3 / 4, contentMode: .fit)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(i == 0 && image == nil ? SDConfig.lime.opacity(0.6) : SDConfig.line, lineWidth: 1))
-                Text(L("slot.\(i + 1)")).font(.caption.weight(.semibold)).lineLimit(1)
-                Text(i == 0 ? L("slot.1s") : L("opt")).font(.caption2).foregroundStyle(SDConfig.muted)
+                Text(L("slot.\(i + 1)")).font(.caption.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.7)
+                Text(i == 0 ? L("slot.1s") : L("opt")).font(.caption2).foregroundStyle(SDConfig.muted).lineLimit(1).minimumScaleFactor(0.7)
             }
         }
         .buttonStyle(.plain)
@@ -242,15 +255,15 @@ struct ResultView: View {
                 .overlay(RoundedRectangle(cornerRadius: 18).stroke(SDConfig.line))
 
             Button { Task { await postToTikTok() } } label: {
-                Label(L("tiktok"), systemImage: "music.note").lineLimit(1)
+                Label(L("tiktok"), systemImage: "music.note").lineLimit(1).minimumScaleFactor(0.7)
             }
             .buttonStyle(TikTokButton())
             .disabled(working)
 
             HStack(spacing: 10) {
-                Button { Task { await save() } } label: { Label(L("save"), systemImage: "square.and.arrow.down") }
+                Button { Task { await save() } } label: { Label(L("save"), systemImage: "square.and.arrow.down").lineLimit(1).minimumScaleFactor(0.6) }
                     .buttonStyle(SecondaryButton())
-                Button { Task { await shareFile() } } label: { Label(L("share"), systemImage: "square.and.arrow.up") }
+                Button { Task { await shareFile() } } label: { Label(L("share"), systemImage: "square.and.arrow.up").lineLimit(1).minimumScaleFactor(0.6) }
                     .buttonStyle(SecondaryButton())
             }
             .disabled(working)
@@ -377,7 +390,7 @@ struct WalletView: View {
                         } label: {
                             HStack {
                                 VStack(alignment: .leading, spacing: 3) {
-                                    Text("💎 \(pack.credits) \(L("rubies"))").font(.headline)
+                                    Text("💎 \(pack.credits) \(L("rubies"))").font(.headline).lineLimit(1).minimumScaleFactor(0.7)
                                     Text(pack.product.displayName).font(.caption).foregroundStyle(SDConfig.muted)
                                 }
                                 Spacer()
@@ -398,7 +411,7 @@ struct WalletView: View {
                     if !model.key.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text(L("code")).font(.headline)
-                            Text(model.key).font(.system(.title3, design: .monospaced).weight(.bold)).textSelection(.enabled)
+                            Text(model.key).font(.system(.title3, design: .monospaced).weight(.bold)).textSelection(.enabled).lineLimit(1).minimumScaleFactor(0.6)
                             Text(L("code.hint")).font(.caption).foregroundStyle(SDConfig.muted)
                             HStack {
                                 Button(L("code.copy")) { UIPasteboard.general.string = model.key; model.toast = L("code.copied") }
