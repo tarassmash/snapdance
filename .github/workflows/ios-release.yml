@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "setup | build | screenshots | prepare (без отправки) | submit | all"
+        description: "setup | build | screenshots | prepare (без отправки) | store (описания+скрины+внешний TestFlight) | beta | submit | all"
         required: true
         default: all
       send:
@@ -50,7 +50,7 @@ jobs:
       - name: Python
         run: python3 -m pip install --quiet --break-system-packages pyjwt cryptography requests || python3 -m pip install --quiet pyjwt cryptography requests
       - name: App Store Connect setup (Bundle ID, категории, рейтинг, цена, покупки)
-        if: steps.what.outputs.action == 'setup' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare'
+        if: steps.what.outputs.action == 'setup' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare' || steps.what.outputs.action == 'store'
         run: python3 ios/release/asc.py setup
 
       - name: Archive & upload to App Store Connect
@@ -84,7 +84,7 @@ jobs:
           echo "Загружена сборка $BUILD_NUMBER"
 
       - name: Screenshots in simulator
-        if: steps.what.outputs.action == 'screenshots' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare'
+        if: steps.what.outputs.action == 'screenshots' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare' || steps.what.outputs.action == 'store'
         run: |
           set -o pipefail
           xcodebuild -project ios/SnapDance.xcodeproj -scheme SnapDance -configuration Debug -sdk iphonesimulator -derivedDataPath build/dd \
@@ -118,6 +118,10 @@ jobs:
             && git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" store-screens ) || true
           sips -g pixelWidth -g pixelHeight shots/en-US/1.png
           python3 ios/release/asc.py screenshots shots
+
+      - name: TestFlight external testing
+        if: steps.what.outputs.action == 'beta' || steps.what.outputs.action == 'store'
+        run: python3 ios/release/asc.py beta
 
       - name: Submit for App Review
         if: steps.what.outputs.action == 'submit' || steps.what.outputs.action == 'all'

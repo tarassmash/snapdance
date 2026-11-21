@@ -1,1 +1,1 @@
-{"action": "prepare", "send": false, "note": "hide russian example caption for other languages, clean first screenshot; TestFlight only"}
+{"action": "store", "send": false, "note": "ASO metadata in 8 locales with policy links, screenshots, external TestFlight; NO App Review"}

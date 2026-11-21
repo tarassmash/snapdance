@@ -127,15 +127,22 @@ def setup_app_info(app):
         warn(e)
     have = {l["attributes"]["locale"]: l for l in call("GET", f"/v1/appInfos/{info['id']}/appInfoLocalizations")["data"]}
     for loc, m in META["locales"].items():
-        attrs = {"name": META["appName"], "subtitle": m["subtitle"], "privacyPolicyUrl": loc_url(loc, "/privacy")}
+        attrs = {"name": m.get("name") or META["appName"], "subtitle": m["subtitle"], "privacyPolicyUrl": loc_url(loc, "/privacy")}
         try:
             if loc in have:
                 call("PATCH", f"/v1/appInfoLocalizations/{have[loc]['id']}", {"data": {"type": "appInfoLocalizations", "id": have[loc]["id"], "attributes": attrs}})
             else:
                 call("POST", "/v1/appInfoLocalizations", {"data": {"type": "appInfoLocalizations", "attributes": dict(attrs, locale=loc),
                                                                     "relationships": {"appInfo": rel("appInfos", info["id"])}}})
-            print(f"  {loc}: ок")
+            print(f"  {loc}: ок — {attrs['name']}")
         except ASCError as e:
+            if attrs["name"] != META["appName"] and loc in have:
+                try:  # имя занято/не принято — оставляем старое, остальное сохраняем
+                    attrs["name"] = META["appName"]
+                    call("PATCH", f"/v1/appInfoLocalizations/{have[loc]['id']}", {"data": {"type": "appInfoLocalizations", "id": have[loc]["id"], "attributes": attrs}})
+                    warn(f"{loc}: новое имя не принято ({e}), оставлено {META['appName']}"); continue
+                except ASCError as e2:
+                    e = e2
             warn(f"{loc}: {e}")
 
     step("Возрастной рейтинг")
@@ -348,7 +355,8 @@ def cmd_screenshots(shots: Path):
     v = version(app)
     locs = version_locs(v)
     for loc, l in locs.items():
-        files = sorted((shots / loc).glob("*.png")) or sorted((shots / "en-US").glob("*.png"))
+        src = META.get("shotLocale", {}).get(loc, loc)
+        files = sorted((shots / src).glob("*.png")) or sorted((shots / "en-US").glob("*.png"))
         if not files:
             warn(f"{loc}: нет скриншотов"); continue
         dtype = os.environ.get("SHOT_TYPE", "APP_IPHONE_67")
@@ -475,6 +483,87 @@ def _after_review(app, v, send):
     print("  ✅ Отправлено на проверку App Review")
 
 
+BETA_LOCALES = ["en-US", "es-ES", "ru", "uk"]
+
+
+def cmd_beta(build_no):
+    """Внешнее тестирование TestFlight: описание, данные для проверки, группа с публичной ссылкой, отправка сборки на Beta App Review."""
+    app = the_app()
+    step("TestFlight: описание бета-версии")
+    have = {l["attributes"]["locale"]: l for l in call("GET", f"/v1/apps/{app['id']}/betaAppLocalizations")["data"]}
+    for loc in BETA_LOCALES:
+        attrs = {"description": META["betaDescription"], "feedbackEmail": "tmonchak@gmail.com",
+                 "marketingUrl": loc_url(loc, "/"), "privacyPolicyUrl": loc_url(loc, "/privacy")}
+        try:
+            if loc in have:
+                call("PATCH", f"/v1/betaAppLocalizations/{have[loc]['id']}", {"data": {"type": "betaAppLocalizations", "id": have[loc]["id"], "attributes": attrs}})
+            else:
+                call("POST", "/v1/betaAppLocalizations", {"data": {"type": "betaAppLocalizations", "attributes": dict(attrs, locale=loc), "relationships": {"app": rel("apps", app["id"])}}})
+            print(f"  {loc}: ок")
+        except ASCError as e:
+            warn(f"{loc}: {e}")
+
+    step("TestFlight: данные для проверяющего (копия из версии App Store)")
+    v = version(app)
+    rd = call("GET", f"/v1/appStoreVersions/{v['id']}/appStoreReviewDetail", ok404=True)
+    src = (rd or {}).get("data") or {}
+    sa = src.get("attributes") or {}
+    attrs = {k: sa.get(k) for k in ("contactFirstName", "contactLastName", "contactPhone", "contactEmail", "notes") if sa.get(k)}
+    attrs["demoAccountRequired"] = False
+    try:
+        bd = call("GET", f"/v1/apps/{app['id']}/betaAppReviewDetail")["data"]
+        call("PATCH", f"/v1/betaAppReviewDetails/{bd['id']}", {"data": {"type": "betaAppReviewDetails", "id": bd["id"], "attributes": attrs}})
+        print(f"  ок ({', '.join(k for k in attrs if k != 'notes')})")
+    except ASCError as e:
+        warn(e)
+
+    b = wait_build(app, build_no)
+    num = b["attributes"]["version"]
+    step(f"TestFlight: что тестировать в сборке {num}")
+    have = {l["attributes"]["locale"]: l for l in call("GET", f"/v1/builds/{b['id']}/betaBuildLocalizations")["data"]}
+    for loc, txt in META["betaWhatsNew"].items():
+        try:
+            if loc in have:
+                call("PATCH", f"/v1/betaBuildLocalizations/{have[loc]['id']}", {"data": {"type": "betaBuildLocalizations", "id": have[loc]["id"], "attributes": {"whatsNew": txt}}})
+            else:
+                call("POST", "/v1/betaBuildLocalizations", {"data": {"type": "betaBuildLocalizations", "attributes": {"whatsNew": txt, "locale": loc}, "relationships": {"build": rel("builds", b["id"])}}})
+            print(f"  {loc}: ок")
+        except ASCError as e:
+            warn(f"{loc}: {e}")
+
+    step("TestFlight: внешняя группа с публичной ссылкой")
+    groups = call("GET", "/v1/betaGroups", params={"filter[app]": app["id"], "filter[isInternalGroup]": "false"})["data"]
+    g = next((x for x in groups if x["attributes"]["name"] == "Public"), None) or (groups[0] if groups else None)
+    if not g:
+        g = call("POST", "/v1/betaGroups", {"data": {"type": "betaGroups", "attributes": {"name": "Public", "publicLinkEnabled": True, "publicLinkLimitEnabled": False, "feedbackEnabled": True},
+                                                     "relationships": {"app": rel("apps", app["id"])}}})["data"]
+        print(f"  создана группа {g['attributes']['name']}")
+    else:
+        try:
+            g = call("PATCH", f"/v1/betaGroups/{g['id']}", {"data": {"type": "betaGroups", "id": g["id"], "attributes": {"publicLinkEnabled": True, "feedbackEnabled": True}}})["data"]
+        except ASCError as e:
+            warn(e)
+        print(f"  группа {g['attributes']['name']}")
+    try:
+        call("POST", f"/v1/betaGroups/{g['id']}/relationships/builds", {"data": [{"type": "builds", "id": b["id"]}]})
+        print(f"  сборка {num} добавлена в группу")
+    except ASCError as e:
+        warn(e)
+
+    step("TestFlight: отправка на Beta App Review")
+    cur = call("GET", f"/v1/builds/{b['id']}/betaAppReviewSubmission", ok404=True)
+    if cur and cur.get("data"):
+        print(f"  уже отправлена: {cur['data']['attributes'].get('betaReviewState')}")
+    else:
+        try:
+            r = call("POST", "/v1/betaAppReviewSubmissions", {"data": {"type": "betaAppReviewSubmissions", "relationships": {"build": rel("builds", b["id"])}}})["data"]
+            print(f"  ✅ отправлено: {r['attributes'].get('betaReviewState')}")
+        except ASCError as e:
+            warn(e)
+    g = call("GET", f"/v1/betaGroups/{g['id']}")["data"]
+    print(f"  публичная ссылка: {g['attributes'].get('publicLink') or '(появится после одобрения)'}")
+
+
 def cmd_certs():
     """Только показывает сертификаты команды (ничего не удаляет)."""
     step("Сертификаты")
@@ -496,7 +585,7 @@ def cmd_status():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["setup", "screenshots", "submit", "status", "certs"])
+    ap.add_argument("cmd", choices=["setup", "screenshots", "submit", "status", "certs", "beta"])
     ap.add_argument("dir", nargs="?")
     ap.add_argument("--build")
     ap.add_argument("--send", action="store_true")
@@ -512,6 +601,8 @@ def main():
             setup_iaps(app, terr)
         elif a.cmd == "screenshots":
             cmd_screenshots(Path(a.dir or "shots"))
+        elif a.cmd == "beta":
+            cmd_beta(a.build)
         elif a.cmd == "certs":
             cmd_certs()
         elif a.cmd == "submit":
