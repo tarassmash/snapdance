@@ -49,6 +49,9 @@ def call(method, path, body=None, params=None, ok404=False):
         try:
             errs = r.json().get("errors", [])
             msg = "; ".join(f"{e.get('code')}: {e.get('detail') or e.get('title')}" for e in errs)
+            assoc = [x for e in errs for v in ((e.get("meta") or {}).get("associatedErrors") or {}).values() for x in v]
+            if assoc:
+                msg += " | ПРИЧИНЫ: " + " ;; ".join(f"{x.get('code')}: {x.get('detail') or x.get('title')}" for x in assoc)
         except Exception:
             msg = r.text[:500]
         raise ASCError(f"{method} {path} → {r.status_code}: {msg}")
