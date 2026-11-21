@@ -2619,6 +2619,13 @@ function serveStatic(req, res, pathname) {
   if (lm) return sendHtml(req, res, 200, legalPage(req, lm[1] || "es", lm[2]));
   if (pathname === "/sitemap.xml") { res.writeHead(200, { "content-type": "application/xml; charset=utf-8" }); return res.end(sitemapXml(req)); }
   if (pathname === "/robots.txt") { res.writeHead(200, { "content-type": "text/plain; charset=utf-8" }); return res.end(robotsTxt(req)); }
+  // файлы подтверждения сайта для TikTok Developers (URL prefix): /tiktok<код>.txt
+  // ещё коды можно добавить в Railway → Variables: TIKTOK_SITE_VERIFY=код1,код2
+  const tv = pathname.match(/^\/tiktok([A-Za-z0-9]+)\.txt$/);
+  if (tv && ["iA3rGYz68zwelZH3aSm6c9gDIxWCYcwN", ...String(process.env.TIKTOK_SITE_VERIFY || "").split(",").map((s) => s.trim())].includes(tv[1])) {
+    res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+    return res.end("tiktok-developers-site-verification=" + tv[1]);
+  }
   if (pathname === "/llms.txt") { res.writeHead(200, { "content-type": "text/markdown; charset=utf-8" }); return res.end(llmsText(req)); }
   res.writeHead(302, { location: "/" });
   res.end();
