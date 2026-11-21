@@ -126,6 +126,7 @@ def setup_app_info(app):
     except ASCError as e:
         warn(e)
     have = {l["attributes"]["locale"]: l for l in call("GET", f"/v1/appInfos/{info['id']}/appInfoLocalizations")["data"]}
+    drop_locales(have, "appInfoLocalizations")
     for loc, m in META["locales"].items():
         attrs = {"name": m.get("name") or META["appName"], "subtitle": m["subtitle"], "privacyPolicyUrl": loc_url(loc, "/privacy")}
         try:
@@ -238,6 +239,7 @@ def setup_iaps(app, terr):
         iid = iap["id"]
 
         locs = {l["attributes"]["locale"]: l for l in call("GET", f"/v2/inAppPurchases/{iid}/inAppPurchaseLocalizations")["data"]}
+        drop_locales(locs, "inAppPurchaseLocalizations")
         for loc, m in META["locales"].items():
             attrs = {"name": m["iapName"].format(n=p["rubies"]), "description": m["iapDesc"].format(n=p["rubies"], v=videos)[:55]}
             try:
@@ -326,6 +328,18 @@ def version(app):
     return v
 
 
+def drop_locales(have, kind):
+    """Убирает языки витрины из META["removeLocales"] (например, uk заменили на de-DE)."""
+    for loc in META.get("removeLocales", []):
+        if loc in have:
+            try:
+                call("DELETE", f"/v1/{kind}/{have[loc]['id']}")
+                print(f"  {loc}: удалён ({kind})")
+            except ASCError as e:
+                warn(f"{loc}: {e}")
+            have.pop(loc, None)
+
+
 def loc_url(loc, path):
     """Страница сайта на языке витрины: /privacy (es), /en/privacy, /ru/privacy."""
     pre = META.get("urls", {}).get(loc, "/en")
@@ -334,6 +348,7 @@ def loc_url(loc, path):
 
 def version_locs(v):
     have = {l["attributes"]["locale"]: l for l in call("GET", f"/v1/appStoreVersions/{v['id']}/appStoreVersionLocalizations")["data"]}
+    drop_locales(have, "appStoreVersionLocalizations")
     for loc, m in META["locales"].items():
         attrs = {"description": m["description"], "keywords": m["keywords"], "promotionalText": m["promotionalText"],
                  "supportUrl": loc_url(loc, "/"), "marketingUrl": loc_url(loc, "/")}

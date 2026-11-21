@@ -1,1 +1,1 @@
-{"action": "store", "send": false, "note": "ASO metadata in 8 locales with policy links, screenshots, external TestFlight; NO App Review"}
+{"action": "full", "send": false, "note": "store languages: uk -> de-DE, + fr-FR, sv; app UI in German/French/Swedish; new build to external TestFlight; NO App Review"}

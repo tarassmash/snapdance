@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "SnapDance";
+"NSCameraUsageDescription" = "Um ein Foto aufzunehmen oder einen Tanzclip zum Nachmachen zu filmen.";
+"NSPhotoLibraryUsageDescription" = "Um die Fotos und den Tanzclip für dein Video auszuwählen.";
+"NSPhotoLibraryAddUsageDescription" = "Um dein fertiges Tanzvideo in Fotos zu sichern.";

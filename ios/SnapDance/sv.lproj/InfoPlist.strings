@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "SnapDance";
+"NSCameraUsageDescription" = "För att ta ett foto eller filma dansklippet som ska härmas.";
+"NSPhotoLibraryUsageDescription" = "För att välja fotona och dansklippet till din video.";
+"NSPhotoLibraryAddUsageDescription" = "För att spara din färdiga dansvideo i Bilder.";

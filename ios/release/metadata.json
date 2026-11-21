@@ -90,14 +90,32 @@
       "iapName": "{n} рубинов",
       "iapDesc": "{n} рубинов — {v} видео до 15 сек"
     },
-    "uk": {
-      "name": "SnapDance AI: Фото в танець",
-      "subtitle": "Оживи фото: вірусні танці",
-      "keywords": "відео,танцювати,тренд,челендж,нейромережа,оживлення,селфі,генератор,прикол,вечірка,мем,хореографія",
-      "promotionalText": "Завантажте фото, виберіть модний танець — і ШІ змусить людину станцювати його. Нове: вибір місця й окуляри, якщо соромитеся.",
-      "description": "Перетворіть одне фото на вірусне відео з танцем за допомогою ШІ. Виберіть будь-який ролик із трендовим танцем — і SnapDance змусить людину з фото станцювати його: ті самі рухи, та сама музика, наче знято на телефон.\n\nЯК ЦЕ ПРАЦЮЄ\n1. Завантажте фото на повний зріст (додайте обличчя крупно — схожість буде ще кращою).\n2. Виберіть ролик із танцем. Довжина будь-яка: беремо перші 15 секунд.\n3. Виберіть місце: вулиця, кімната, танцювальна студія, пляж, домашня вечірка, нічний клуб, дах на заході сонця та інші.\n4. Соромитеся? Надіньте окуляри: авіатори, круглі ретро, дзеркальні, сердечка та інші.\n5. Натисніть «Зробити відео». За кілька хвилин вертикальне відео з танцем готове.\n\nЧОМУ SNAPDANCE\n• Реалістичні рухи на ШІ (Kling 2.6)\n• Оригінальний звук із вашого ролика\n• Вертикальні відео для соцмереж і сторіс\n• Збереження у Фото або надсилання в один дотик\n• Для днів народження, привітань, мемів і вечірок\n• Без підписки: платите рубінами лише за те, що робите\n• Код SD працює й на сайті snapdance.us\n\nЦІНИ\nРубіни — вбудовані покупки: 480, 960 або 1440 рубінів. Відео до 15 секунд коштує близько 158 рубінів, ціну видно до запуску. Якщо відео не вийшло, рубіни повертаються автоматично.\n\nБЕЗПЕКА\nВикористовуйте лише фото повнолітніх (18+), які дали згоду. Усі відео позначаються як створені ШІ. Відео зберігаються 7 днів. Поскаржитися на відео можна в Налаштуваннях.\n\nПолітика конфіденційності: https://snapdance.us/en/privacy\nУмови використання: https://snapdance.us/en/terms\nEULA: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/\nПідтримка: tmonchak@gmail.com",
-      "iapName": "{n} рубінів",
-      "iapDesc": "{n} рубінів — {v} відео до 15 сек"
+    "de-DE": {
+      "name": "SnapDance AI: Foto zum Tanz",
+      "subtitle": "Bilder tanzen lassen mit KI",
+      "keywords": "video,tanzen,trend,challenge,selfie,generator,lustig,party,geburtstag,meme,animation,bewegung,viral",
+      "promotionalText": "Lade ein Foto hoch, wähle einen Trend-Tanz und sieh zu, wie die Person ihn mit KI tanzt. Neu: Ort wählen und Sonnenbrille aufsetzen, wenn du schüchtern bist.",
+      "description": "Verwandle ein einziges Foto mit KI in ein virales Tanzvideo. Wähle einen beliebigen Clip mit einem Trend-Tanz und SnapDance lässt die Person auf deinem Foto genau diesen Tanz tanzen: gleiche Moves, gleiche Musik, wie mit dem Handy gefilmt.\n\nSO FUNKTIONIERT'S\n1. Lade ein Ganzkörperfoto hoch (mit einer Nahaufnahme des Gesichts wird die Ähnlichkeit noch besser).\n2. Wähle einen Clip mit dem Tanz. Beliebige Länge: Wir nehmen die ersten 15 Sekunden.\n3. Wähle den Ort: Straße, Zimmer, Tanzstudio, Strand, Hausparty, Nachtclub, Dachterrasse bei Sonnenuntergang und mehr.\n4. Schüchtern? Setz eine Sonnenbrille auf: Pilotenbrille, rund retro, verspiegelt, Herzen und mehr.\n5. Tippe auf „Video erstellen“. In wenigen Minuten ist dein Tanzvideo im Hochformat fertig.\n\nWARUM SNAPDANCE\n• Realistische KI-Bewegungen mit Kling 2.6\n• Originalton aus deinem Clip\n• Hochformat-Videos für Social Media und Storys\n• In Fotos sichern oder mit einem Tipp teilen\n• Ideal für Geburtstage, Grüße, Memes und Partyvideos\n• Kein Abo: einfach Rubine kaufen und nur zahlen, was du nutzt\n• Dein SD-Code funktioniert auch auf snapdance.us\n\nPREISE\nRubine sind In-App-Käufe: 480, 960 oder 1440 Rubine. Ein Video bis 15 Sekunden kostet etwa 158 Rubine, der Preis wird vor dem Start angezeigt. Klappt ein Video nicht, bekommst du die Rubine automatisch zurück.\n\nSICHERHEIT\nVerwende nur Fotos von Erwachsenen (18+), die zugestimmt haben. Jedes Video ist als KI-generiert gekennzeichnet. Videos werden 7 Tage gespeichert. Ein Video kannst du in den Einstellungen melden.\n\nDatenschutzerklärung: https://snapdance.us/en/privacy\nNutzungsbedingungen: https://snapdance.us/en/terms\nEULA: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/\nSupport: tmonchak@gmail.com",
+      "iapName": "{n} Rubine",
+      "iapDesc": "{n} Rubine: {v} Videos bis 15 s"
+    },
+    "fr-FR": {
+      "name": "SnapDance AI: Photo en Danse",
+      "subtitle": "Fais danser tes photos avec IA",
+      "keywords": "vidéo,danser,tendance,défi,challenge,selfie,générateur,drôle,fête,anniversaire,mème,animer,viral",
+      "promotionalText": "Envoie une photo, choisis une danse tendance et regarde la personne la danser grâce à l'IA. Nouveau : choisis le lieu et ajoute des lunettes si tu es timide.",
+      "description": "Transforme une seule photo en vidéo de danse virale grâce à l'IA. Choisis n'importe quelle vidéo avec une danse tendance et SnapDance fait danser la personne de ta photo : mêmes pas, même musique, comme filmé au téléphone.\n\nCOMMENT ÇA MARCHE\n1. Envoie une photo en pied (ajoute un gros plan du visage pour une ressemblance encore meilleure).\n2. Choisis une vidéo avec la danse. Toute durée : on prend les 15 premières secondes.\n3. Choisis le lieu : rue, chambre, studio de danse, plage, soirée à la maison, boîte de nuit, toit au coucher du soleil et plus.\n4. Timide ? Ajoute des lunettes de soleil : aviateur, rondes rétro, miroir, cœurs et plus.\n5. Appuie sur « Créer la vidéo ». En quelques minutes, ta vidéo de danse verticale est prête.\n\nPOURQUOI SNAPDANCE\n• Mouvements IA réalistes avec Kling 2.6\n• Son original de ta vidéo\n• Vidéos verticales prêtes pour les réseaux sociaux et les stories\n• Enregistre dans Photos ou partage en un geste\n• Parfait pour les anniversaires, les vœux, les mèmes et les soirées\n• Sans abonnement : des rubis, tu ne paies que ce que tu utilises\n• Ton code SD fonctionne aussi sur snapdance.us\n\nPRIX\nLes rubis sont des achats intégrés : 480, 960 ou 1440 rubis. Une vidéo jusqu'à 15 secondes coûte environ 158 rubis, le prix s'affiche avant de lancer. Si une vidéo échoue, les rubis sont remboursés automatiquement.\n\nSÉCURITÉ\nUtilise uniquement des photos d'adultes (18+) qui ont donné leur accord. Chaque vidéo est marquée comme générée par IA. Les vidéos sont conservées 7 jours. Tu peux signaler une vidéo dans les Réglages.\n\nPolitique de confidentialité: https://snapdance.us/en/privacy\nConditions d'utilisation: https://snapdance.us/en/terms\nEULA: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/\nAssistance: tmonchak@gmail.com",
+      "iapName": "{n} rubis",
+      "iapDesc": "{n} rubis : {v} vidéos jusqu'à 15 s"
+    },
+    "sv": {
+      "name": "SnapDance AI: Foto till Dans",
+      "subtitle": "Låt dina bilder dansa med AI",
+      "keywords": "video,dansa,trend,utmaning,selfie,generator,rolig,fest,födelsedag,meme,animera,rörelse,viral",
+      "promotionalText": "Ladda upp ett foto, välj en trenddans och se personen dansa den med AI. Nytt: välj plats och sätt på solglasögon om du är blyg.",
+      "description": "Förvandla ett enda foto till en viral dansvideo med AI. Välj valfritt klipp med en trenddans så får SnapDance personen på ditt foto att dansa den: samma steg, samma musik, som filmat med mobilen.\n\nSÅ FUNKAR DET\n1. Ladda upp ett helfigursfoto (lägg till en närbild på ansiktet för ännu bättre likhet).\n2. Välj ett klipp med dansen. Valfri längd: vi använder de första 15 sekunderna.\n3. Välj plats: gata, rum, dansstudio, strand, hemmafest, nattklubb, takterrass i solnedgång och mer.\n4. Blyg? Sätt på solglasögon: pilot, runda retro, spegelglas, hjärtan och mer.\n5. Tryck på ”Skapa video”. Om några minuter är din stående dansvideo klar.\n\nVARFÖR SNAPDANCE\n• Realistiska AI-rörelser med Kling 2.6\n• Originalljud från ditt klipp\n• Stående videor redo för sociala medier och stories\n• Spara i Bilder eller dela med ett tryck\n• Perfekt för födelsedagar, hälsningar, memes och festvideor\n• Ingen prenumeration: köp rubiner och betala bara för det du använder\n• Din SD-kod fungerar även på snapdance.us\n\nPRISER\nRubiner är köp i appen: 480, 960 eller 1440 rubiner. En video på upp till 15 sekunder kostar cirka 158 rubiner och priset visas innan du startar. Om en video misslyckas får du tillbaka rubinerna automatiskt.\n\nSÄKERHET\nAnvänd bara foton på vuxna (18+) som har gett sitt samtycke. Varje video märks som AI-genererad. Videor sparas i 7 dagar. Du kan anmäla en video i Inställningar.\n\nIntegritetspolicy: https://snapdance.us/en/privacy\nAnvändarvillkor: https://snapdance.us/en/terms\nEULA: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/\nSupport: tmonchak@gmail.com",
+      "iapName": "{n} rubiner",
+      "iapDesc": "{n} rubiner: {v} videor upp till 15 s"
     }
   },
   "reviewNotes": "SnapDance turns a photo into a dance video (AI, via our server snapdance.us).\n\nTo test without purchasing: tap the rubies balance (top right) → \"I already have a code\" → enter {code} → Sign in. This code has 500 rubies.\n\nThen: 1) pick a full-body photo of an adult, 2) pick any short video of a person dancing, 3) tick the consent box, 4) tap \"Make video\". Generation takes about 3–6 minutes; the result appears on the same screen and in \"My videos\" (stack icon, top left).\n\nIn-App Purchases: three consumable packs of rubies (480 / 960 / 1440). Rubies are only used to generate videos. Purchases are verified on our server with the signed StoreKit 2 transaction.\n\nContent safety: users must confirm consent and 18+ for the person in the photo; every video is labeled as AI-generated; anyone can report a video at https://snapdance.us/report and we remove it.",
@@ -111,7 +129,9 @@
     "en-AU": "/en",
     "en-CA": "/en",
     "ru": "/ru",
-    "uk": "/en"
+    "de-DE": "/en",
+    "fr-FR": "/en",
+    "sv": "/en"
   },
   "shotLocale": {
     "en-GB": "en-US",
@@ -125,5 +145,8 @@
     "ru": "Проверьте всё: добавьте фото в полный рост, выберите ролик с танцем, место и очки, купите рубины (в TestFlight покупки бесплатные) и сделайте видео. Об ошибках пишите через отзыв в TestFlight.",
     "uk": "Перевірте все: додайте фото на повний зріст, виберіть ролик із танцем, місце й окуляри, купіть рубіни (у TestFlight покупки безкоштовні) і зробіть відео. Про помилки пишіть через відгук у TestFlight."
   },
-  "betaDescription": "SnapDance turns one photo into a dance video with AI: upload a full-body photo, pick a dance clip, choose a place and optional sunglasses, and get a vertical video with the original sound."
+  "betaDescription": "SnapDance turns one photo into a dance video with AI: upload a full-body photo, pick a dance clip, choose a place and optional sunglasses, and get a vertical video with the original sound.",
+  "removeLocales": [
+    "uk"
+  ]
 }

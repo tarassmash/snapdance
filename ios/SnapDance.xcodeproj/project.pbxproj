@@ -30,6 +30,9 @@
 		A2000000000000000000002B /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A2000000000000000000002C /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A2000000000000000000002D /* uk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = uk; path = uk.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A2000000000000000000002E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A2000000000000000000002F /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A20000000000000000000030 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A20000000000000000000027 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
 		A20000000000000000000020 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		A20000000000000000000021 /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
@@ -139,6 +142,9 @@
 				ru,
 				es,
 				uk,
+				de,
+				fr,
+				sv,
 			);
 			mainGroup = A40000000000000000000001;
 			productRefGroup = A40000000000000000000003 /* Products */;
@@ -170,6 +176,9 @@
 				A2000000000000000000002B /* es */,
 				A2000000000000000000002C /* ru */,
 				A2000000000000000000002D /* uk */,
+				A2000000000000000000002E /* de */,
+				A2000000000000000000002F /* fr */,
+				A20000000000000000000030 /* sv */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";

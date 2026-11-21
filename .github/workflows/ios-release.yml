@@ -50,11 +50,11 @@ jobs:
       - name: Python
         run: python3 -m pip install --quiet --break-system-packages pyjwt cryptography requests || python3 -m pip install --quiet pyjwt cryptography requests
       - name: App Store Connect setup (Bundle ID, категории, рейтинг, цена, покупки)
-        if: steps.what.outputs.action == 'setup' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare' || steps.what.outputs.action == 'store'
+        if: steps.what.outputs.action == 'setup' || steps.what.outputs.action == 'full' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare' || steps.what.outputs.action == 'store'
         run: python3 ios/release/asc.py setup
 
       - name: Archive & upload to App Store Connect
-        if: steps.what.outputs.action == 'build' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare'
+        if: steps.what.outputs.action == 'build' || steps.what.outputs.action == 'full' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare'
         run: |
           set -o pipefail
           python3 ios/release/asc.py certs || true
@@ -84,7 +84,7 @@ jobs:
           echo "Загружена сборка $BUILD_NUMBER"
 
       - name: Screenshots in simulator
-        if: steps.what.outputs.action == 'screenshots' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare' || steps.what.outputs.action == 'store'
+        if: steps.what.outputs.action == 'screenshots' || steps.what.outputs.action == 'full' || steps.what.outputs.action == 'all' || steps.what.outputs.action == 'prepare' || steps.what.outputs.action == 'store'
         run: |
           set -o pipefail
           xcodebuild -project ios/SnapDance.xcodeproj -scheme SnapDance -configuration Debug -sdk iphonesimulator -derivedDataPath build/dd \
@@ -103,7 +103,7 @@ jobs:
             sleep $W
             xcrun simctl io "$DEV" screenshot shots/$LOC/$N.png
           }
-          for L in en-US:en es-ES:es ru:ru uk:uk; do
+          for L in en-US:en es-ES:es ru:ru de-DE:de fr-FR:fr sv:sv; do
             LOC=${L%%:*}; LANG=${L##*:}
             shot $LOC $LANG 1 14
             shot $LOC $LANG 2 16 -sdExamples
@@ -111,7 +111,7 @@ jobs:
             shot $LOC $LANG 4 12 -sdWallet
           done
           # второй проход первого экрана: системные баннеры (Apple Intelligence и т.п.) к этому времени уже ушли
-          for L in en-US:en es-ES:es ru:ru uk:uk; do shot ${L%%:*} ${L##*:} 1 12; done
+          for L in en-US:en es-ES:es ru:ru de-DE:de fr-FR:fr sv:sv; do shot ${L%%:*} ${L##*:} 1 12; done
           cp shots/en-US/4.png shots/iap-review.png
           ( rm -rf /tmp/st && mkdir -p /tmp/st/store && cp -r shots/* /tmp/st/store/ && cd /tmp/st && git init -q -b store-screens && git add . \
             && git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "store screenshots" \
@@ -120,7 +120,7 @@ jobs:
           python3 ios/release/asc.py screenshots shots
 
       - name: TestFlight external testing
-        if: steps.what.outputs.action == 'beta' || steps.what.outputs.action == 'store'
+        if: steps.what.outputs.action == 'beta' || steps.what.outputs.action == 'full' || steps.what.outputs.action == 'store'
         run: python3 ios/release/asc.py beta
 
       - name: Submit for App Review

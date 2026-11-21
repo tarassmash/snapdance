@@ -191,7 +191,7 @@ private struct FeedOverlay: View {
 
     private func compact(_ v: Double) -> String {
         let v = v.isFinite ? max(0, v) : 0
-        return Int(v.rounded()).formatted(.number.notation(.compactName).precision(.fractionLength(0...1)).locale(Locale(identifier: appLang == .ru ? "ru_RU" : appLang == .uk ? "uk_UA" : appLang == .es ? "es_ES" : "en_US")))
+        return Int(v.rounded()).formatted(.number.notation(.compactName).precision(.fractionLength(0...1)).locale(Locale(identifier: ["ru": "ru_RU", "uk": "uk_UA", "es": "es_ES", "de": "de_DE", "fr": "fr_FR", "sv": "sv_SE"][appLang.rawValue] ?? "en_US")))
     }
 }
 

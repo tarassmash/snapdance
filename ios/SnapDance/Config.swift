@@ -32,18 +32,21 @@ enum SDConfig {
 
 // MARK: - Тексты на трёх языках (как на сайте: es / en / ru)
 
-enum Lang: String { case es, en, ru, uk }
+enum Lang: String { case es, en, ru, uk, de, fr, sv }
 
 let appLang: Lang = {
     let code = Locale.preferredLanguages.first?.prefix(2).lowercased() ?? "en"
     if code == "uk" { return .uk }
+    if code == "de" { return .de }
+    if code == "fr" { return .fr }
+    if code == "sv" { return .sv }
     if code == "ru" || code == "be" { return .ru }
     if code == "es" || code == "ca" || code == "gl" || code == "eu" { return .es }
     return .en
 }()
 
 /// Язык для сервера и сайта: там есть es / en / ru, украинцам — английский.
-var serverLang: String { appLang == .uk ? "en" : appLang.rawValue }
+var serverLang: String { [Lang.es, .en, .ru].contains(appLang) ? appLang.rawValue : "en" }
 
 /// Сколько видео: «1 видео», «2 vídeos», «1 video».
 func videosText(_ n: Int) -> String {
@@ -52,6 +55,9 @@ func videosText(_ n: Int) -> String {
     case .uk: return "\(n) відео"
     case .es: return n == 1 ? "1 vídeo" : "\(n) vídeos"
     case .en: return n == 1 ? "1 video" : "\(n) videos"
+    case .de: return n == 1 ? "1 Video" : "\(n) Videos"
+    case .fr: return n == 1 ? "1 vidéo" : "\(n) vidéos"
+    case .sv: return n == 1 ? "1 video" : "\(n) videor"
     }
 }
 
@@ -131,6 +137,102 @@ private let STR: [Lang: [String: String]] = [
         "set.title": "Налаштування", "set.share": "Поділитися застосунком", "set.shareMsg": "Оживи фото — нехай станцює тренд із TikTok", "set.rate": "Оцінити застосунок", "set.write": "Написати розробникам", "set.terms": "Умови використання", "set.eula": "Ліцензійна угода (EULA)", "set.privacy": "Політика конфіденційності",
         "ex.h2a": "Приклади: ", "ex.before.w": "до", "ex.and": " і ", "ex.after.w": "після", "ex.hint": "Було одне фото — стало відео. Натисніть на відео, щоб увімкнути звук.", "ex.before": "ДО", "ex.after": "ПІСЛЯ", "ex.user": "ви",
         "buy.xcode": "Тестова покупка в Xcode пройшла. Справжні рубіни нараховуються лише при покупці через TestFlight або App Store.", "secs": "{s} сек", "photo.lib": "Вибрати фото", "rubies": "рубінів",
+    ],
+    .de: [
+        "tagline": "Foto → TikTok-Tanz",
+        "step1": "Foto der Person", "step1s": "Ganzkörper, Gesicht gut sichtbar",
+        "slot.1": "Ganzkörper", "slot.1s": "erforderlich", "slot.2": "Gesicht nah", "slot.3": "Andere Perspektive", "opt": "optional",
+        "step2": "Trend-Clip", "step2s": "Beliebige Länge: Wir nehmen die ersten 15 s. Eine tanzende Person im Ganzkörperbild.",
+        "ref.pick": "Video wählen", "ref.change": "Ändern", "ref.trends": "Trends auf TikTok finden", "ref.cut": "Langer Clip: Wir nehmen die ersten {s} s.",
+        "consent": "Ich habe die Zustimmung der Person auf dem Foto, sie ist 18+. Ich verletze keine Rechte anderer.",
+        "go": "Video erstellen", "inc": "Kling 2.6 · Ton aus dem Clip · KI-Kennzeichnung",
+        "err.photo": "Füge ein Ganzkörperfoto hinzu.", "err.ref": "Füge einen Clip mit dem Trend-Tanz hinzu.", "err.consent": "Bestätige die Zustimmung und 18+.",
+        "err.net": "Keine Verbindung zum Server. Prüfe dein Internet.", "err.video": "Das Video konnte nicht gelesen werden. Versuche ein anderes.",
+        "busy.photo": "Foto {n} wird hochgeladen…", "busy.ref": "Clip wird hochgeladen…", "busy.start": "Wird gestartet…",
+        "work.title": "Dein Video entsteht", "work.sub": "Meist 3–6 Minuten. Du kannst die App schließen — das Video landet in „Meine Videos“.",
+        "done": "Fertig!", "save": "In Fotos sichern", "saved": "In Fotos gesichert ✅", "share": "Teilen", "tiktok": "Auf TikTok posten",
+        "tt.hint": "Beschreibung kopiert — wähle TikTok und füge sie ein.", "again": "Noch eins",
+        "mine": "Meine Videos", "mine.empty": "Hier erscheinen deine Videos. Sie werden 7 Tage gespeichert.", "del": "Löschen", "del.q": "Dieses Video löschen?",
+        "st.working": "Wird erstellt…", "st.failed": "Fehlgeschlagen — Rubine erstattet", "st.done": "Fertig",
+        "wallet": "Rubine", "balance": "Guthaben", "buy": "Rubine kaufen", "buy.need": "Du brauchst {n} 💎, du hast {m} 💎.",
+        "buy.ok": "+{n} 💎 gutgeschrieben", "buy.pending": "Der Kauf wartet auf Bestätigung.", "buy.fail": "Kauf fehlgeschlagen: {e}",
+        "buy.load": "App-Store-Preise werden geladen…", "buy.none": "Käufe sind gerade nicht verfügbar. Versuche es später.",
+        "code": "Dein Code", "code.hint": "Mit diesem Code meldest du dich auf jedem Gerät und auf snapdance.us an. Bewahre ihn gut auf.",
+        "code.copy": "Kopieren", "code.copied": "Code kopiert", "code.enter": "Ich habe schon einen Code", "code.ph": "SD-XXXX-XXXX-XXXX", "code.login": "Anmelden",
+        "code.bad": "Code nicht gefunden.", "logout": "Abmelden", "logout.q": "Abmelden? Ohne den Code verlierst du den Zugriff auf deine Rubine.",
+        "privacy": "Datenschutz", "terms": "Bedingungen", "report": "Video melden", "close": "Schließen", "cancel": "Abbrechen", "ok": "OK",
+        "videos7": "Das Video wird 7 Tage gespeichert",
+        "pack.videos": "{v} bis 15 s", "hero.a": "Ein Foto — ", "hero.b": "ein Trend-Tanz", "hero.c": "wie mit dem Handy gefilmt", "hero.p": "Lade ein Foto hoch, wähle einen Tanz und tippe auf einen Button. In wenigen Minuten hast du ein Hochformat-Video für TikTok.", "hero.cta": "Meinen Tanz erstellen",
+        "step3": "Ort und Brille", "step3s": "Wo getanzt wird und, wenn du schüchtern bist, mit Brille", "place": "Wo getanzt wird", "gl.on": "Brille tragen", "gl.hint": "Die Brille bleibt das ganze Video auf", "gl.pick": "Welche Brille",
+        "pl.photo": "Wie auf dem Foto", "pl.street": "Straße", "pl.room": "Schlafzimmer", "pl.gym": "Tanzstudio", "pl.party": "Hausparty", "pl.beach": "Strand", "pl.park": "Park", "pl.kitchen": "Küche", "pl.office": "Büro", "pl.club": "Nachtclub", "pl.rooftop": "Dachterrasse bei Sonnenuntergang",
+        "gl.black": "Schwarze Sonnenbrille", "gl.aviator": "Pilotenbrille", "gl.round": "Rund retro", "gl.mirror": "Sport verspiegelt", "gl.cateye": "Cat-Eye", "gl.heart": "Herzen", "gl.clear": "Klar, schwarzer Rahmen", "pack.start": "Starter", "pack.pop": "Trend", "pack.pro": "Studio", "pack.hit": "TOP", "bal.videos": "Reicht für {v} à {s} s", "bal.none": "Ein {s}-Sekunden-Video = {p} 💎",
+        "set.title": "Einstellungen", "set.share": "App teilen", "set.shareMsg": "Lass dein Foto den TikTok-Trend tanzen", "set.rate": "App bewerten", "set.write": "Den Entwicklern schreiben", "set.terms": "Nutzungsbedingungen", "set.eula": "Lizenzvereinbarung (EULA)", "set.privacy": "Datenschutzerklärung",
+        "ex.h2a": "Beispiele: ", "ex.before.w": "vorher", "ex.and": " und ", "ex.after.w": "nachher", "ex.hint": "Aus einem Foto wurde ein Video. Tippe auf ein Video, um den Ton einzuschalten.", "ex.before": "VORHER", "ex.after": "NACHHER", "ex.user": "du",
+        "buy.xcode": "Xcode-Testkauf abgeschlossen. Echte Rubine gibt es nur bei Käufen über TestFlight oder den App Store.", "secs": "{s} s", "photo.lib": "Foto wählen", "rubies": "Rubine",
+    ],
+    .fr: [
+        "tagline": "Photo → danse TikTok",
+        "step1": "Photo de la personne", "step1s": "En pied, visage bien visible",
+        "slot.1": "En pied", "slot.1s": "obligatoire", "slot.2": "Visage en gros plan", "slot.3": "Autre angle", "opt": "facultatif",
+        "step2": "Vidéo tendance", "step2s": "Toute durée : on prend les 15 premières secondes. Un seul danseur en pied.",
+        "ref.pick": "Choisir une vidéo", "ref.change": "Changer", "ref.trends": "Trouver des tendances sur TikTok", "ref.cut": "Vidéo longue : on prend les {s} premières s.",
+        "consent": "J'ai l'accord de la personne sur la photo et elle a 18 ans ou plus. Je ne viole les droits de personne.",
+        "go": "Créer la vidéo", "inc": "Kling 2.6 · son de la vidéo · mention IA",
+        "err.photo": "Ajoute une photo en pied.", "err.ref": "Ajoute une vidéo avec la danse tendance.", "err.consent": "Coche l'accord et 18+.",
+        "err.net": "Impossible de joindre le serveur. Vérifie ta connexion.", "err.video": "Impossible de lire la vidéo. Essaie-en une autre.",
+        "busy.photo": "Envoi de la photo {n}…", "busy.ref": "Envoi de la vidéo…", "busy.start": "Lancement…",
+        "work.title": "Création de ta vidéo", "work.sub": "En général 3 à 6 minutes. Tu peux fermer l'app : la vidéo sera dans « Mes vidéos ».",
+        "done": "C'est prêt !", "save": "Enregistrer dans Photos", "saved": "Enregistrée dans Photos ✅", "share": "Partager", "tiktok": "Publier sur TikTok",
+        "tt.hint": "Légende copiée : choisis TikTok et colle-la dans la description.", "again": "En créer une autre",
+        "mine": "Mes vidéos", "mine.empty": "Tes vidéos apparaîtront ici. Elles sont conservées 7 jours.", "del": "Supprimer", "del.q": "Supprimer cette vidéo ?",
+        "st.working": "Création…", "st.failed": "Échec — rubis remboursés", "st.done": "Prête",
+        "wallet": "Rubis", "balance": "Solde", "buy": "Acheter des rubis", "buy.need": "Il te faut {n} 💎, tu as {m} 💎.",
+        "buy.ok": "+{n} 💎 ajoutés", "buy.pending": "L'achat attend une validation.", "buy.fail": "Échec de l'achat : {e}",
+        "buy.load": "Chargement des prix App Store…", "buy.none": "Les achats ne sont pas disponibles pour le moment. Réessaie plus tard.",
+        "code": "Ton code", "code.hint": "Ce code te permet de te connecter sur n'importe quel appareil et sur snapdance.us. Garde-le bien.",
+        "code.copy": "Copier", "code.copied": "Code copié", "code.enter": "J'ai déjà un code", "code.ph": "SD-XXXX-XXXX-XXXX", "code.login": "Se connecter",
+        "code.bad": "Code introuvable.", "logout": "Se déconnecter", "logout.q": "Se déconnecter ? Sans le code, tu perdras l'accès à tes rubis.",
+        "privacy": "Confidentialité", "terms": "Conditions", "report": "Signaler une vidéo", "close": "Fermer", "cancel": "Annuler", "ok": "OK",
+        "videos7": "La vidéo est conservée 7 jours",
+        "pack.videos": "{v} jusqu'à 15 s", "hero.a": "Une photo — ", "hero.b": "une danse tendance", "hero.c": "comme filmée au téléphone", "hero.p": "Envoie une photo, choisis une danse et appuie sur un bouton. En quelques minutes, tu as une vidéo verticale prête pour TikTok.", "hero.cta": "Créer ma danse",
+        "step3": "Lieu et lunettes", "step3s": "Où danser et, si tu es timide, avec des lunettes", "place": "Où danser", "gl.on": "Porter des lunettes", "gl.hint": "Les lunettes restent pendant toute la vidéo", "gl.pick": "Quelles lunettes",
+        "pl.photo": "Comme sur la photo", "pl.street": "Rue", "pl.room": "Chambre", "pl.gym": "Studio de danse", "pl.party": "Soirée à la maison", "pl.beach": "Plage", "pl.park": "Parc", "pl.kitchen": "Cuisine", "pl.office": "Bureau", "pl.club": "Boîte de nuit", "pl.rooftop": "Toit au coucher du soleil",
+        "gl.black": "Lunettes de soleil noires", "gl.aviator": "Aviateur", "gl.round": "Rondes rétro", "gl.mirror": "Sport miroir", "gl.cateye": "Œil-de-chat", "gl.heart": "Cœurs", "gl.clear": "Transparentes, monture noire", "pack.start": "Starter", "pack.pop": "Tendance", "pack.pro": "Studio", "pack.hit": "TOP", "bal.videos": "Assez pour {v} de {s} s", "bal.none": "Une vidéo de {s} s = {p} 💎",
+        "set.title": "Réglages", "set.share": "Partager l'app", "set.shareMsg": "Fais danser ta photo sur la tendance TikTok", "set.rate": "Noter l'app", "set.write": "Écrire aux développeurs", "set.terms": "Conditions d'utilisation", "set.eula": "Contrat de licence (EULA)", "set.privacy": "Politique de confidentialité",
+        "ex.h2a": "Exemples : ", "ex.before.w": "avant", "ex.and": " et ", "ex.after.w": "après", "ex.hint": "Une photo est devenue une vidéo. Appuie sur une vidéo pour activer le son.", "ex.before": "AVANT", "ex.after": "APRÈS", "ex.user": "toi",
+        "buy.xcode": "Achat test Xcode effectué. Les vrais rubis ne sont ajoutés que pour les achats via TestFlight ou l'App Store.", "secs": "{s} s", "photo.lib": "Choisir une photo", "rubies": "rubis",
+    ],
+    .sv: [
+        "tagline": "Foto → TikTok-dans",
+        "step1": "Foto på personen", "step1s": "Helfigur, ansiktet syns tydligt",
+        "slot.1": "Helfigur", "slot.1s": "krävs", "slot.2": "Ansikte nära", "slot.3": "Annan vinkel", "opt": "valfritt",
+        "step2": "Trendklipp", "step2s": "Valfri längd: vi använder de första 15 s. En dansare i helfigur.",
+        "ref.pick": "Välj video", "ref.change": "Byt", "ref.trends": "Hitta trender på TikTok", "ref.cut": "Långt klipp: vi använder de första {s} s.",
+        "consent": "Jag har samtycke från personen på fotot och hen är 18+. Jag kränker inte någons rättigheter.",
+        "go": "Skapa video", "inc": "Kling 2.6 · ljud från klippet · AI-märkning",
+        "err.photo": "Lägg till ett helfigursfoto.", "err.ref": "Lägg till ett klipp med trenddansen.", "err.consent": "Bekräfta samtycke och 18+.",
+        "err.net": "Kan inte nå servern. Kontrollera din anslutning.", "err.video": "Kunde inte läsa videon. Prova en annan.",
+        "busy.photo": "Laddar upp foto {n}…", "busy.ref": "Laddar upp klipp…", "busy.start": "Startar…",
+        "work.title": "Din video skapas", "work.sub": "Oftast 3–6 minuter. Du kan stänga appen — videon hamnar i ”Mina videor”.",
+        "done": "Klart!", "save": "Spara i Bilder", "saved": "Sparad i Bilder ✅", "share": "Dela", "tiktok": "Publicera på TikTok",
+        "tt.hint": "Bildtext kopierad — välj TikTok och klistra in den i beskrivningen.", "again": "Skapa en till",
+        "mine": "Mina videor", "mine.empty": "Dina videor visas här. De sparas i 7 dagar.", "del": "Radera", "del.q": "Radera den här videon?",
+        "st.working": "Skapas…", "st.failed": "Misslyckades — rubiner återbetalda", "st.done": "Klar",
+        "wallet": "Rubiner", "balance": "Saldo", "buy": "Köp rubiner", "buy.need": "Du behöver {n} 💎, du har {m} 💎.",
+        "buy.ok": "+{n} 💎 tillagda", "buy.pending": "Köpet väntar på godkännande.", "buy.fail": "Köpet misslyckades: {e}",
+        "buy.load": "Laddar App Store-priser…", "buy.none": "Köp är inte tillgängliga just nu. Försök senare.",
+        "code": "Din kod", "code.hint": "Med den här koden loggar du in på alla enheter och på snapdance.us. Spara den.",
+        "code.copy": "Kopiera", "code.copied": "Koden kopierad", "code.enter": "Jag har redan en kod", "code.ph": "SD-XXXX-XXXX-XXXX", "code.login": "Logga in",
+        "code.bad": "Koden hittades inte.", "logout": "Logga ut", "logout.q": "Logga ut? Utan koden förlorar du åtkomsten till dina rubiner.",
+        "privacy": "Integritet", "terms": "Villkor", "report": "Anmäl en video", "close": "Stäng", "cancel": "Avbryt", "ok": "OK",
+        "videos7": "Videon sparas i 7 dagar",
+        "pack.videos": "{v} upp till 15 s", "hero.a": "Ett foto — ", "hero.b": "en trenddans", "hero.c": "som filmad med mobilen", "hero.p": "Ladda upp ett foto, välj en dans och tryck på en knapp. Om några minuter har du en stående video klar för TikTok.", "hero.cta": "Skapa min dans",
+        "step3": "Plats och glasögon", "step3s": "Var dansen sker och, om du är blyg, med glasögon", "place": "Var hen dansar", "gl.on": "Bär glasögon", "gl.hint": "Glasögonen sitter på hela videon", "gl.pick": "Vilka glasögon",
+        "pl.photo": "Som på fotot", "pl.street": "Gata", "pl.room": "Sovrum", "pl.gym": "Dansstudio", "pl.party": "Hemmafest", "pl.beach": "Strand", "pl.park": "Park", "pl.kitchen": "Kök", "pl.office": "Kontor", "pl.club": "Nattklubb", "pl.rooftop": "Takterrass i solnedgång",
+        "gl.black": "Svarta solglasögon", "gl.aviator": "Pilotglasögon", "gl.round": "Runda retro", "gl.mirror": "Sport, spegelglas", "gl.cateye": "Cat-eye", "gl.heart": "Hjärtan", "gl.clear": "Klara, svart båge", "pack.start": "Start", "pack.pop": "Trend", "pack.pro": "Studio", "pack.hit": "BÄST", "bal.videos": "Räcker till {v} à {s} s", "bal.none": "En video på {s} s = {p} 💎",
+        "set.title": "Inställningar", "set.share": "Dela appen", "set.shareMsg": "Låt ditt foto dansa TikTok-trenden", "set.rate": "Betygsätt appen", "set.write": "Skriv till utvecklarna", "set.terms": "Användarvillkor", "set.eula": "Licensavtal (EULA)", "set.privacy": "Integritetspolicy",
+        "ex.h2a": "Exempel: ", "ex.before.w": "före", "ex.and": " och ", "ex.after.w": "efter", "ex.hint": "Ett foto blev en video. Tryck på en video för att slå på ljudet.", "ex.before": "FÖRE", "ex.after": "EFTER", "ex.user": "du",
+        "buy.xcode": "Xcode-testköp genomfört. Riktiga rubiner läggs bara till vid köp via TestFlight eller App Store.", "secs": "{s} s", "photo.lib": "Välj foto", "rubies": "rubiner",
     ],
     .es: [
         "tagline": "Foto → baile de TikTok",
