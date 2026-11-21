@@ -374,6 +374,13 @@ img, video { max-width: 100%; }
 html, body { overflow-x: hidden; max-width: 100%; }
 * { max-width: 100%; }
 img, video, iframe { max-width: 100% !important; height: auto; }
+/* кнопка «Сделать видео» — компактная, как в топовых приложениях */
+.btn.huge, .btn.wide.huge { min-height: 50px; height: 50px; padding: 0 18px; border-radius: 14px; font: 700 16px/1 var(--f); letter-spacing: -.01em; flex-wrap: nowrap; white-space: nowrap; gap: 10px; box-shadow: 0 6px 18px -8px rgba(198,255,61,.55); transition: transform .12s ease, filter .12s ease; }
+.btn.huge:active { transform: scale(.98); filter: brightness(.95); }
+.btn.huge .go-cost { margin: 0; padding: 4px 9px; gap: 3px; font-size: 14px; font-weight: 700; background: rgba(0,0,0,.1); border-radius: 999px; }
+.btn.huge .go-cost .eur { font-size: 12px; font-weight: 600; opacity: .6; margin-left: 3px; }
+.btn.huge .go-cost .rb, .btn.huge .go-cost img { width: 14px; height: 14px; }
+@media (max-width: 360px) { .btn.huge .go-cost .eur { display: none; } }
 </style>
 </head>
 <body>
@@ -701,7 +708,7 @@ Object.assign(I18N.es, {
   "s1.title": "Tu foto", "s1.hint": "Una foto de cuerpo entero. Si añades 1–2 fotos de la cara, se parecerá aún más.",
   "s2.title": "Elige el baile", "tr.card": "Copiar tendencia", "tr.cardH": "Sube el vídeo del baile",
   "tr.find": "🔎 Buscar bailes de tendencia en TikTok", "ok.consent": "Tengo el permiso de la persona de la foto y es mayor de 18 años.",
-  "go2": "💃 Crear vídeo", "inc": "Ya incluido: Full HD 60 fps · la cara no cambia · aspecto de vídeo real de móvil",
+  "go2": "Crear vídeo", "inc": "Ya incluido: Full HD 60 fps · la cara no cambia · aspecto de vídeo real de móvil",
   "err.ref2": "Sube el vídeo con el baile que quieres copiar.", "err.consent2": "Marca la casilla de permiso y 18+.",
   "secs": "{s} s", "hero2.p": "Sube una foto, elige un baile y pulsa un botón. En unos minutos tienes un vídeo vertical listo para TikTok.",
 });
@@ -709,7 +716,7 @@ Object.assign(I18N.en, {
   "s1.title": "Your photo", "s1.hint": "One full-body photo. Add 1–2 face photos for an even closer likeness.",
   "s2.title": "Pick the dance", "tr.card": "Copy a trend", "tr.cardH": "Upload the dance video",
   "tr.find": "🔎 Find trending dances on TikTok", "ok.consent": "I have permission from the person in the photo and they are 18+.",
-  "go2": "💃 Make video", "inc": "Included: Full HD 60 fps · face stays the same · real phone-video look",
+  "go2": "Make video", "inc": "Included: Full HD 60 fps · face stays the same · real phone-video look",
   "err.ref2": "Upload the video with the dance you want to copy.", "err.consent2": "Tick the permission and 18+ box.",
   "secs": "{s} s", "hero2.p": "Upload a photo, pick a dance and tap one button. In a few minutes you get a vertical video ready for TikTok.",
 });
@@ -717,7 +724,7 @@ Object.assign(I18N.ru, {
   "s1.title": "Ваше фото", "s1.hint": "Одно фото в полный рост. Добавьте 1–2 фото лица — сходство будет ещё точнее.",
   "s2.title": "Выберите танец", "tr.card": "Повторить тренд", "tr.cardH": "Загрузите видео с танцем",
   "tr.find": "🔎 Найти трендовые танцы в TikTok", "ok.consent": "У меня есть согласие человека с фото, и ему есть 18.",
-  "go2": "💃 Сделать видео", "inc": "Уже включено: Full HD 60 fps · лицо не меняется · вид настоящего видео с телефона",
+  "go2": "Сделать видео", "inc": "Уже включено: Full HD 60 fps · лицо не меняется · вид настоящего видео с телефона",
   "err.ref2": "Загрузите видео с танцем, который хотите повторить.", "err.consent2": "Отметьте галочку согласия и 18+.",
   "secs": "{s} сек", "hero2.p": "Загрузите фото, выберите танец и нажмите одну кнопку. Через несколько минут — вертикальное видео для TikTok.",
 });
