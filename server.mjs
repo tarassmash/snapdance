@@ -1573,8 +1573,10 @@ async function buildAd(ex, lang, voice, copy, key) {
     const D3 = Math.max(3.6, (vInfo.duration || 12) + 0.8 - (D1 + D2 - 2 * X));
     const T = D1 + D2 + D3 - 2 * X;
     const W = 1080, H = 1920, cover = `scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1`;
-    const s1 = `[0:v]${cover},zoompan=z='1+0.0022*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=${W}x${H}:fps=30,${adLines(C.hook, { size: 92, y: 300, box: true, tmp })},format=yuv420p,fps=30,trim=duration=${D1},setpts=PTS-STARTPTS,settb=AVTB[s1]`;
-    const s2 = `[1:v]${cover},fps=30,${adLines(C.mid, { size: 58, y: 150, box: true, tmp })},format=yuv420p,trim=duration=${D2},setpts=PTS-STARTPTS,settb=AVTB[s2]`;
+    const s1 = `[0:v]${cover},zoompan=z='1+0.0022*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=${W}x${H}:fps=30,${adLines(C.hook, { size: 92, y: 340, box: true, tmp })},format=yuv420p,fps=30,trim=duration=${D1},setpts=PTS-STARTPTS,settb=AVTB[s1]`;
+    // безопасная зона TikTok/Reels: сверху ~260 px занимают вкладки и поиск, справа — кнопки, снизу — подпись.
+    // Текст ставим под поиском, а исходное фото — маленькой карточкой слева сверху, как в примерах на сайте
+    const s2 = `[1:v]${cover},fps=30[d2];[4:v]scale=300:400:force_original_aspect_ratio=increase,crop=300:400,pad=312:412:6:6:color=white,setsar=1,fps=30[pip];[d2][pip]overlay=40:560:eof_action=pass,${adLines(C.mid, { size: 58, y: 300, box: true, tmp })},format=yuv420p,trim=duration=${D2},setpts=PTS-STARTPTS,settb=AVTB[s2]`;
     const s3 = `[2:v]${adLines(C.endTop, { size: 80, y: 560, tmp })},${adLines(AD_SITE, { size: 112, color: "0xC6FF3D", y: 860, tmp })},${adLines(C.endBottom, { size: 56, y: 1080, tmp })},format=yuv420p,fps=30,settb=AVTB[s3]`;
     const vx = `[s1][s2]xfade=transition=fade:duration=${X}:offset=${(D1 - X).toFixed(2)}[x1];[x1][s3]xfade=transition=fade:duration=${X}:offset=${(D1 + D2 - 2 * X).toFixed(2)},format=yuv420p[v]`;
     const ms = Math.round((D1 - X) * 1e3);
@@ -1588,6 +1590,7 @@ async function buildAd(ex, lang, voice, copy, key) {
       "-i", fileOf(ex.after),
       "-f", "lavfi", "-i", `color=c=0x0c0b10:s=${W}x${H}:d=${D3.toFixed(2)}:r=30`,
       "-i", voiceFile,
+      "-loop", "1", "-framerate", "30", "-t", String(D2 + 0.5), "-i", fileOf(ex.before),
       "-filter_complex", [s1, s2, s3, vx, ax].join(";"),
       "-map", "[v]", "-map", "[a]", "-t", T.toFixed(2),
       "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", "30",
